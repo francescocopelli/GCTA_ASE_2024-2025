@@ -66,6 +66,14 @@
   - [ ] Access and review individual auction details.
   - [ ] Modify details of specific auctions.
   - [ ] View complete auction market history.
+     
+  ## Admin Optional Functionalities
+- [ ] **User Analytics**: Generate user activity reports for analysis.
+- [ ] **Account Suspension**: Suspend user accounts for rule violations.
+- [ ] **Custom Notifications**: Send custom notifications to specific users.
+- [ ] **Enhanced Security Logs**: Track and review security-related events.
+- [ ] **System Backup**: Schedule automatic backups for system data.
+- [ ] **Audit Trails**: Implement audit trails for admin actions.
 
 ## Player Functionalities (Mandatory)
 - [ ] **Account Management**:
@@ -92,4 +100,15 @@
   - [ ] Receive currency when others win personal auctions.
   - [ ] Refund currency if a bid is lost.
   - [ ] Ensure auction integrity and prevent tampering.
+     
+    ## Player Optional Functionalities
+- [ ] **Friend List Management**: Add or remove friends in the player profile.
+- [ ] **Direct Messaging**: Send and receive messages with other players.
+- [ ] **Achievements**: Track and display achievements in the player's profile.
+- [ ] **Leaderboards**: Access leaderboards for top players and performance.
+- [ ] **In-Game Events**: Participate in scheduled in-game events.
+- [ ] **Profile Customization**: Customize the appearance of player profiles.
+- [ ] **Gift System**: Send gifts to other players.
+- [ ] **Daily Rewards**: Claim daily login rewards.
+- [ ] **Push Notifications**: Enable notifications for game updates and events.
 
