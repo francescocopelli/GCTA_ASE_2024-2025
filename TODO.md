@@ -67,7 +67,7 @@
   - [ ] Modify details of specific auctions.
   - [ ] View complete auction market history.
      
-  ## Admin Optional Functionalities
+## Admin Optional Functionalities
 - [ ] **User Analytics**: Generate user activity reports for analysis.
 - [ ] **Account Suspension**: Suspend user accounts for rule violations.
 - [ ] **Custom Notifications**: Send custom notifications to specific users.
@@ -101,7 +101,7 @@
   - [ ] Refund currency if a bid is lost.
   - [ ] Ensure auction integrity and prevent tampering.
      
-    ## Player Optional Functionalities
+## Player Optional Functionalities
 - [ ] **Friend List Management**: Add or remove friends in the player profile.
 - [ ] **Direct Messaging**: Send and receive messages with other players.
 - [ ] **Achievements**: Track and display achievements in the player's profile.
