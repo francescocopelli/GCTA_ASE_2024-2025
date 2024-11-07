@@ -1,0 +1,64 @@
+services:
+  gateway:
+    build: ./gateway
+    ports:
+      - 80:80
+    depends_on:
+      - db
+      - user_admin
+      - user_admin_auth
+      - user_player
+      - user_player_auth
+    networks:
+      - microservice-network
+
+  # Importing the services
+  user_admin:
+    build: ./user_admin
+    depends_on:
+      - db-manager
+    networks:
+      - microservice-network
+
+  user_admin_auth:
+    build: ./user_admin_auth
+    depends_on:
+      - db-manager
+    networks:
+      - microservice-network
+
+  user_player:
+    build: ./user_player
+    depends_on:
+      - db-manager
+    networks:
+      - microservice-network
+
+  user_player_auth:
+    build: ./user_player_auth
+    depends_on:
+      - db-manager
+    networks:
+      - microservice-network
+
+  db-manager:
+    build: ./dbm
+    depends_on:
+      - db
+    networks:
+      - microservice-network
+
+  db:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - dbdata:/data/db
+    command: mongod --quiet --logpath /dev/null
+
+volumes:
+  dbdata:
+  
+networks:
+  microservice-network:
+    driver: bridge
