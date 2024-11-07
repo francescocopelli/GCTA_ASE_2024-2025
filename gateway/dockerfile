@@ -1,0 +1,9 @@
+# Usa l'immagine ufficiale di Nginx
+FROM nginx:latest
+
+# Copia il file di configurazione nginx.conf all'interno del container
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Espone la porta 80 per il traffico HTTP
+
+EXPOSE 80
