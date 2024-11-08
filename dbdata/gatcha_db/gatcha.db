@@ -1,0 +1,18 @@
+-- Creazione della tabella GachaItems
+CREATE TABLE GachaItems (
+    gacha_id INTEGER PRIMARY KEY,             -- ID unico per ogni item gacha
+    name VARCHAR(255) NOT NULL,               -- Nome dell'item gacha
+    rarity TEXT NOT NULL CHECK (rarity IN ('common', 'rare', 'epic', 'legendary')),  -- Livello di rarità
+    description TEXT,                         -- Descrizione dell'item gacha
+    status TEXT NOT NULL CHECK (status IN ('available', 'out_of_stock'))  -- Stato dell'item nel catalogo
+);
+
+-- Creazione della tabella UserGachaInventory
+CREATE TABLE UserGachaInventory (
+    inventory_id INTEGER PRIMARY KEY,            -- ID unico per l'inventario
+    user_id INTEGER NOT NULL,                    -- Riferimento all'utente
+    gacha_id INTEGER NOT NULL,                   -- Riferimento all'item gacha
+    acquired_date DATETIME,                      -- Data e ora di acquisizione
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),  -- Chiave esterna riferita a Users
+    FOREIGN KEY (gacha_id) REFERENCES GachaItems(gacha_id)  -- Chiave esterna riferita a GachaItems
+);

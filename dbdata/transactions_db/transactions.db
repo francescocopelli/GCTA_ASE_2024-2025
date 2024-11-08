@@ -1,0 +1,9 @@
+-- Creazione della tabella Transactions
+CREATE TABLE Transactions (
+    transaction_id INTEGER PRIMARY KEY,           -- ID unico per ogni transazione
+    user_id INTEGER NOT NULL,                     -- Riferimento all'utente
+    transaction_type TEXT NOT NULL CHECK (transaction_type IN ('roll_purchase', 'auction_bid', 'top_up')),  -- Tipo di transazione
+    amount INTEGER NOT NULL,                      -- Ammontare della valuta coinvolta
+    transaction_date DATETIME NOT NULL,           -- Data e ora della transazione
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)  -- Chiave esterna a Users
+);

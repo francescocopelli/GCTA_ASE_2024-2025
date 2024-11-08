@@ -1,0 +1,25 @@
+-- Creazione della tabella Auctions
+CREATE TABLE Auctions (
+    auction_id INTEGER PRIMARY KEY,               -- ID unico per ogni asta
+    gacha_id INTEGER NOT NULL,                    -- Riferimento all'item gacha in vendita
+    seller_id INTEGER NOT NULL,                   -- Riferimento all'utente venditore
+    base_price INTEGER NOT NULL,                  -- Prezzo di partenza dell'asta
+    highest_bid INTEGER,                          -- Offerta massima attuale
+    buyer_id INTEGER,                             -- Riferimento all'utente acquirente (opzionale)
+    status TEXT NOT NULL CHECK (status IN ('active', 'expired', 'completed')),  -- Stato dell'asta
+    end_time DATETIME NOT NULL,                   -- Ora di fine dell'asta
+    FOREIGN KEY (gacha_id) REFERENCES GachaItems(gacha_id),  -- Chiave esterna a GachaItems
+    FOREIGN KEY (seller_id) REFERENCES Users(user_id),       -- Chiave esterna a Users (venditore)
+    FOREIGN KEY (buyer_id) REFERENCES Users(user_id)         -- Chiave esterna a Users (acquirente)
+);
+
+-- Creazione della tabella Bids
+CREATE TABLE Bids (
+    bid_id INTEGER PRIMARY KEY,                  -- ID unico per ogni offerta
+    auction_id INTEGER NOT NULL,                 -- Riferimento all'asta
+    user_id INTEGER NOT NULL,                    -- Riferimento all'utente offerente
+    bid_amount INTEGER NOT NULL,                 -- Ammontare dell'offerta
+    bid_time DATETIME NOT NULL,                  -- Data e ora dell'offerta
+    FOREIGN KEY (auction_id) REFERENCES Auctions(auction_id),  -- Chiave esterna a Auctions
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)            -- Chiave esterna a Users
+);
