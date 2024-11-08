@@ -1,8 +1,8 @@
 services:
-  gateway:
-    build: ./gateway
+  gateway_user:
+    build: ./user_gateway
     ports:
-      - 80:80
+      - 8080:80
     depends_on:
       - db
       - user_admin
@@ -12,6 +12,18 @@ services:
     networks:
       - microservice-network
 
+  gateway_admin:
+    build: ./admin_gateway
+    ports:
+      - 8081:80
+    depends_on:
+      - db
+      - user_admin
+      - user_admin_auth
+      - user_player
+      - user_player_auth
+    networks:
+      - microservice-network
   # Importing the services
   user_admin:
     build: ./user_admin
