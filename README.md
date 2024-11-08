@@ -20,6 +20,10 @@ In order to start using the GCTA game, you have to:
     ```sh
     docker-compose up --build -d
     ```
+    If you want to stop the services run:
+    ```sh
+    docker-compose down
+    ```
 
 4. **Access the application**
     - The application should now be running. You can access it via `http://localhost:8080` for the user services and via `http://localhost:8081` for the admin related operations.
