@@ -18,11 +18,11 @@ In order to start using the GCTA game, you have to:
     ```
 3. **Build and run the services**
     ```sh
-    docker-compose up --build -d
+    docker compose up --build -d
     ```
     If you want to stop the services run:
     ```sh
-    docker-compose down
+    docker compose down
     ```
 
 4. **Access the application**
