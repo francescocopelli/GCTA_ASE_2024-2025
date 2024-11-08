@@ -1,8 +1,8 @@
 # 📋 ASE Lab 24/25 Project - Gacha Game Backend: To-Do List
 
 ## Project Setup
-- [ ] Initialize GitHub repository and set up README with a "Get Started" section.
-- [ ] Configure Docker Compose for microservices architecture.
+- [x] Initialize GitHub repository and set up README with a "Get Started" section.
+- [x] Configure Docker Compose for microservices architecture.
 - [ ] Implement REST API endpoints for each microservice.
 - [ ] Ensure inter-service communication via REST API.
 
