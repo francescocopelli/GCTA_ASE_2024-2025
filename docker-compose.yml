@@ -52,7 +52,29 @@ services:
       - db-manager
     networks:
       - microservice-network
+  
+  transaction:
+    build: ./transaction
+    depends_on:
+      - db-manager
+    networks:
+      - microservice-network
+  
+  auction:
+    build: ./auction
+    depends_on:
+      - db-manager
+    networks:
+      - microservice-network
+  
+  gatcha:
+    build: ./gatcha
+    depends_on:
+      - db-manager
+    networks:
+      - microservice-network
 
+  
   db-manager:
     build: ./dbm
     depends_on:
