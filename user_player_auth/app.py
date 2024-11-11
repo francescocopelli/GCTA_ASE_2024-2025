@@ -1,20 +1,26 @@
 import requests
-from flask import Flask
+from flask import Flask, request
 
 app = Flask(__name__)
 
-@app.route('/user/player_auth/login', methods=['POST'])
-def login(username, password, user_type):
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.json['username']
+    password = request.json['password']
     url = f"http://db-manager:5000/login/PLAYER"
     data = {
         "username": username,
         "password": password
     }
     response = requests.post(url, json=data)
+    print(response.json())
     return response.json()
 
-@app.route('/user/player_auth/register', methods=['POST'])
-def register(username, password, email, user_type):
+@app.route('/register', methods=['POST'])
+def register():
+    username = request.json['username']
+    password = request.json['password']
+    email = request.json['email']
     url = f"http://db-manager:5000/register/PLAYER"
     data = {
         "username": username,

@@ -3,8 +3,8 @@ from flask import Flask
 
 app = Flask(__name__)
 
-@app.route('/user/admin_auth/login', methods=['POST'])
-def login(username, password, user_type):
+@app.route('/login', methods=['POST'])
+def login(username, password):
     url = f"http://db-manager:5000/login/ADMIN"
     data = {
         "username": username,
@@ -13,8 +13,8 @@ def login(username, password, user_type):
     response = requests.post(url, json=data)
     return response.json()
 
-@app.route('/user/admin_auth/register', methods=['POST'])
-def register(username, password, email, user_type):
+@app.route('/register', methods=['POST'])
+def register(username, password, email):
     url = f"http://db-manager:5000/register/ADMIN"
     data = {
         "username": username,
