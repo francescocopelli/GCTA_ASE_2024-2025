@@ -1,17 +1,21 @@
-# create an hello world endpoint
-from flask import Flask, make_response
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# BASE_URL = '/users/admin'
+@app.route('/gacha/roll', methods=['POST'])
+def roll_gacha():
+    # Codice per effettuare un roll di un gacha item
+    pass
 
-@app.route('/')
-def hello_world():
-    return make_response('Hello, World!\n', 200)
+@app.route('/gacha/inventory/<user_id>', methods=['GET'])
+def get_user_inventory(user_id):
+    # Codice per recuperare l'inventario gacha di un utente
+    pass
 
-@app.route('/prova')
-def prova():
-    return make_response('Prova\n', 200)  
+@app.route('/gacha/inventory', methods=['POST'])
+def add_to_inventory():
+    # Codice per aggiungere un gacha all'inventario di un utente
+    pass
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=5003)

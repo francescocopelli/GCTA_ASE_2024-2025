@@ -1,17 +1,21 @@
-# create an hello world endpoint
-from flask import Flask, make_response
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# BASE_URL = '/users/admin'
+@app.route('/auctions/all', methods=['GET'])
+def get_all_auctions():
+    # Codice per recuperare tutte le aste attive o scadute
+    pass
 
-@app.route('/')
-def hello_world():
-    return make_response('Hello, World!\n', 200)
+@app.route('/auctions/add', methods=['POST'])
+def add_auction():
+    # Codice per aggiungere una nuova asta
+    pass
 
-@app.route('/prova')
-def prova():
-    return make_response('Prova\n', 200)  
+@app.route('/auctions/end', methods=['POST'])
+def end_auction():
+    # Codice per terminare un'asta
+    pass
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=5002)
