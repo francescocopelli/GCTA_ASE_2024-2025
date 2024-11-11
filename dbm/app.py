@@ -5,7 +5,7 @@ import uuid
 
 app = Flask(__name__)
 
-DATABASE = 'USERS.db'
+DATABASE = './users_db/user.db'
 
 # Funzione di connessione al database
 def get_db_connection():
@@ -26,7 +26,7 @@ def generate_session_token():
 def register(user_type):
     if user_type not in ['PLAYER', 'ADMIN']:
         return jsonify({'error': 'Invalid user type'}), 400
-
+    
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
