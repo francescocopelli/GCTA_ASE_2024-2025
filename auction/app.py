@@ -12,7 +12,7 @@ def get_db_connection():
     return conn
 
 # Endpoint to retrieve all active or expired auctions
-@app.route('/auctions/all', methods=['GET'])
+@app.route('/all', methods=['GET'])
 def get_all_auctions():
     # Optional query parameter to filter by auction status (active or expired)
     status = request.args.get('status')
@@ -37,7 +37,7 @@ def get_all_auctions():
     return jsonify({'auctions': result}), 200
 
 # Endpoint to add a new auction
-@app.route('/auctions/add', methods=['POST'])
+@app.route('/add', methods=['POST'])
 def add_auction():
     # Extract auction details from the request JSON
     data = request.get_json()
@@ -65,7 +65,7 @@ def add_auction():
     return jsonify({'message': 'Auction created successfully', 'auction_id': auction_id}), 201
 
 # Endpoint to end an auction manually
-@app.route('/auctions/end', methods=['POST'])
+@app.route('/end', methods=['POST'])
 def end_auction():
     # Extract the auction ID from the request JSON
     data = request.get_json()

@@ -67,8 +67,8 @@ services:
     networks:
       - microservice-network
   
-  gatcha:
-    build: ./gatcha
+  gacha:
+    build: ./gacha
     depends_on:
       - db-manager
     networks:

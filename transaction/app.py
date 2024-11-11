@@ -13,7 +13,7 @@ def get_db_connection():
     return conn
 
 # Endpoint to make a payment, used for purchasing a gacha roll or placing an auction bid
-@app.route('/transaction/make_payment', methods=['POST'])
+@app.route('/make_payment', methods=['POST'])
 def make_payment():
     # Extracting payment details from the request JSON
     data = request.get_json()
@@ -46,7 +46,7 @@ def make_payment():
         return jsonify({'error': 'Insufficient funds'}), 403
 
 # Endpoint to lock funds for an auction bid, ensuring the user can't exceed their balance during bidding
-@app.route('/transaction/auction_lock', methods=['POST'])
+@app.route('/auction_lock', methods=['POST'])
 def auction_lock():
     # Extracting auction lock details from the request JSON
     data = request.get_json()
@@ -78,7 +78,7 @@ def auction_lock():
         return jsonify({'error': 'Insufficient funds for bid'}), 403
 
 # Endpoint to remove a lock from a user's currency after an auction ends or bid is canceled
-@app.route('/transaction/auction_lock/<username>/<auction_id>', methods=['DELETE'])
+@app.route('/auction_lock/<username>/<auction_id>', methods=['DELETE'])
 def remove_auction_lock(username, auction_id):
     # This would typically involve returning locked funds to the user's balance
     # since the auction has ended or the bid has been canceled.

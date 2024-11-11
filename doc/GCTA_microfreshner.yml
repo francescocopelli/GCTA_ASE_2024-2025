@@ -16,11 +16,11 @@ topology_template:
       - interaction:
           node: Auctions
           relationship: c
-    Gatcha_Service:
+    gacha_Service:
       type: micro.nodes.Service
       requirements:
       - interaction:
-          node: Gatchas
+          node: gachas
           relationship: c
     User_Admin_Service:
       type: micro.nodes.Service
@@ -52,7 +52,7 @@ topology_template:
       type: micro.nodes.Service
       requirements:
       - interaction: Users
-    Gatchas:
+    gachas:
       type: micro.nodes.Datastore
     Transactions:
       type: micro.nodes.Datastore
@@ -63,7 +63,7 @@ topology_template:
       requirements:
       - interaction: Transactions_Service
       - interaction: Auction_Service
-      - interaction: Gatcha_Service
+      - interaction: gacha_Service
       - interaction: User_Player_Service
       - interaction: User_Player_Auth_Service
     Api Gateway Admin:
@@ -73,7 +73,7 @@ topology_template:
       - interaction: User_Admin_Service
       - interaction: Transactions_Service
       - interaction: Auction_Service
-      - interaction: Gatcha_Service
+      - interaction: gacha_Service
   groups:
     adad:
       type: micro.groups.Edge

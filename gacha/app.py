@@ -12,7 +12,7 @@ def get_db_connection():
     return conn
 
 # Endpoint to perform a gacha roll for a random item
-@app.route('/gacha/roll', methods=['POST'])
+@app.route('/roll', methods=['POST'])
 def roll_gacha():
     # Extract roll details from request JSON
     data = request.get_json()
@@ -61,7 +61,7 @@ def roll_gacha():
         return jsonify({'error': 'Insufficient funds for gacha roll'}), 403
 
 # Endpoint to retrieve a user's gacha inventory
-@app.route('/gacha/inventory/<user_id>', methods=['GET'])
+@app.route('/inventory/<user_id>', methods=['GET'])
 def get_user_inventory(user_id):
     # Connect to the database
     conn = get_db_connection()
@@ -87,7 +87,7 @@ def get_user_inventory(user_id):
     return jsonify({'inventory': inventory_list}), 200
 
 # Endpoint to add a gacha item to a user's inventory
-@app.route('/gacha/inventory', methods=['POST'])
+@app.route('/inventory', methods=['POST'])
 def add_to_inventory():
     # Extract inventory details from request JSON
     data = request.get_json()
