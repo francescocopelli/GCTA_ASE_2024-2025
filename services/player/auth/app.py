@@ -35,7 +35,6 @@ def logout():
     session_token = request.json['session_token']
     url = f"http://db-manager:5000/logout/PLAYER"
     data = {
-        
         "session_token": session_token
     }
     response = requests.post(url, json=data)

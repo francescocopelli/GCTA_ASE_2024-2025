@@ -1,7 +1,11 @@
+import logging
 from flask import Flask, request, jsonify, make_response
 import sqlite3
 import hashlib
 import uuid
+
+# Configura il logging
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
@@ -113,39 +117,36 @@ def change_password(user_type):
         return jsonify({'error': 'Invalid credentials'}), 401
 
 # Endpoint per il logout
-@app.route('/logout', methods=['POST'])
-def logout():
-    data = request.get_json()
-    session_token = data.get('session_token')
+@app.route('/logout/<user_type>', methods=['POST'])
+def logout(user_type):
+    if user_type not in ['PLAYER', 'ADMIN']:
+        return jsonify({'error': 'Invalid user type'}), 400
+    
+    session_token = request.json.get('session_token')
+    if not session_token:
+        return jsonify({'error': 'Session token is required'}), 400
+
     conn = get_db_connection()
     cursor = conn.cursor()
 
     # Verifica se il token si trova nella tabella PLAYER
-    query_player = "SELECT session_token FROM PLAYER WHERE session_token = ?"
+    query_player = "SELECT session_token FROM "+user_type+" WHERE session_token = ?"
     cursor.execute(query_player, (session_token,))
-    player_token = cursor.fetchone()
+    token_found = cursor.fetchone()
 
-    # Verifica se il token si trova nella tabella ADMIN
-    query_admin = "SELECT session_token FROM ADMIN WHERE session_token = ?"
-    cursor.execute(query_admin, (session_token,))
-    admin_token = cursor.fetchone()
-
-    if player_token:
-        # Elimina il token dalla tabella PLAYER
-        query_delete_player = "UPDATE PLAYER SET session_token = 0 WHERE session_token = ?"
-        cursor.execute(query_delete_player, (session_token,))
-    elif admin_token:
+    if token_found:
         # Elimina il token dalla tabella ADMIN
-        query_delete_admin = "UPDATE ADMIN SET session_token = 0 WHERE session_token = ?"
+        query_delete_admin = "UPDATE "+user_type+" SET session_token = 0 WHERE session_token = ?"
         cursor.execute(query_delete_admin, (session_token,))
     else:
+        conn.close()
         return jsonify({'error': 'Session token not found'}), 404
 
     conn.commit()
     cursor.close()
     conn.close()
 
-    return jsonify({'message': 'Logout successful'})
+    return jsonify({'message': 'Logout successful'}), 200
 
 # Endpoint per visualizzare il saldo della valuta di gioco
 @app.route('/balance/<user_type>', methods=['GET'])
