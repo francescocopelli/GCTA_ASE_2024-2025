@@ -1,6 +1,6 @@
 services:
   gateway_user:
-    build: ./user_gateway
+    build: ./services/player_gateway
     ports:
       - 8080:80
     depends_on:
@@ -13,7 +13,7 @@ services:
       - microservice-network
 
   gateway_admin:
-    build: ./admin_gateway
+    build: ./services/admin_gateway
     ports:
       - 8081:80
     depends_on:
@@ -26,49 +26,49 @@ services:
       - microservice-network
   # Importing the services
   user_admin:
-    build: ./user_admin
+    build: ./services/admin
     depends_on:
       - db-manager
     networks:
       - microservice-network
 
   user_admin_auth:
-    build: ./user_admin_auth
+    build: ./services/admin/auth
     depends_on:
       - db-manager
     networks:
       - microservice-network
 
   user_player:
-    build: ./user_player
+    build: ./services/player
     depends_on:
       - db-manager
     networks:
       - microservice-network
 
   user_player_auth:
-    build: ./user_player_auth
+    build: ./services/player/auth
     depends_on:
       - db-manager
     networks:
       - microservice-network
   
   transaction:
-    build: ./transaction
+    build: ./services/transaction
     depends_on:
       - db-manager
     networks:
       - microservice-network
   
   auction:
-    build: ./auction
+    build: ./services/auction
     depends_on:
       - db-manager
     networks:
       - microservice-network
   
   gacha:
-    build: ./gacha
+    build: ./services/gacha
     depends_on:
       - db-manager
     networks:
@@ -76,7 +76,7 @@ services:
 
   
   db-manager:
-    build: ./dbm
+    build: ./services/dbm
     depends_on:
       - db
     networks:
