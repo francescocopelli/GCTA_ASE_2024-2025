@@ -1,17 +1,57 @@
-# create an hello world endpoint
-from flask import Flask, make_response
+import requests
+from flask import Flask, request
 
 app = Flask(__name__)
 
-# BASE_URL = '/users/admin'
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.json['username']
+    password = request.json['password']
+    url = f"http://db-manager:5000/login/ADMIN"
+    data = {
+        "username": username,
+        "password": password
+    }
+    response = requests.post(url, json=data)
+    print(response.json())
+    return response.json()
 
-@app.route('/')
-def hello_world():
-    return make_response('Hello, World!\n', 200)
+@app.route('/register', methods=['POST'])
+def register():
+    username = request.json['username']
+    password = request.json['password']
+    email = request.json['email']
+    url = f"http://db-manager:5000/register/ADMIN"
+    data = {
+        "username": username,
+        "password": password,
+        "email": email
+    }
+    response = requests.post(url, json=data)
+    return response.json()
 
-@app.route('/prova')
-def prova():
-    return make_response('Prova\n', 200)  
+@app.route('/logout', methods=['POST'])
+def logout():
+    username = request.json['username']
+    url = f"http://db-manager:5000/logout/ADMIN"
+    data = {
+        "username": username
+    }
+    response = requests.post(url, json=data)
+    return response.json()
 
+@app.route('/reset_pwd', methods=['POST'])
+def reset_password():
+    email = request.json['email']
+    new_password = request.json['new_password']
+    url = f"http://db-manager:5000/reset_pwd/ADMIN"
+    data = {
+        "email": email,
+        "new_password": new_password
+    }
+    response = requests.post(url, json=data)
+    return response.json()
+
+# Esempio di utilizzo
 if __name__ == '__main__':
     app.run()
