@@ -15,7 +15,7 @@ info:
       - GACHA: Handles gacha items, inventory management, and gacha rolls.
       
 servers:
-  - url: http://localhost:5000
+  - url: http://localhost:8080
     description: Local development server
 tags:
   - name: AUTH
