@@ -32,10 +32,11 @@ def register():
 
 @app.route('/logout', methods=['POST'])
 def logout():
-    username = request.json['username']
+    session_token = request.json['session_token']
     url = f"http://db-manager:5000/logout/PLAYER"
     data = {
-        "username": username
+        
+        "session_token": session_token
     }
     response = requests.post(url, json=data)
     return response.json()
