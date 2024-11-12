@@ -37,7 +37,7 @@ def register(user_type):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        query = f"INSERT INTO {user_type} (username, password, email, currency_balance) VALUES (?, ?, ?, 0)"
+        query = f"INSERT INTO {user_type} (username, password, email, currency_balance,session_token) VALUES (?, ?, ?, 0,0)"
         cursor.execute(query, (username, hashed_password, email))
         conn.commit()
         conn.close()
@@ -73,8 +73,8 @@ def login(user_type):
         conn.close()
 
         # Crea una risposta e imposta il cookie
-        response = make_response(jsonify({'message': 'Login successful'}))
-        response.set_cookie('session_token', session_token, httponly=True, secure=True)
+        response = make_response(jsonify({'message': 'Login successful', 'session_token': session_token}))
+        #response.set_cookie('session_token', session_token, httponly=True, secure=True)
 
         return response
     else:

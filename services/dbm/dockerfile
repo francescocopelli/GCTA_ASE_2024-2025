@@ -2,7 +2,6 @@ FROM python:3.8-slim
 
 WORKDIR /app
 COPY . /app/
-COPY ./users_db/user.db /app/users_db/user.db
 
 RUN apt-get update && apt-get install -y gcc && apt install libsqlite3-dev -y
 RUN pip install -r requirements.txt
