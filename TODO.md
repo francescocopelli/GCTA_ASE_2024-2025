@@ -50,7 +50,7 @@
 # 📋 Core Functionalities To-Do List
 
 ## Admin Functionalities (Mandatory)
-- [ ] **Login/Logout**: Allow admin to log in and out of the system.
+- [x] **Login/Logout**: Allow admin to log in and out of the system.
 - [ ] **User Management**:
   - [ ] View all user accounts/profiles.
   - [ ] Access and modify specific user accounts/profiles.
@@ -80,7 +80,7 @@
   - [ ] Create game account/profile.
   - [ ] Delete game account/profile.
   - [ ] Modify account/profile details.
-  - [ ] Log in and out of the system.
+  - [x] Log in and out of the system.
   - [ ] Ensure data security for account/profile.
 - [ ] **Gacha Collection**:
   - [ ] View personal gacha collection.
