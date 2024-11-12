@@ -5,7 +5,7 @@ info:
   description: API for managing gacha rolls, user inventories, auctions, transactions, and user authentication.
 
 servers:
-  - url: http://localhost:5000
+  - url: http://localhost:8080
     description: Local development server
 
 tags:
