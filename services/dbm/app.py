@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 import sqlite3
 import hashlib
 import uuid
@@ -63,15 +63,25 @@ def login(user_type):
     query = f"SELECT * FROM {user_type} WHERE username = ? AND password = ?"
     cursor.execute(query, (username, hashed_password))
     user = cursor.fetchone()
-    conn.close()
 
     if user:
         session_token = generate_session_token()
-        # Idealmente, salva il session_token in un database o cache
-        return jsonify({'message': 'Login successful', 'session_token': session_token})
-    else:
-        return jsonify({'error': 'Invalid credentials'}), 401
+        query = f"UPDATE {user_type} SET session_token = ? WHERE username = ?"
+        cursor.execute(query, (session_token, username))
+        conn.commit()
+        cursor.close()
+        conn.close()
 
+        # Crea una risposta e imposta il cookie
+        response = make_response(jsonify({'message': 'Login successful'}))
+        response.set_cookie('session_token', session_token, httponly=True, secure=True)
+
+        return response
+    else:
+        cursor.close()
+        conn.close()
+        return jsonify({'error': 'Invalid credentials'}), 401
+    
 # Endpoint per cambiare la password
 @app.route('/change_password/<user_type>', methods=['POST'])
 def change_password(user_type):
@@ -107,7 +117,34 @@ def change_password(user_type):
 def logout():
     data = request.get_json()
     session_token = data.get('session_token')
-    # Cancella o invalida il session token; in un'applicazione reale, rimuoveresti il token dal database o cache.
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Verifica se il token si trova nella tabella PLAYER
+    query_player = "SELECT session_token FROM PLAYER WHERE session_token = ?"
+    cursor.execute(query_player, (session_token,))
+    player_token = cursor.fetchone()
+
+    # Verifica se il token si trova nella tabella ADMIN
+    query_admin = "SELECT session_token FROM ADMIN WHERE session_token = ?"
+    cursor.execute(query_admin, (session_token,))
+    admin_token = cursor.fetchone()
+
+    if player_token:
+        # Elimina il token dalla tabella PLAYER
+        query_delete_player = "UPDATE PLAYER SET session_token = 0 WHERE session_token = ?"
+        cursor.execute(query_delete_player, (session_token,))
+    elif admin_token:
+        # Elimina il token dalla tabella ADMIN
+        query_delete_admin = "UPDATE ADMIN SET session_token = 0 WHERE session_token = ?"
+        cursor.execute(query_delete_admin, (session_token,))
+    else:
+        return jsonify({'error': 'Session token not found'}), 404
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
     return jsonify({'message': 'Logout successful'})
 
 # Endpoint per visualizzare il saldo della valuta di gioco
