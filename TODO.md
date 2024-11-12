@@ -15,7 +15,7 @@
   - [ ] Verify rarity distribution consistency for gacha rolls under high request volumes.
 
 ## Security
-- [ ] **API Segmentation**: Separate admin API access on a distinct Docker network.
+- [x] **API Segmentation**: Separate admin API access on a distinct Docker network.
 - [ ] **HTTPS**: Enable HTTPS for all services using self-signed certificates.
   - [ ] Self-signed cerficate creation
 - [ ] **Data Encryption**: Encrypt sensitive data in the database.
