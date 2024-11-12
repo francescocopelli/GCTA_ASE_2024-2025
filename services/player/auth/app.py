@@ -40,18 +40,6 @@ def logout():
     response = requests.post(url, json=data)
     return response.json()
 
-@app.route('/reset_pwd', methods=['POST'])
-def reset_password():
-    email = request.json['email']
-    new_password = request.json['new_password']
-    url = f"http://db-manager:5000/reset_pwd/PLAYER"
-    data = {
-        "email": email,
-        "new_password": new_password
-    }
-    response = requests.post(url, json=data)
-    return response.json()
-
 # Esempio di utilizzo
 if __name__ == '__main__':
     app.run()

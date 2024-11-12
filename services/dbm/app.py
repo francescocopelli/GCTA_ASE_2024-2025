@@ -85,36 +85,6 @@ def login(user_type):
         cursor.close()
         conn.close()
         return jsonify({'error': 'Invalid credentials'}), 401
-    
-# Endpoint per cambiare la password
-@app.route('/change_password/<user_type>', methods=['POST'])
-def change_password(user_type):
-    if user_type not in ['PLAYER', 'ADMIN']:
-        return jsonify({'error': 'Invalid user type'}), 400
-
-    data = request.get_json()
-    username = data.get('username')
-    old_password = data.get('old_password')
-    new_password = data.get('new_password')
-    hashed_old_password = hash_password(old_password)
-    hashed_new_password = hash_password(new_password)
-
-    # Verifica delle credenziali e aggiornamento password
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    query = f"SELECT * FROM {user_type} WHERE username = ? AND password = ?"
-    cursor.execute(query, (username, hashed_old_password))
-    user = cursor.fetchone()
-
-    if user:
-        update_query = f"UPDATE {user_type} SET password = ? WHERE username = ?"
-        cursor.execute(update_query, (hashed_new_password, username))
-        conn.commit()
-        conn.close()
-        return jsonify({'message': 'Password changed successfully'})
-    else:
-        conn.close()
-        return jsonify({'error': 'Invalid credentials'}), 401
 
 # Endpoint per il logout
 @app.route('/logout/<user_type>', methods=['POST'])
@@ -123,7 +93,7 @@ def logout(user_type):
         return jsonify({'error': 'Invalid user type'}), 400
     
     session_token = request.json.get('session_token')
-    if not session_token:
+    if not session_token or session_token == "0":
         return jsonify({'error': 'Session token is required'}), 400
 
     conn = get_db_connection()
