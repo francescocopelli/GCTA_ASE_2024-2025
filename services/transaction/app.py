@@ -1,10 +1,14 @@
+import logging
 from flask import Flask, request, jsonify
 import sqlite3
 import hashlib
 
+# Configura il logging
+logging.basicConfig(level=logging.DEBUG)
+
 app = Flask(__name__)
 
-DATABASE = 'USERS.db'
+DATABASE = './transactions_db/transactions.db'
 
 # Helper function to connect to the database
 def get_db_connection():
