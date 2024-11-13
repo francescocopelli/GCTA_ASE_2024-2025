@@ -73,6 +73,8 @@ services:
       - db-manager
     networks:
       - microservice-network
+    volumes:
+      - ./dbdata/gacha_db:/app/gacha.db
 
   
   db-manager:
@@ -82,7 +84,7 @@ services:
     networks:
       - microservice-network
     volumes:
-      - ./users_db:/app/user.db
+      - ./services/dbm/users_db:/app/user.db
 
   db:
     image: mongo:latest
