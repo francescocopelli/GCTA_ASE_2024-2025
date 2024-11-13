@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
-DATABASE = './users_db/user.db'
+DATABASE = './users.db/user.db'
 
 # Funzione di connessione al database
 def get_db_connection():
