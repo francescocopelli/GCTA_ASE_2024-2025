@@ -2,6 +2,7 @@ import logging
 from flask import Flask, request, jsonify
 import sqlite3
 import hashlib
+import uuid
 
 # Configura il logging
 logging.basicConfig(level=logging.DEBUG)
@@ -16,38 +17,65 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
-# Endpoint to make a payment, used for purchasing a gacha roll or placing an auction bid
-@app.route('/make_payment', methods=['POST'])
-def make_payment():
-    # Extracting payment details from the request JSON
+@app.route('/add_transaction', methods=['POST'])
+def add_transaction():
     data = request.get_json()
-    username = data.get('username')
-    transaction_type = data.get('transaction_type')
-    amount = data.get('amount')
-    
-    # Checking if all required fields are provided
-    if not all([username, transaction_type, amount]):
-        return jsonify({'error': 'Missing data for transaction'}), 400
-    
-    # Connecting to the database
+    logging.debug(data)
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    # Check if the user has enough funds for the payment
-    cursor.execute("SELECT currency_balance FROM PLAYER WHERE username = ?", (username,))
-    user = cursor.fetchone()
-    
-    if user and user['currency_balance'] >= amount:
-        # Update user balance after payment
-        new_balance = user['currency_balance'] - amount
-        cursor.execute("UPDATE PLAYER SET currency_balance = ? WHERE username = ?", (new_balance, username))
-        conn.commit()
-        conn.close()
-        
-        return jsonify({'message': 'Payment successful', 'new_balance': new_balance}), 200
+    transaction_id = str(uuid.uuid4())
+     # Derive transaction type based on the service
+    if 'auction' in request.path:
+        transaction_type = 'auction' + data["type"]
+    elif 'gacha' in request.path:
+        transaction_type = 'roll'
     else:
-        conn.close()
-        return jsonify({'error': 'Insufficient funds'}), 403
+        transaction_type = 'unknown'
+        
+    cursor.execute("INSERT INTO TRANSACTIONS (transaction_id, user_id, transaction_type, amount) VALUES (?, ?, ?, ?)",
+                   (transaction_id, data['user_id'], transaction_type, data['amount']))
+   
+    # Log the derived transaction type
+    logging.debug(f"Derived transaction type: {transaction_type}")
+    conn.commit()
+    conn.close()
+    return jsonify({'message': 'Transaction added successfully'}), 200
+
+@app.route('/get_transaction', methods=['GET'])
+def get_transaction():
+    transaction_id = request.args.get('transaction_id')
+    if not transaction_id:
+        return jsonify({'error': 'Missing transaction_id parameter'}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM TRANSACTIONS WHERE transaction_id = ?", (transaction_id,))
+    transaction = cursor.fetchone()
+    conn.close()
+    
+    if transaction:
+        return jsonify(dict(transaction)), 200
+    else:
+        return jsonify({'error': 'Transaction not found'}), 404
+
+# Endpoint to retrieve all transactions for a specific user
+@app.route('/get_user_transactions', methods=['GET'])
+def get_user_transactions():
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Missing user_id parameter'}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM TRANSACTIONS WHERE user_id = ?", (user_id,))
+    transactions = cursor.fetchall()
+    conn.close()
+    
+    if transactions:
+        return jsonify([dict(transaction) for transaction in transactions]), 200
+    else:
+        return jsonify({'error': 'No transactions found for the user'}), 404
+    
 
 # Endpoint to lock funds for an auction bid, ensuring the user can't exceed their balance during bidding
 @app.route('/auction_lock', methods=['POST'])
