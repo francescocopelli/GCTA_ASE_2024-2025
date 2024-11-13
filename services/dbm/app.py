@@ -137,5 +137,75 @@ def get_balance(user_type):
     else:
         return jsonify({'error': 'User not found'}), 404
 
+# Delete profile
+@app.route('/delete/<user_type>', methods=['DELETE'])
+def delete(user_type):
+    if user_type not in ['PLAYER', 'ADMIN']:
+        return jsonify({'error': 'Invalid user type'}), 400
+
+    session_token = request.json.get('session_token')
+    if not session_token:
+        return jsonify({'error': 'Session token is required'}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Verifica se il token si trova nella tabella PLAYER
+    query_player = "SELECT * FROM "+user_type+" WHERE session_token = ?"
+    cursor.execute(query_player, (session_token,))
+    token_found = cursor.fetchone()
+
+    if token_found:
+        # Elimina il token dalla tabella ADMIN
+        query_delete = "DELETE FROM "+user_type+" WHERE session_token = ?"
+        cursor.execute(query_delete, (session_token,))
+    else:
+        conn.close()
+        return jsonify({'error': 'Session token not found'}), 404
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({'message': 'Profile deleted successfully'}), 200
+
+#create a function to update the player profile
+@app.route('/update/<user_type>', methods=['PUT'])
+def update(user_type):
+    if user_type not in ['PLAYER', 'ADMIN']:
+        return jsonify({'error': 'Invalid user type'}), 400
+
+    session_token = request.json.get('session_token')
+    if not session_token:
+        return jsonify({'error': 'Session token is required'}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Verifica se il token si trova nella tabella PLAYER
+    query_player = "SELECT * FROM "+user_type+" WHERE session_token = ?"
+    cursor.execute(query_player, (session_token,))
+    token_found = cursor.fetchone()
+
+    if token_found:
+        # Update the player profile
+        if request.json.get('username'):
+            query_update = "UPDATE "+user_type+" SET username = ? WHERE session_token = ?"
+            cursor.execute(query_update, (request.json.get('username'), session_token))
+        if request.json.get('password'):
+            query_update = "UPDATE "+user_type+" SET password = ? WHERE session_token = ?"
+            cursor.execute(query_update, (hash_password(request.json.get('password')), session_token))
+        if request.json.get('email'):
+            query_update = "UPDATE "+user_type+" SET email = ? WHERE session_token = ?"
+            cursor.execute(query_update, (request.json.get('email'), session_token))
+    else:
+        conn.close()
+        return jsonify({'error': 'Session token not found'}), 404
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({'message': 'Profile updated successfully'}), 200
 if __name__ == '__main__':
     app.run()
