@@ -189,7 +189,7 @@ def get_all():
 
 
 
-    cursor.execute("SELECT * FROM GachaItems")
+    cursor.execute("SELECT * FROM GachaItems LIMIT 10")
     rows = cursor.fetchall()
 
     conn.close()
