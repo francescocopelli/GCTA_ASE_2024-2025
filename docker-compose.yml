@@ -84,7 +84,7 @@ services:
     networks:
       - microservice-network
     volumes:
-      - ./services/dbm/users_db:/app/user.db
+      - ./dbdata/users_db:/app/users.db
 
   db:
     image: mongo:latest

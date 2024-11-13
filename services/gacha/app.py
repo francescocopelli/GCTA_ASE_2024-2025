@@ -209,3 +209,42 @@ def get_all():
         })
 
     return jsonify({"message":items}), 202
+
+# update gacha item
+@app.route('/update', methods=['UPDATE'])
+def update_gacha_item():
+    # Extract gacha item details from request JSON
+    data = request.get_json()
+    gacha_id = data.get('gacha_id')
+    name = data.get('name')
+    rarity = data.get('rarity')
+    status = data.get('status')
+    description = data.get('description')
+
+    # Check for required fields
+    if not all([gacha_id, name, rarity, status]):
+        return jsonify({'error': 'Missing data to update gacha item'}), 400
+
+    # Connect to the database
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Check if the gacha item exists
+    cursor.execute("SELECT * FROM GachaItems WHERE gacha_id = ?", (gacha_id,))
+    gacha_item = cursor.fetchone()
+
+    if not gacha_item:
+        conn.close()
+        return jsonify({'error': 'Gacha item not found'}), 404
+
+    # Update the gacha item details
+    cursor.execute(
+        "UPDATE GachaItems SET name = ?, rarity = ?, status = ?, description = ? WHERE gacha_id = ?",
+        (name, rarity, status, description, gacha_id)
+    )
+    conn.commit()
+    conn.close()
+
+    if cursor.rowcount:
+        return jsonify({'message': 'Gacha item updated successfully'}), 200
+    return jsonify({'error': 'Failed to update gacha item'}), 500
