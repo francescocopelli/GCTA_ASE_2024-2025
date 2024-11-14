@@ -186,22 +186,20 @@ def add_to_inventory():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Check if the gacha item exists and is available
-    cursor.execute("SELECT * FROM GachaItems WHERE gacha_id = ? AND status = 'available'", (gacha_id,))
-    gacha_item = cursor.fetchone()
+        # Add gacha item to user's inventory if it exists and is available
+    cursor.execute("""
+        INSERT INTO UserGachaInventory (user_id, gacha_id, acquired_date)
+        SELECT ?, gacha_id, datetime('now')
+        FROM GachaItems
+        WHERE gacha_id = ? AND status = 'available'
+    """, (user_id, gacha_id))
 
-    if not gacha_item:
+    if cursor.rowcount == 0:
         conn.close()
         return jsonify({'error': 'Gacha item not found or not available'}), 404
 
-    # Add gacha item to user's inventory
-    cursor.execute(
-        "INSERT INTO UserGachaInventory (user_id, gacha_id, acquired_date) VALUES (?, ?, datetime('now'))",
-        (user_id, gacha_id)
-    )
     conn.commit()
     conn.close()
-
     return jsonify({'message': "Gacha item successfully added to user's inventory"}), 200
 
 
