@@ -11,8 +11,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
-
-DATABASE = "./users_db/user.db"
+DATABASE = './users.db/user.db'
+transaction_url = "http://transaction:5000"
 
 
 # Funzione di connessione al database
@@ -233,12 +233,11 @@ def update(user_type):
 
     return jsonify({"message": "Profile updated successfully"}), 200
 
-
-# create a function that update user blance of a given user_id with a given amount
-@app.route("/update_balance/<user_type>", methods=["PUT"])
-def update_balance(user_type):
-    if user_type not in ["PLAYER", "ADMIN"]:
-        return jsonify({"error": "Invalid user type"}), 400
+#create a function that update user blance of a given user_id with a given amount
+@app.route('/update_balance/<user_type>', methods=['PUT'])
+def update_balance_user(user_type):
+    if user_type not in ['PLAYER', 'ADMIN']:
+        return jsonify({'error': 'Invalid user type'}), 400
 
     user_id = request.json.get("user_id")
     amount = request.json.get("amount")
