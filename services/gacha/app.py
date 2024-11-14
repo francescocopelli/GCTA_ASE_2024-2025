@@ -48,7 +48,6 @@ def add():
 
 
 # Endpoint to perform a gacha roll for a random item
-# TODO: Implement the gacha roll logic
 @app.route('/roll', methods=['POST'])
 def roll_gacha():
     # Extract roll details from request JSON
@@ -279,3 +278,62 @@ def update_gacha_item():
     if cursor.rowcount:
         return jsonify({'message': 'Gacha item updated successfully'}), 200
     return jsonify({'error': 'Failed to update gacha item'}), 500
+
+# retrieve information about a specific gacha item
+@app.route('/get/<gacha_id>')
+def get_gacha_item(gacha_id):
+    # Connect to the database
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Retrieve the gacha item details
+    cursor.execute("SELECT * FROM GachaItems WHERE gacha_id = ?", (gacha_id,))
+    gacha_item = cursor.fetchone()
+    conn.close()
+
+    if not gacha_item:
+        return jsonify({'error': 'Gacha item not found'}), 404
+
+    return jsonify({
+        'gacha_id': gacha_item['gacha_id'],
+        'name': gacha_item['name'],
+        'rarity': gacha_item['rarity'],
+        'status': gacha_item['status'],
+        'description': gacha_item['description'],
+        'image': base64.b64encode(gacha_item['image']).decode('utf-8') if gacha_item['image'] else None
+    }), 200
+
+# get detail of a specific gacha of a specific user
+@app.get('/get/<user_id>/<gacha_id>')
+def get_user_gacha_item(user_id, gacha_id):
+    res = requests.get('http://user_player:5000/get_user/' + user_id)
+    if res.status_code != 200:
+        return jsonify({'error': 'User not found'}), 404
+
+    # Connect to the database
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Retrieve the user's gacha item details
+    cursor.execute("""
+        SELECT GachaItems.*, UserGachaInventory.acquired_date, UserGachaInventory.locked
+        FROM UserGachaInventory
+        JOIN GachaItems ON UserGachaInventory.gacha_id = GachaItems.gacha_id
+        WHERE UserGachaInventory.user_id = ? AND UserGachaInventory.gacha_id = ?
+    """, (user_id, gacha_id))
+    gacha_item = cursor.fetchone()
+    conn.close()
+
+    if not gacha_item:
+        return jsonify({'error': 'Gacha item not found in user inventory'}), 404
+
+    return jsonify({
+        'gacha_id': gacha_item['gacha_id'],
+        'name': gacha_item['name'],
+        'rarity': gacha_item['rarity'],
+        'status': gacha_item['status'],
+        'description': gacha_item['description'],
+        'acquired_date': gacha_item['acquired_date'],
+        'locked': gacha_item['status'] == 'locked',
+        'image': base64.b64encode(gacha_item['image']).decode('utf-8') if gacha_item['image'] else None
+    }), 200
