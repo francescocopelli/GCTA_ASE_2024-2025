@@ -16,3 +16,15 @@ def get_user(user_id):
     url = f"http://db-manager:5000/get_user/" + user_id
     response = requests.get(url)
     return response.json()
+
+@app.route("/update_balance", methods=['PUT'])
+def update_balance():
+    user_id = request.json['user_id']
+    new_balance = request.json['new_balance']
+    url = f"http://db-manager:5000/update_balance"
+    data = {
+        "user_id": user_id,
+        "new_balance": new_balance
+    }
+    response = requests.put(url, json=data)
+    return response.json()

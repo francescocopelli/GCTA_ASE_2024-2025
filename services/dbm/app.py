@@ -164,6 +164,19 @@ def get_user(user_id):
     }
     return jsonify(usr), 200
 
+@app.route("/update_balance", methods=['PUT'])
+def update_balance():
+    user_id = request.json['user_id']
+    new_balance = request.json['new_balance']
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    query = "UPDATE PLAYER SET currency_balance = ? WHERE user_id = ?"
+    cursor.execute(query, (new_balance, user_id))
+    conn.commit()
+    conn.close()
+    if cursor.rowcount == 0:
+        return jsonify({'error': 'User not found'}), 404
+    return jsonify({'message': 'Balance updated successfully'}), 200
 
 if __name__ == '__main__':
     app.run()
