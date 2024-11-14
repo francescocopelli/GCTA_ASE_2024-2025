@@ -57,6 +57,8 @@ services:
       - db-manager
     networks:
       - microservice-network
+    volumes:
+      - ./dbdata/transactions_db:/app/transactions.db
   
   auction:
     build: ./services/auction
