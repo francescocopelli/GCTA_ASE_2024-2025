@@ -78,7 +78,6 @@ def add_auction():
             cursor.execute(
                 "INSERT INTO Auctions (auction_id, gacha_id, seller_id, base_price, highest_bid, buyer_id, status, end_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 (auction_id, gacha_id, seller_id, base_price, 0, None, "active", end_time),
-                
             )
 
             # UPDATE GACHA INVENTORY WITH BLOCKED GACHA
@@ -150,6 +149,20 @@ def check_auction_status():
 # Endpoint to retrieve all active or expired auctions
 @app.route("/all", methods=["GET"])
 def get_all_auctions():
+    """
+    Retrieve all auctions or filter by auction status.
+    This endpoint retrieves all auctions from the database. Optionally, it can filter
+    the auctions based on their status (active or expired) using a query parameter.
+    Query Parameters:
+        status (str, optional): The status of the auctions to filter by. Can be "active" or "expired".
+    Returns:
+        Response: A JSON response containing a list of auctions. Each auction is represented
+        as a dictionary. The response status code is 200.
+    Example:
+        GET /all
+        GET /all?status=active
+        GET /all?status=expired
+    """
     # Optional query parameter to filter by auction status (active or expired)
     status = request.args.get("status")
 
@@ -181,6 +194,15 @@ def get_all_auctions():
 # Endpoint to retrieve all auctions for a specific gacha
 @app.route('/get_gacha_auctions', methods=['GET'])
 def get_gacha_auctions():
+    """
+    Endpoint to retrieve gacha auctions based on gacha_id.
+    This endpoint handles GET requests to fetch auctions associated with a specific gacha_id.
+    If the gacha_id parameter is missing, it returns a 400 error with a message indicating the missing parameter.
+    If auctions are found for the given gacha_id, it returns a JSON list of auctions with a 200 status code.
+    If no auctions are found, it returns a 404 error with a message indicating no auctions were found.
+    Returns:
+        Response: JSON response containing the list of auctions or an error message with the appropriate HTTP status code.
+    """
     gacha_id = request.args.get('gacha_id')
     if not gacha_id:
         return jsonify({'error': 'Missing gacha_id parameter'}), 400
@@ -201,6 +223,48 @@ def get_gacha_auctions():
 # Endpoint to place a bid on an auction
 @app.route("/bid", methods=["POST"])
 def place_bid():
+    """
+    Place a bid on an auction.
+    Endpoint: /bid
+    Method: POST
+    Request JSON:
+    {
+        "auction_id": str,  # ID of the auction
+        "user_id": str,     # ID of the user placing the bid
+        "bid_amount": float # Amount of the bid
+    }
+    Responses:
+    - 200 OK: Bid placed successfully.
+    {
+        "message": "Bid placed successfully"
+    }
+    - 400 Bad Request: Missing data for bid or bid amount is not higher than current highest bid.
+    {
+        "error": "Missing data for bid"
+    }
+    or
+    {
+        "error": "Bid amount must be higher than current highest bid"
+    }
+    - 403 Forbidden: Insufficient funds.
+    {
+        "error": "Insufficient funds"
+    }
+    - 404 Not Found: Auction not found or already ended.
+    {
+        "error": "Auction not found or already ended"
+    }
+    Functionality:
+    - Extracts bid details from the request JSON.
+    - Validates that all required fields are provided.
+    - Connects to the database and checks if the auction exists and is active.
+    - Validates that the bid amount is higher than the current highest bid.
+    - Checks if the user has enough funds for the bid.
+    - Updates the auction with the new highest bid.
+    - Updates the user balances accordingly.
+    - Inserts the bid into the Bids database.
+    - Returns a JSON response indicating the result of the bid placement.
+    """
     # Extract bid details from the request JSON
     data = request.get_json()
     auction_id = data.get("auction_id")
@@ -266,6 +330,19 @@ def place_bid():
 # Endpoint to retrieve all bids for a specific auction
 @app.route("/bids", methods=["GET"])
 def get_bids():
+    """
+    Endpoint to retrieve bids for a specific auction.
+    This endpoint handles GET requests to the /bids route. It expects an 
+    auction_id parameter to be provided in the query string. If the 
+    auction_id parameter is missing, it returns a 400 error with a 
+    message indicating the missing parameter. 
+    The function connects to the database, retrieves all bids associated 
+    with the given auction_id, and returns them in JSON format.
+    Returns:
+        Response: A JSON response containing the list of bids for the 
+        specified auction_id, or an error message if the auction_id 
+        parameter is missing.
+    """
     auction_id = request.args.get("auction_id")
     if not auction_id:
         return jsonify({"error": "Missing auction_id parameter"}), 400
@@ -278,8 +355,6 @@ def get_bids():
 
     result = [dict(bid) for bid in bids]
     return jsonify({"bids": result}), 200
-
-# Endpoint to retrieve the highest bid for a specific auction
 
 # Run the Flask app on the specified port
 if __name__ == "__main__":
