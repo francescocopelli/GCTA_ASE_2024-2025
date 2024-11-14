@@ -4,12 +4,16 @@ import sqlite3
 import hashlib
 import uuid
 
+import requests
+
 # Configura il logging
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
-DATABASE = './users.db/user.db'
+
+DATABASE = './users_db/user.db'
+transaction_url = "http://transaction:5000"
 
 
 # Funzione di connessione al database
@@ -27,6 +31,11 @@ def hash_password(password):
 # Funzione per generare un token di sessione unico
 def generate_session_token():
     return str(uuid.uuid4())
+
+
+def create_transaction(user_id, amount,transaction_type):
+    response = requests.post(f"{transaction_url}/add_transaction/", json={"user_id": user_id, "amount": amount, "type": transaction_type})
+    return response
 
 
 # Endpoint di registrazione per USER e ADMIN
@@ -145,6 +154,113 @@ def get_balance(user_type):
         return jsonify({'error': 'User not found'}), 404
 
 
+# Delete profile
+@app.route('/delete/<user_type>', methods=['DELETE'])
+def delete(user_type):
+    if user_type not in ['PLAYER', 'ADMIN']:
+        return jsonify({'error': 'Invalid user type'}), 400
+
+    session_token = request.json.get('session_token')
+    if not session_token:
+        return jsonify({'error': 'Session token is required'}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Verifica se il token si trova nella tabella PLAYER
+    query_player = "SELECT * FROM "+user_type+" WHERE session_token = ?"
+    cursor.execute(query_player, (session_token,))
+    token_found = cursor.fetchone()
+
+    if token_found:
+        # Elimina il token dalla tabella ADMIN
+        query_delete = "DELETE FROM "+user_type+" WHERE session_token = ?"
+        cursor.execute(query_delete, (session_token,))
+    else:
+        conn.close()
+        return jsonify({'error': 'Session token not found'}), 404
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({'message': 'Profile deleted successfully'}), 200
+
+#create a function to update the player profile
+@app.route('/update/<user_type>', methods=['PUT'])
+def update(user_type):
+    if user_type not in ['PLAYER', 'ADMIN']:
+        return jsonify({'error': 'Invalid user type'}), 400
+
+    session_token = request.json.get('session_token')
+    if not session_token:
+        return jsonify({'error': 'Session token is required'}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Verifica se il token si trova nella tabella PLAYER
+    query_player = "SELECT * FROM "+user_type+" WHERE session_token = ?"
+    cursor.execute(query_player, (session_token,))
+    token_found = cursor.fetchone()
+
+    if token_found:
+        # Update the player profile
+        if request.json.get('username'):
+            query_update = "UPDATE "+user_type+" SET username = ? WHERE session_token = ?"
+            cursor.execute(query_update, (request.json.get('username'), session_token))
+        if request.json.get('password'):
+            query_update = "UPDATE "+user_type+" SET password = ? WHERE session_token = ?"
+            cursor.execute(query_update, (hash_password(request.json.get('password')), session_token))
+        if request.json.get('email'):
+            query_update = "UPDATE "+user_type+" SET email = ? WHERE session_token = ?"
+            cursor.execute(query_update, (request.json.get('email'), session_token))
+    else:
+        conn.close()
+        return jsonify({'error': 'Session token not found'}), 404
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({'message': 'Profile updated successfully'}), 200
+
+#create a function that update user blance of a given user_id with a given amount
+@app.route('/update_balance/<user_type>', methods=['PUT'])
+def update_balance(user_type):
+    if user_type not in ['PLAYER', 'ADMIN']:
+        return jsonify({'error': 'Invalid user type'}), 400
+
+    user_id = request.json.get('user_id')
+    amount = request.json.get('amount')
+    if not user_id or not amount:
+        return jsonify({'error': 'user_id and amount are required'}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Verifica se il token si trova nella tabella PLAYER
+    query_player = "SELECT * FROM "+user_type+" WHERE user_id = ?"
+    cursor.execute(query_player, (user_id,))
+    token_found = cursor.fetchone()
+
+    if token_found:
+        # Update the player balance
+        query_update = "UPDATE "+user_type+" SET currency_balance = currency_balance + ? WHERE user_id = ?"
+        cursor.execute(query_update, (amount, user_id))
+    else:
+        conn.close()
+        return jsonify({'error': 'Session token not found'}), 404
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+    # Record the transaction in the database
+    if create_transaction(user_id, amount, "real_money").status_code != 200:
+        return jsonify({"error": "Failed to create transaction"}), 400
+    
+    return jsonify({'message': 'Balance updated successfully'}), 200
+
 @app.get("/get_user/<user_id>")
 def get_user(user_id):
     conn = get_db_connection()
@@ -163,7 +279,6 @@ def get_user(user_id):
         'session_token': user['session_token']
     }
     return jsonify(usr), 200
-
 
 if __name__ == '__main__':
     app.run()

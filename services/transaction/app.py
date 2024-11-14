@@ -1,10 +1,19 @@
+import logging
 from flask import Flask, request, jsonify
 import sqlite3
 import hashlib
+import uuid
+
+import requests
+
+# Configura il logging
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
-DATABASE = 'USERS.db'
+DATABASE = "./transactions_db/transactions.db"
+user_url = "http://user_player:5000"
+
 
 # Helper function to connect to the database
 def get_db_connection():
@@ -12,103 +21,124 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
-# Endpoint to make a payment, used for purchasing a gacha roll or placing an auction bid
-@app.route('/make_payment', methods=['POST'])
-def make_payment():
-    # Extracting payment details from the request JSON
+
+@app.route("/add_transaction", methods=["POST"])
+def add_transaction():
+    """
+    Add a new transaction to the database.
+    This endpoint handles POST requests to add a new transaction. The transaction type is derived based on the service 
+    path in the request URL. The transaction details are then inserted into the TRANSACTIONS table in the database.
+    Returns:
+        JSON response with a success message and HTTP status code 200.
+    Request Body (JSON):
+        user_id (str): The ID of the user making the transaction.
+        type (str): The type of the transaction (only used if the path contains "auction").
+        amount (float): The amount of the transaction.
+    Example:
+        POST /add_transaction
+        {
+            "user_id": "12345",
+            "type": "bid",
+            "amount": 100.0
+        }
+    Response:
+        {
+            "message": "Transaction added successfully"
+        }
+    """
     data = request.get_json()
-    username = data.get('username')
-    transaction_type = data.get('transaction_type')
-    amount = data.get('amount')
-    
-    # Checking if all required fields are provided
-    if not all([username, transaction_type, amount]):
-        return jsonify({'error': 'Missing data for transaction'}), 400
-    
-    # Connecting to the database
+    logging.debug(data)
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    # Check if the user has enough funds for the payment
-    cursor.execute("SELECT currency_balance FROM PLAYER WHERE username = ?", (username,))
-    user = cursor.fetchone()
-    
-    if user and user['currency_balance'] >= amount:
-        # Update user balance after payment
-        new_balance = user['currency_balance'] - amount
-        cursor.execute("UPDATE PLAYER SET currency_balance = ? WHERE username = ?", (new_balance, username))
-        conn.commit()
-        conn.close()
-        
-        return jsonify({'message': 'Payment successful', 'new_balance': new_balance}), 200
+    transaction_id = str(uuid.uuid4())
+    # Derive transaction type based on the service
+    if "auction" in request.path:
+        transaction_type = "auction" + data["type"]
+    elif "gacha" in request.path:
+        transaction_type = "roll"
+    elif "user" in request.path:
+        transaction_type = "real_money"
     else:
-        conn.close()
-        return jsonify({'error': 'Insufficient funds'}), 403
+        transaction_type = "unknown"
 
-# Endpoint to lock funds for an auction bid, ensuring the user can't exceed their balance during bidding
-@app.route('/auction_lock', methods=['POST'])
-def auction_lock():
-    # Extracting auction lock details from the request JSON
-    data = request.get_json()
-    username = data.get('username')
-    bid_amount = data.get('bid_amount')
     
-    # Check if both required fields are provided
-    if not all([username, bid_amount]):
-        return jsonify({'error': 'Missing data for auction lock'}), 400
 
-    # Connecting to the database
+    cursor.execute(
+        "INSERT INTO TRANSACTIONS (transaction_id, user_id, transaction_type, amount) VALUES (?, ?, ?, ?)",
+        (transaction_id, data["user_id"], transaction_type, data["amount"]),
+    )
+
+    # Log the derived transaction type
+    logging.debug(f"Derived transaction type: {transaction_type}")
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Transaction added successfully"}), 200
+
+
+@app.route("/get_transaction", methods=["GET"])
+def get_transaction():
+    """
+    Retrieve a transaction by its ID.
+    This endpoint expects a GET request with a 'transaction_id' parameter.
+    It queries the database for a transaction with the given ID and returns
+    the transaction details in JSON format if found.
+    Returns:
+        Response: A JSON response containing the transaction details with a 200 status code
+                if the transaction is found.
+                A JSON response with an error message and a 400 status code if the
+                'transaction_id' parameter is missing.
+                A JSON response with an error message and a 404 status code if the
+                transaction is not found.
+    """
+    transaction_id = request.args.get("transaction_id")
+    if not transaction_id:
+        return jsonify({"error": "Missing transaction_id parameter"}), 400
+
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    # Check if the user has sufficient funds to cover the bid amount
-    cursor.execute("SELECT currency_balance FROM PLAYER WHERE username = ?", (username,))
-    user = cursor.fetchone()
-    
-    if user and user['currency_balance'] >= bid_amount:
-        # Deduct the bid amount from the user's balance as a temporary lock
-        new_balance = user['currency_balance'] - bid_amount
-        cursor.execute("UPDATE PLAYER SET currency_balance = ? WHERE username = ?", (new_balance, username))
-        conn.commit()
-        conn.close()
-        
-        return jsonify({'message': 'Bid accepted, funds locked', 'new_balance': new_balance}), 200
-    else:
-        conn.close()
-        return jsonify({'error': 'Insufficient funds for bid'}), 403
+    cursor.execute(
+        "SELECT * FROM TRANSACTIONS WHERE transaction_id = ?", (transaction_id,)
+    )
+    transaction = cursor.fetchone()
+    conn.close()
 
-# Endpoint to remove a lock from a user's currency after an auction ends or bid is canceled
-@app.route('/auction_lock/<username>/<auction_id>', methods=['DELETE'])
-def remove_auction_lock(username, auction_id):
-    # This would typically involve returning locked funds to the user's balance
-    # since the auction has ended or the bid has been canceled.
-    
-    # For this example, we'll assume a simple lock release where we add a predefined amount back
-    # In a real application, we would track the actual locked amount for each user and auction
-    
-    # Placeholder locked amount; in production, this should come from a log or lock record
-    locked_amount = 100  # Example amount that was previously locked
-    
-    # Connect to the database
+    if transaction:
+        return jsonify(dict(transaction)), 200
+    else:
+        return jsonify({"error": "Transaction not found"}), 404
+
+
+# Endpoint to retrieve all transactions for a specific user
+@app.route("/get_user_transactions", methods=["GET"])
+def get_user_transactions():
+    """
+    Endpoint to retrieve transactions for a specific user.
+    This endpoint handles GET requests to fetch all transactions associated with a given user ID.
+    The user ID must be provided as a query parameter.
+    Returns:
+        JSON response containing a list of transactions if found, or an error message if no transactions are found or if the user_id parameter is missing.
+    Query Parameters:
+        user_id (str): The ID of the user whose transactions are to be retrieved.
+    Responses:
+        200: A JSON array of transactions for the specified user.
+        400: A JSON error message indicating that the user_id parameter is missing.
+        404: A JSON error message indicating that no transactions were found for the specified user.
+    """
+    user_id = request.args.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Missing user_id parameter"}), 400
+
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    # Retrieve current balance and add the locked amount back
-    cursor.execute("SELECT currency_balance FROM PLAYER WHERE username = ?", (username,))
-    user = cursor.fetchone()
-    
-    if user:
-        # Unlock the funds by adding the locked amount back to user's balance
-        new_balance = user['currency_balance'] + locked_amount
-        cursor.execute("UPDATE PLAYER SET currency_balance = ? WHERE username = ?", (new_balance, username))
-        conn.commit()
-        conn.close()
-        
-        return jsonify({'message': 'Auction lock removed', 'new_balance': new_balance}), 200
+    cursor.execute("SELECT * FROM TRANSACTIONS WHERE user_id = ?", (user_id,))
+    transactions = cursor.fetchall()
+    conn.close()
+
+    if transactions:
+        return jsonify([dict(transaction) for transaction in transactions]), 200
     else:
-        conn.close()
-        return jsonify({'error': 'User not found or no funds locked'}), 404
+        return jsonify({"error": "No transactions found for the user"}), 404
 
 # Run the Flask app on the specified port
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run()
