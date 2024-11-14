@@ -12,8 +12,6 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 
 DATABASE = "./transactions_db/transactions.db"
-user_url = "http://user_player:5000"
-
 
 # Helper function to connect to the database
 def get_db_connection():

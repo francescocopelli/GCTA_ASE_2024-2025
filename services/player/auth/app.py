@@ -3,12 +3,13 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-db_manger_url = "http://db-manager:5000"
+dbm_url = "http://db-manager:5000"
+
 @app.route('/login', methods=['POST'])
 def login():
     username = request.json['username']
     password = request.json['password']
-    url = f"{db_manger_url}/login/PLAYER"
+    url = f"{dbm_url}/login/PLAYER"
     data = {
         "username": username,
         "password": password
@@ -22,7 +23,7 @@ def register():
     username = request.json['username']
     password = request.json['password']
     email = request.json['email']
-    url = f"{db_manger_url}/register/PLAYER"
+    url = f"{dbm_url}/register/PLAYER"
     data = {
         "username": username,
         "password": password,
@@ -34,7 +35,7 @@ def register():
 @app.route('/logout', methods=['POST'])
 def logout():
     session_token = request.json['session_token']
-    url = f"{db_manger_url}/logout/PLAYER"
+    url = f"{dbm_url}/logout/PLAYER"
     data = {
         "session_token": session_token
     }
@@ -42,10 +43,10 @@ def logout():
     return response.json()
 
 # delete my account
-@app.route('/delete', methods=['POST'])
+@app.route('/delete', methods=['DELETE'])
 def delete():
     session_token = request.json['session_token']
-    url = f"{db_manger_url}/delete/PLAYER"
+    url = f"{dbm_url}/delete/PLAYER"
     data = {
         "session_token": session_token
     }
@@ -53,13 +54,13 @@ def delete():
     return response.json()
 
 #update my account pw, email, username
-@app.route('/update', methods=['POST'])
+@app.route('/update', methods=['PUT'])
 def update():
     session_token = request.json['session_token']
     username = request.json['username']
     password = request.json['password']
     email = request.json['email']
-    url = f"{db_manger_url}/update/PLAYER"
+    url = f"{dbm_url}/update/PLAYER"
     data = {
         "session_token": session_token,
         "username": username,
