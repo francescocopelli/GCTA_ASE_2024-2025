@@ -1,12 +1,15 @@
 # create an hello world endpoint
+
 import logging
 from flask import Flask, jsonify, request
 import requests
+
 
 app = Flask(__name__)
 
 gacha_url = "http://gacha:5000"
 user_url = "http://user_player:5000"
+
 
 # make a function that ask to the service gacha the list of all my gacha inside the db of gacha user invetory
 @app.route("/my_gacha_list/<user_id>")
@@ -99,3 +102,11 @@ def real_money_transaction():
 
 if __name__ == "__main__":
     app.run()
+
+
+@app.get("/get_user/<user_id>")
+def get_user(user_id):
+    url = f"http://db-manager:5000/get_user/" + user_id
+    response = requests.get(url)
+    return response.json()
+

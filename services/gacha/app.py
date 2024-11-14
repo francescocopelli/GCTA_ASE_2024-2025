@@ -1,9 +1,12 @@
+import requests
 from flask import Flask, request, jsonify
 import sqlite3
 import random
+import base64
 
 app = Flask(__name__)
-DATABASE = 'GACHA.db'
+DATABASE = './gacha.db/gacha.db'
+
 
 # Helper function to connect to the database
 def get_db_connection():
@@ -11,44 +14,78 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+
+@app.post('/add')
+def add():
+    name = request.form.get('name')
+    rarity = request.form.get('rarity')
+    status = request.form.get('status')
+    description = request.form.get('description')
+    image = request.files.get('image')
+    if image:
+        image = image.read()
+
+    # Check for required fields
+    if not all([name, rarity, status]):
+        return jsonify({'error': 'Missing data to add gacha item'}), 400
+
+    # Connect to the database
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Add the gacha item to the database
+    cursor.execute(
+        "INSERT INTO GachaItems (name, rarity, status, image, description) VALUES (?, ?, ?, ?, ?)",
+        (name, rarity, status, image, description)
+    )
+
+    conn.commit()
+    conn.close()
+
+    if cursor.lastrowid:
+        return jsonify({'message': 'Gacha item added successfully'}), 201
+    return jsonify({'error': 'Failed to add gacha item'}), 500
+
+
 # Endpoint to perform a gacha roll for a random item
+# TODO: Implement the gacha roll logic
 @app.route('/roll', methods=['POST'])
 def roll_gacha():
     # Extract roll details from request JSON
     data = request.get_json()
     username = data.get('username')
     roll_cost = data.get('roll_cost')
-    
+
     # Check for required fields
     if not all([username, roll_cost]):
         return jsonify({'error': 'Missing data for gacha roll'}), 400
-    
+
     # Connect to the database
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     # Check if the user has sufficient funds for the roll
     cursor.execute("SELECT currency_balance FROM PLAYER WHERE username = ?", (username,))
     user = cursor.fetchone()
-    
+
     if user and user['currency_balance'] >= roll_cost:
         # Deduct the roll cost from user's balance
         new_balance = user['currency_balance'] - roll_cost
         cursor.execute("UPDATE PLAYER SET currency_balance = ? WHERE username = ?", (new_balance, username))
-        
+
         # Perform the gacha roll by selecting a random item based on rarity
         cursor.execute("SELECT * FROM GachaItems WHERE status = 'available'")
         items = cursor.fetchall()
-        
+
         if not items:
             conn.close()
             return jsonify({'error': 'No available gacha items'}), 404
-        
+
         # Select a random item
         gacha_item = random.choice(items)
         conn.commit()
         conn.close()
-        
+
         return jsonify({
             'message': 'Gacha roll successful',
             'gacha_id': gacha_item['gacha_id'],
@@ -60,66 +97,78 @@ def roll_gacha():
         conn.close()
         return jsonify({'error': 'Insufficient funds for gacha roll'}), 403
 
+
 # Endpoint to retrieve a user's gacha inventory
 @app.route('/inventory/<user_id>', methods=['GET'])
 def get_user_inventory(user_id):
     # Connect to the database
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     # Retrieve all gacha items owned by the user
     cursor.execute("""
-        SELECT GachaItems.gacha_id, GachaItems.name, GachaItems.rarity
+        SELECT GachaItems.*, UserGachaInventory.acquired_date, UserGachaInventory.locked
         FROM UserGachaInventory
         JOIN GachaItems ON UserGachaInventory.gacha_id = GachaItems.gacha_id
         WHERE UserGachaInventory.user_id = ?
     """, (user_id,))
-    
+
     inventory = cursor.fetchall()
     conn.close()
-    
+
     # If inventory is empty, return 404
     if not inventory:
-        return jsonify({'error': 'No gacha items found for user'}), 404
-    
+        return jsonify({'error': 'No gacha items found for user'}), 408
+
     # Format inventory for JSON response
-    inventory_list = [dict(item) for item in inventory]
+    inventory_list = []
+    for x in inventory:
+        inventory_list.append({
+            "gacha_id": x['gacha_id'],
+            "name": x['name'],
+            "rarity": x['rarity'],
+            "status": x['status'],
+            "description": x['description'],
+            "acquired_date": x['acquired_date'],
+            "locked": x['status'] == 'locked',
+            "image": base64.b64encode(x['image']).decode('utf-8') if x['image'] else None
+        })
+
+
     return jsonify({'inventory': inventory_list}), 200
 
+
 # Endpoint to add a gacha item to a user's inventory
-@app.route('/inventory', methods=['POST'])
+#TODO: Implement the add to inventory logic
+@app.route('/inventory/add', methods=['POST'])
 def add_to_inventory():
     # Extract inventory details from request JSON
     data = request.get_json()
-    username = data.get('username')
+    user_id = data.get('user_id')
     gacha_id = data.get('gacha_id')
-    
+
     # Check for required fields
-    if not all([username, gacha_id]):
-        return jsonify({'error': 'Missing data to add to inventory'}), 400
-    
+    if not all([user_id, gacha_id]):
+        return jsonify({'error': 'Missing data to add gacha to inventory'}), 400
+
+
+    user = requests.get('http://user_player:5000/get_user/' + user_id)
+
+    if user.status_code != 200:
+        return jsonify({'error': 'User not found'}), 404
+
     # Connect to the database
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    # Retrieve the user_id from the username
-    cursor.execute("SELECT user_id FROM PLAYER WHERE username = ?", (username,))
-    user = cursor.fetchone()
-    
-    if not user:
-        conn.close()
-        return jsonify({'error': 'User not found'}), 404
-    
-    user_id = user['user_id']
-    
+
     # Check if the gacha item exists and is available
     cursor.execute("SELECT * FROM GachaItems WHERE gacha_id = ? AND status = 'available'", (gacha_id,))
     gacha_item = cursor.fetchone()
-    
+
     if not gacha_item:
         conn.close()
         return jsonify({'error': 'Gacha item not found or not available'}), 404
-    
+
     # Add gacha item to user's inventory
     cursor.execute(
         "INSERT INTO UserGachaInventory (user_id, gacha_id, acquired_date) VALUES (?, ?, datetime('now'))",
@@ -127,9 +176,85 @@ def add_to_inventory():
     )
     conn.commit()
     conn.close()
-    
+
     return jsonify({'message': "Gacha item successfully added to user's inventory"}), 201
 
-# Run the Flask app on the specified port
-if __name__ == '__main__':
-    app.run()
+
+@app.get("/all")
+def get_all():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM GachaItems LIMIT 10")
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    if not rows:
+        return jsonify({'error': 'No gacha items found'}), 404
+
+    items = []
+    for x in rows:
+        items.append({
+            "gacha_id": x['gacha_id'],
+            "name": x['name'],
+            "rarity": x['rarity'],
+            "status": x['status'],
+            "description": x['description'],
+            "image": base64.b64encode(x['image']).decode('utf-8') if x['image'] else None
+        })
+
+    return jsonify({"message": items}), 202
+
+
+# update gacha item
+@app.route('/update', methods=['PUT'])
+def update_gacha_item():
+    # Extract gacha item details from request JSON
+    gacha_id = request.form.get('gacha_id')
+    name = request.form.get('name')
+    rarity = request.form.get('rarity')
+    status = request.form.get('status')
+    description = request.form.get('description')
+    image = request.files.get('image')
+
+    # Check for required fields
+    if not all([gacha_id, name, rarity, status]):
+        return jsonify({'error': 'Missing data to update gacha item'}), 400
+
+
+    # Connect to the database
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Check if the gacha item exists
+    cursor.execute("SELECT * FROM GachaItems WHERE gacha_id = ?", (gacha_id,))
+    gacha_item = cursor.fetchone()
+
+
+    if not description:
+        description = gacha_item['description']
+    if image:
+        image = image.read()
+
+    if not gacha_item:
+        conn.close()
+        return jsonify({'error': 'Gacha item not found'}), 404
+
+    # Update the gacha item details
+    if image:
+        cursor.execute(
+            "UPDATE GachaItems SET name = ?, rarity = ?, status = ?, image = ?, description = ? WHERE gacha_id = ?",
+            (name, rarity, status, image, description, gacha_id)
+        )
+    else:
+        cursor.execute(
+            "UPDATE GachaItems SET name = ?, rarity = ?, status = ?, description = ? WHERE gacha_id = ?",
+            (name, rarity, status, description, gacha_id)
+        )
+    conn.commit()
+    conn.close()
+
+    if cursor.rowcount:
+        return jsonify({'message': 'Gacha item updated successfully'}), 200
+    return jsonify({'error': 'Failed to update gacha item'}), 500

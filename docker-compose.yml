@@ -4,7 +4,6 @@ services:
     ports:
       - 8080:80
     depends_on:
-      - db
       - user_admin
       - user_admin_auth
       - user_player
@@ -17,7 +16,6 @@ services:
     ports:
       - 8081:80
     depends_on:
-      - db
       - user_admin
       - user_admin_auth
       - user_player
@@ -73,24 +71,15 @@ services:
       - db-manager
     networks:
       - microservice-network
+    volumes:
+      - ./dbdata/gacha_db:/app/gacha.db
 
-  
   db-manager:
     build: ./services/dbm
-    depends_on:
-      - db
     networks:
       - microservice-network
     volumes:
-      - ./users_db:/app/user.db
-
-  db:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
-    volumes:
-      - dbdata:/data/db
-    command: mongod --quiet --logpath /dev/null
+      - ./dbdata/users_db:/app/users.db
 
 volumes:
   dbdata:
