@@ -8,8 +8,8 @@ import requests
 app = Flask(__name__)
 DATABASE = "AUCTIONS.db"
 gacha_url = "http://gacha:5000"
-user_url = "http://users:5000"
-transaction_url = "http://transactions:5000"
+user_url = "http://user_player:5000"
+transaction_url = "http://transaction:5000"
 
 # Helper function to connect to the database
 def get_db_connection():
@@ -19,31 +19,31 @@ def get_db_connection():
 
 # write a function that sends user id and gacha id to the gacha service to check if the gacha is locked using GET request
 def is_gacha_unlocked(user_id, gacha_id):
-    response = requests.get(f"{gacha_url}/gacha/?user_id={user_id}&gacha_id={gacha_id}")
+    response = requests.get(f"{gacha_url}/is_gacha_unlocked/?user_id={user_id}&gacha_id={gacha_id}")
     if response.status_code == 200:
         return True
     return False
 
 #write a function fos sand an update request to the gacha service to lock or unlock gatcha
 def update_gacha_status(user_id, gacha_id, status):
-    response = requests.put(f"{gacha_url}/gacha/", json={"user_id": user_id, "gacha_id": gacha_id, "status": status})
+    response = requests.put(f"{gacha_url}/update_gacha_status/", json={"user_id": user_id, "gacha_id": gacha_id, "status": status})
     return response
 
 def update_gacha_owner(buyer_id, gacha_id, seller_id, status):
-    response = requests.put(f"{gacha_url}/gacha/", json={"buyer_id":buyer_id , "seller_id": seller_id, "gacha_id": gacha_id, "status": status})
+    response = requests.put(f"{gacha_url}/update_gacha_owner/", json={"buyer_id":buyer_id , "seller_id": seller_id, "gacha_id": gacha_id, "status": status})
     return response
 
 def create_transaction(user_id, amount,transaction_type):
-    response = requests.post(f"{transaction_url}/transactions/", json={"user_id": user_id, "amount": amount, "type": transaction_type})
+    response = requests.post(f"{transaction_url}/add_transaction/", json={"user_id": user_id, "amount": amount, "type": transaction_type})
     return response
 
 def update_user_balance(user_id, amount, type):
-    response = requests.put(f"{user_url}/users/", json={"user_id": user_id, "amount": amount, "type": type})
+    response = requests.put(f"{user_url}/update_balance/PLAYER/", json={"user_id": user_id, "amount": amount, "type": type})
     return response
 
 #write a function that sends a get request to user service to get the user's balance if the user exists
 def get_user_balance(user_id):
-    response = requests.get(f"{user_url}/users/?user_id={user_id}")
+    response = requests.get(f"{user_url}/get_user_balance/?user_id={user_id}")
     if response.status_code == 200:
         return response.json().get("balance")
     else:

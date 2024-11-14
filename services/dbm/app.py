@@ -12,8 +12,7 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 
 
-DATABASE = './users_db/user.db'
-transaction_url = "http://transaction:5000"
+DATABASE = "./users_db/user.db"
 
 
 # Funzione di connessione al database
@@ -33,21 +32,16 @@ def generate_session_token():
     return str(uuid.uuid4())
 
 
-def create_transaction(user_id, amount,transaction_type):
-    response = requests.post(f"{transaction_url}/add_transaction/", json={"user_id": user_id, "amount": amount, "type": transaction_type})
-    return response
-
-
 # Endpoint di registrazione per USER e ADMIN
-@app.route('/register/<user_type>', methods=['POST'])
+@app.route("/register/<user_type>", methods=["POST"])
 def register(user_type):
-    if user_type not in ['PLAYER', 'ADMIN']:
-        return jsonify({'error': 'Invalid user type'}), 400
+    if user_type not in ["PLAYER", "ADMIN"]:
+        return jsonify({"error": "Invalid user type"}), 400
 
     data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-    email = data.get('email')
+    username = data.get("username")
+    password = data.get("password")
+    email = data.get("email")
     hashed_password = hash_password(password)
 
     # Inserimento nel database
@@ -58,21 +52,21 @@ def register(user_type):
         cursor.execute(query, (username, hashed_password, email))
         conn.commit()
         conn.close()
-        return jsonify({'message': f'{user_type} registered successfully'}), 201
+        return jsonify({"message": f"{user_type} registered successfully"}), 201
     except sqlite3.IntegrityError:
         conn.close()
-        return jsonify({'error': 'Username or email already exists'}), 409
+        return jsonify({"error": "Username or email already exists"}), 409
 
 
 # Endpoint di login per USER e ADMIN
-@app.route('/login/<user_type>', methods=['POST'])
+@app.route("/login/<user_type>", methods=["POST"])
 def login(user_type):
-    if user_type not in ['PLAYER', 'ADMIN']:
-        return jsonify({'error': 'Invalid user type'}), 400
+    if user_type not in ["PLAYER", "ADMIN"]:
+        return jsonify({"error": "Invalid user type"}), 400
 
     data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
+    username = data.get("username")
+    password = data.get("password")
     hashed_password = hash_password(password)
 
     # Verifica delle credenziali
@@ -91,25 +85,27 @@ def login(user_type):
         conn.close()
 
         # Crea una risposta e imposta il cookie
-        response = make_response(jsonify({'message': 'Login successful', 'session_token': session_token}))
+        response = make_response(
+            jsonify({"message": "Login successful", "session_token": session_token})
+        )
         # response.set_cookie('session_token', session_token, httponly=True, secure=True)
 
         return response
     else:
         cursor.close()
         conn.close()
-        return jsonify({'error': 'Invalid credentials'}), 401
+        return jsonify({"error": "Invalid credentials"}), 401
 
 
 # Endpoint per il logout
-@app.route('/logout/<user_type>', methods=['POST'])
+@app.route("/logout/<user_type>", methods=["POST"])
 def logout(user_type):
-    if user_type not in ['PLAYER', 'ADMIN']:
-        return jsonify({'error': 'Invalid user type'}), 400
+    if user_type not in ["PLAYER", "ADMIN"]:
+        return jsonify({"error": "Invalid user type"}), 400
 
-    session_token = request.json.get('session_token')
+    session_token = request.json.get("session_token")
     if not session_token or session_token == "0":
-        return jsonify({'error': 'Session token is required'}), 400
+        return jsonify({"error": "Session token is required"}), 400
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -121,145 +117,159 @@ def logout(user_type):
 
     if token_found:
         # Elimina il token dalla tabella ADMIN
-        query_delete_admin = "UPDATE " + user_type + " SET session_token = 0 WHERE session_token = ?"
+        query_delete_admin = (
+            "UPDATE " + user_type + " SET session_token = 0 WHERE session_token = ?"
+        )
         cursor.execute(query_delete_admin, (session_token,))
     else:
         conn.close()
-        return jsonify({'error': 'Session token not found'}), 404
+        return jsonify({"error": "Session token not found"}), 404
 
     conn.commit()
     cursor.close()
     conn.close()
 
-    return jsonify({'message': 'Logout successful'}), 200
+    return jsonify({"message": "Logout successful"}), 200
 
 
 # Endpoint per visualizzare il saldo della valuta di gioco
-@app.route('/balance/<user_type>', methods=['GET'])
+@app.route("/balance/<user_type>", methods=["GET"])
 def get_balance(user_type):
-    if user_type not in ['PLAYER', 'ADMIN']:
-        return jsonify({'error': 'Invalid user type'}), 400
+    if user_type not in ["PLAYER", "ADMIN"]:
+        return jsonify({"error": "Invalid user type"}), 400
 
-    username = request.args.get('username')
+    user_id = request.args.get("user_id")
     conn = get_db_connection()
     cursor = conn.cursor()
-    query = f"SELECT currency_balance FROM {user_type} WHERE username = ?"
-    cursor.execute(query, (username,))
+    query = f"SELECT currency_balance FROM {user_type} WHERE user_id = ?"
+    cursor.execute(query, (user_id,))
     balance = cursor.fetchone()
     conn.close()
 
     if balance:
-        return jsonify({'currency_balance': balance['currency_balance']})
+        return jsonify({"currency_balance": balance["currency_balance"]})
     else:
-        return jsonify({'error': 'User not found'}), 404
+        return jsonify({"error": "User not found"}), 404
 
 
 # Delete profile
-@app.route('/delete/<user_type>', methods=['DELETE'])
+@app.route("/delete/<user_type>", methods=["DELETE"])
 def delete(user_type):
-    if user_type not in ['PLAYER', 'ADMIN']:
-        return jsonify({'error': 'Invalid user type'}), 400
+    if user_type not in ["PLAYER", "ADMIN"]:
+        return jsonify({"error": "Invalid user type"}), 400
 
-    session_token = request.json.get('session_token')
+    session_token = request.json.get("session_token")
     if not session_token:
-        return jsonify({'error': 'Session token is required'}), 400
+        return jsonify({"error": "Session token is required"}), 400
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
     # Verifica se il token si trova nella tabella PLAYER
-    query_player = "SELECT * FROM "+user_type+" WHERE session_token = ?"
+    query_player = "SELECT * FROM " + user_type + " WHERE session_token = ?"
     cursor.execute(query_player, (session_token,))
     token_found = cursor.fetchone()
 
     if token_found:
         # Elimina il token dalla tabella ADMIN
-        query_delete = "DELETE FROM "+user_type+" WHERE session_token = ?"
+        query_delete = "DELETE FROM " + user_type + " WHERE session_token = ?"
         cursor.execute(query_delete, (session_token,))
     else:
         conn.close()
-        return jsonify({'error': 'Session token not found'}), 404
+        return jsonify({"error": "Session token not found"}), 404
 
     conn.commit()
     cursor.close()
     conn.close()
 
-    return jsonify({'message': 'Profile deleted successfully'}), 200
+    return jsonify({"message": "Profile deleted successfully"}), 200
 
-#create a function to update the player profile
-@app.route('/update/<user_type>', methods=['PUT'])
+
+# create a function to update the player profile
+@app.route("/update/<user_type>", methods=["PUT"])
 def update(user_type):
-    if user_type not in ['PLAYER', 'ADMIN']:
-        return jsonify({'error': 'Invalid user type'}), 400
+    if user_type not in ["PLAYER", "ADMIN"]:
+        return jsonify({"error": "Invalid user type"}), 400
 
-    session_token = request.json.get('session_token')
+    session_token = request.json.get("session_token")
     if not session_token:
-        return jsonify({'error': 'Session token is required'}), 400
+        return jsonify({"error": "Session token is required"}), 400
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
     # Verifica se il token si trova nella tabella PLAYER
-    query_player = "SELECT * FROM "+user_type+" WHERE session_token = ?"
+    query_player = "SELECT * FROM " + user_type + " WHERE session_token = ?"
     cursor.execute(query_player, (session_token,))
     token_found = cursor.fetchone()
 
     if token_found:
         # Update the player profile
-        if request.json.get('username'):
-            query_update = "UPDATE "+user_type+" SET username = ? WHERE session_token = ?"
-            cursor.execute(query_update, (request.json.get('username'), session_token))
-        if request.json.get('password'):
-            query_update = "UPDATE "+user_type+" SET password = ? WHERE session_token = ?"
-            cursor.execute(query_update, (hash_password(request.json.get('password')), session_token))
-        if request.json.get('email'):
-            query_update = "UPDATE "+user_type+" SET email = ? WHERE session_token = ?"
-            cursor.execute(query_update, (request.json.get('email'), session_token))
+        if request.json.get("username"):
+            query_update = (
+                "UPDATE " + user_type + " SET username = ? WHERE session_token = ?"
+            )
+            cursor.execute(query_update, (request.json.get("username"), session_token))
+        if request.json.get("password"):
+            query_update = (
+                "UPDATE " + user_type + " SET password = ? WHERE session_token = ?"
+            )
+            cursor.execute(
+                query_update,
+                (hash_password(request.json.get("password")), session_token),
+            )
+        if request.json.get("email"):
+            query_update = (
+                "UPDATE " + user_type + " SET email = ? WHERE session_token = ?"
+            )
+            cursor.execute(query_update, (request.json.get("email"), session_token))
     else:
         conn.close()
-        return jsonify({'error': 'Session token not found'}), 404
+        return jsonify({"error": "Session token not found"}), 404
 
     conn.commit()
     cursor.close()
     conn.close()
 
-    return jsonify({'message': 'Profile updated successfully'}), 200
+    return jsonify({"message": "Profile updated successfully"}), 200
 
-#create a function that update user blance of a given user_id with a given amount
-@app.route('/update_balance/<user_type>', methods=['PUT'])
+
+# create a function that update user blance of a given user_id with a given amount
+@app.route("/update_balance/<user_type>", methods=["PUT"])
 def update_balance(user_type):
-    if user_type not in ['PLAYER', 'ADMIN']:
-        return jsonify({'error': 'Invalid user type'}), 400
+    if user_type not in ["PLAYER", "ADMIN"]:
+        return jsonify({"error": "Invalid user type"}), 400
 
-    user_id = request.json.get('user_id')
-    amount = request.json.get('amount')
+    user_id = request.json.get("user_id")
+    amount = request.json.get("amount")
     if not user_id or not amount:
-        return jsonify({'error': 'user_id and amount are required'}), 400
+        return jsonify({"error": "user_id and amount are required"}), 400
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
     # Verifica se il token si trova nella tabella PLAYER
-    query_player = "SELECT * FROM "+user_type+" WHERE user_id = ?"
+    query_player = "SELECT * FROM " + user_type + " WHERE user_id = ?"
     cursor.execute(query_player, (user_id,))
     token_found = cursor.fetchone()
 
     if token_found:
         # Update the player balance
-        query_update = "UPDATE "+user_type+" SET currency_balance = currency_balance + ? WHERE user_id = ?"
+        query_update = (
+            "UPDATE "
+            + user_type
+            + " SET currency_balance = currency_balance + ? WHERE user_id = ?"
+        )
         cursor.execute(query_update, (amount, user_id))
     else:
         conn.close()
-        return jsonify({'error': 'Session token not found'}), 404
+        return jsonify({"error": "Session token not found"}), 404
 
     conn.commit()
     cursor.close()
     conn.close()
-    # Record the transaction in the database
-    if create_transaction(user_id, amount, "real_money").status_code != 200:
-        return jsonify({"error": "Failed to create transaction"}), 400
-    
-    return jsonify({'message': 'Balance updated successfully'}), 200
+    return jsonify({"message": "Balance updated successfully"}), 200
+
 
 @app.get("/get_user/<user_id>")
 def get_user(user_id):
@@ -270,15 +280,16 @@ def get_user(user_id):
     user = cursor.fetchone()
     conn.close()
     if not user:
-        return jsonify({'error': 'User not found'}), 404
+        return jsonify({"error": "User not found"}), 404
     usr = {
-        'user_id': user['user_id'],
-        'username': user['username'],
-        'email': user['email'],
-        'currency_balance': user['currency_balance'],
-        'session_token': user['session_token']
+        "user_id": user["user_id"],
+        "username": user["username"],
+        "email": user["email"],
+        "currency_balance": user["currency_balance"],
+        "session_token": user["session_token"],
     }
     return jsonify(usr), 200
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run()
