@@ -56,11 +56,11 @@
   - [ ] Access and modify specific user accounts/profiles.
   - [ ] Review currency transaction history for specific players.
   - [ ] Review market history for specific players.
-- [ ] **Gacha Collection Management**:
-  - [ ] Access and review the entire gacha collection.
-  - [ ] Modify the overall gacha collection.
-  - [ ] View details of specific gachas.
-  - [ ] Update information on specific gachas.
+- [x] **Gacha Collection Management**:
+  - [x] Access and review the entire gacha collection.
+  - [x] Modify the overall gacha collection.
+  - [X] View details of specific gachas.
+  - [X] Update information on specific gachas.
 - [ ] **Auction Market**:
   - [ ] View all active auctions.
   - [ ] Access and review individual auction details.
@@ -82,12 +82,12 @@
   - [ ] Modify account/profile details.
   - [x] Log in and out of the system.
   - [ ] Ensure data security for account/profile.
-- [ ] **Gacha Collection**:
-  - [ ] View personal gacha collection.
-  - [ ] Access details of specific gachas in personal collection.
-  - [ ] Browse the system's gacha collection.
-  - [ ] Access details of gachas in the system collection.
-  - [ ] Use in-game currency to roll a gacha.
+- [x] **Gacha Collection**:
+  - [x] View personal gacha collection.
+  - [x] Access details of specific gachas in personal collection.
+  - [x] Browse the system's gacha collection.
+  - [x] Access details of gachas in the system collection.
+  - [x] Use in-game currency to roll a gacha.
 - [ ] **In-Game Currency**:
   - [ ] Purchase in-game currency.
   - [ ] Secure transaction processes for currency.
