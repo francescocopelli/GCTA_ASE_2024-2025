@@ -1,5 +1,6 @@
 # create an hello world endpoint
-from flask import Flask
+import requests
+from flask import Flask, request
 
 app = Flask(__name__)
 
@@ -9,3 +10,9 @@ def hello_world():
 
 if __name__ == '__main__':
     app.run()
+
+@app.get("/get_user/<user_id>")
+def get_user(user_id):
+    url = f"http://db-manager:5000/get_user/" + user_id
+    response = requests.get(url)
+    return response.json()
