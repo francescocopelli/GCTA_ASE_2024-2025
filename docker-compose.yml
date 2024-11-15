@@ -66,6 +66,8 @@ services:
       - db-manager
     networks:
       - microservice-network
+    volumes:
+        - ./dbdata/auctions_db:/app/auction.db
   
   gacha:
     build: ./services/gacha
