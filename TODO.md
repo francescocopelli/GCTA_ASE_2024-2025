@@ -92,10 +92,10 @@
   - [ ] Purchase in-game currency.
   - [ ] Secure transaction processes for currency.
 - [ ] **Auction Market**:
-  - [ ] Access the auction market.
-  - [ ] Set up auctions for personal gacha items.
-  - [ ] Place bids on gachas listed in the market.
-  - [ ] Review personal transaction history.
+  - [x] Access the auction market.
+  - [x] Set up auctions for personal gacha items.
+  - [x] Place bids on gachas listed in the market.
+  - [x] Review personal transaction history.
   - [ ] Receive a gacha upon winning an auction.
   - [ ] Receive currency when others win personal auctions.
   - [ ] Refund currency if a bid is lost.
