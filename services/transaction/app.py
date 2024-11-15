@@ -13,6 +13,7 @@ app = Flask(__name__)
 DATABASE = "./transactions.db/transactions.db"
 user_url = "http://user_player:5000"
 
+
 def get_db_connection():
     """
     Helper function to connect to the database.
@@ -23,6 +24,7 @@ def get_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
+
 
 @app.route("/add_transaction", methods=["POST"])
 def add_transaction():
@@ -81,6 +83,7 @@ def add_transaction():
         return jsonify({"error": "Failed to add transaction"}), 500
     return jsonify({"message": "Transaction added successfully"}), 200
 
+
 @app.route("/get_transaction", methods=["GET"])
 def get_transaction():
     """
@@ -115,6 +118,7 @@ def get_transaction():
     else:
         return jsonify({"error": "Transaction not found"}), 408
 
+
 @app.route("/get_user_transactions", methods=["GET"])
 def get_user_transactions():
     """
@@ -148,6 +152,27 @@ def get_user_transactions():
         return jsonify([dict(transaction) for transaction in transactions]), 200
     else:
         return jsonify({"error": "No transactions found for the user"}), 408
+
+
+@app.get("/all")
+def get_all_transactions():
+    """
+    Retrieve all transactions from the database.
+
+    This endpoint queries the database for all transactions and returns the results as a JSON array.
+
+    Returns:
+        Response: A JSON response containing all transactions in the database with a 200 status code.
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM TRANSACTIONS")
+    transactions = cursor.fetchall()
+    conn.close()
+    if not transactions:
+        return jsonify({"error": "No transactions found"}), 404
+    return jsonify([dict(transaction) for transaction in transactions]), 200
+
 
 if __name__ == "__main__":
     app.run()
