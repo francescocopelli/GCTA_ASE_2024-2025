@@ -216,13 +216,11 @@ def get_all_auctions():
     # If status filter is provided, retrieve only the matching auctions
     if status == "active":
         cursor.execute(
-            "SELECT * FROM Auctions WHERE status = 'active' AND end_time > ?",
-            (datetime.now(),),
+            "SELECT * FROM Auctions WHERE status = 'active'",
         )
     elif status == "expired":
         cursor.execute(
-            "SELECT * FROM Auctions WHERE status = 'expired' OR end_time <= ?",
-            (datetime.now(),),
+            "SELECT * FROM Auctions WHERE status = 'expired'"
         )
     else:
         # If no status filter is provided, return all auctions
