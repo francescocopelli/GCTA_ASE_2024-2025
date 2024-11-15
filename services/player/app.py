@@ -4,7 +4,6 @@ import logging
 from flask import Flask, jsonify, request
 import requests
 
-
 app = Flask(__name__)
 
 gacha_url = "http://gacha:5000"
@@ -12,10 +11,13 @@ user_url = "http://user_player:5000"
 dbm_url = "http://db-manager:5000"
 transaction_url = "http://transaction:5000"
 
+
 # A function that adds a transaction to the transaction service
-def create_transaction(user_id, amount,transaction_type):
-    response = requests.post(f"{transaction_url}/add_transaction/", json={"user_id": user_id, "amount": amount, "type": transaction_type})
+def create_transaction(user_id, amount, transaction_type):
+    response = requests.post(f"{transaction_url}/add_transaction/",
+                             json={"user_id": user_id, "amount": amount, "type": transaction_type})
     return response
+
 
 # make a function that ask to the service gacha the list of all my gacha inside the db of gacha user invetory
 @app.route("/my_gacha_list/<user_id>")
@@ -26,7 +28,8 @@ def my_gacha_list(user_id):
     else:
         return "Failed to retrieve gacha list", response.status_code
 
-#DA CONTROLLARE
+
+# DA CONTROLLARE
 # function to ask for the information of a specific gacha for that user
 @app.route("/gacha/<user_id>/<gacha_id>")
 def gacha_info(user_id, gacha_id):
@@ -40,19 +43,8 @@ def gacha_info(user_id, gacha_id):
 
 
 def update_user_balance(user_id, amount, type):
-    """
-    Updates the balance of a user by sending a PUT request to the user service.
-
-    Args:
-        user_id (int): The ID of the user whose balance is to be updated.
-        amount (float): The amount to update the user's balance by.
-        type (str): The type of transaction (e.g., 'credit' or 'debit').
-
-    Returns:
-        Response: The response object from the PUT request.
-    """
     response = requests.put(
-        f"{dbm_url}/update_balance/PLAYER/",
+        f"{dbm_url}/update_balance/PLAYER",
         json={"user_id": user_id, "amount": amount, "type": type},
     )
     return response
@@ -82,22 +74,24 @@ def real_money_transaction():
         return jsonify({"error": "Missing user_id or amount in request"}), 400
 
     # Update the user's balance
-    if update_user_balance(user_id, amount, "credit").status_code != 200:
+    if update_user_balance(user_id, amount, "auction_credit").status_code != 200:
         return jsonify({"error": "Failed to update user balance"}), 400
 
     if create_transaction(user_id, amount, "real_money").status_code != 200:
         return jsonify({"error": "Failed to create transaction"}), 400
-    
+
     return jsonify({"message": "Transaction added successfully"}), 200
 
-#function to get the user balance information
+
+# function to get the user balance information
 @app.route("/get_user_balance/<user_id>")
 def get_user_balance(user_id):
-    response = requests.get(f"{dbm_url}/balance/PLAYER/", params={"user_id": user_id})
+    response = requests.get(f"{dbm_url}/balance/PLAYER", params={"user_id": user_id})
     if response.status_code == 200:
         return response.json()
     else:
-        return "Failed to retrieve user balance", response.status_code
+        return jsonify({"error": "Failed to retrieve user balance"}), response.status_code
+
 
 if __name__ == "__main__":
     app.run()
@@ -108,15 +102,34 @@ def get_user(user_id):
     url = f"{dbm_url}/get_user/" + user_id
     response = requests.get(url)
     return response.json()
-  
-@app.route("/update_balance", methods=['PUT'])
-def update_balance():
+
+
+@app.route("/update_balance/<user_type>", methods=['PUT'])
+def update_balance(user_type):
+    """
+    Update the balance of a user.
+
+    This endpoint updates the balance of a user by sending a PUT request to the db-manager service.
+
+    Request JSON format:
+    {
+        "user_id": str,
+        "new_balance": float
+    }
+
+    Returns:
+        Response: A JSON response from the db-manager service indicating the result of the update.
+    """
     user_id = request.json['user_id']
-    new_balance = request.json['new_balance']
-    url = f"http://db-manager:5000/update_balance"
+    amount = request.json['amount']
+    type = request.json['type']
+
+    url = f"{dbm_url}/update_balance/" + user_type
     data = {
         "user_id": user_id,
-        "new_balance": new_balance
+        "amount": amount,
+        "type": type
     }
+    logging.debug("Sending data: %s", data)
     response = requests.put(url, json=data)
     return response.json()

@@ -123,7 +123,7 @@ def logout(user_type):
         cursor.execute(query_delete_admin, (session_token,))
     else:
         conn.close()
-        return jsonify({"error": "Session token not found"}), 404
+        return jsonify({"error": "Session token not found"}), 408
 
     conn.commit()
     cursor.close()
@@ -147,9 +147,9 @@ def get_balance(user_type):
     conn.close()
 
     if balance:
-        return jsonify({"currency_balance": balance["currency_balance"]})
+        return jsonify({"currency_balance": balance["currency_balance"]}), 200
     else:
-        return jsonify({"error": "User not found"}), 404
+        return jsonify({"error": "User not found"}), 408
 
 
 # Delete profile
@@ -176,7 +176,7 @@ def delete(user_type):
         cursor.execute(query_delete, (session_token,))
     else:
         conn.close()
-        return jsonify({"error": "Session token not found"}), 404
+        return jsonify({"error": "Session token not found"}), 408
 
     conn.commit()
     cursor.close()
@@ -225,7 +225,7 @@ def update(user_type):
             cursor.execute(query_update, (request.json.get("email"), session_token))
     else:
         conn.close()
-        return jsonify({"error": "Session token not found"}), 404
+        return jsonify({"error": "Session token not found"}), 408
 
     conn.commit()
     cursor.close()
@@ -241,6 +241,7 @@ def update_balance_user(user_type):
 
     user_id = request.json.get("user_id")
     amount = request.json.get("amount")
+    type = request.json.get("type")
     if not user_id or not amount:
         return jsonify({"error": "user_id and amount are required"}), 400
 
@@ -251,18 +252,17 @@ def update_balance_user(user_type):
     query_player = "SELECT * FROM " + user_type + " WHERE user_id = ?"
     cursor.execute(query_player, (user_id,))
     token_found = cursor.fetchone()
-
+    logging.debug(f"Received: {user_id} {amount} {type}")
     if token_found:
-        # Update the player balance
-        query_update = (
-            "UPDATE "
-            + user_type
-            + " SET currency_balance = currency_balance + ? WHERE user_id = ?"
-        )
-        cursor.execute(query_update, (amount, user_id))
+        if "credit" in type:
+            query_update = "UPDATE " + user_type + " SET currency_balance = currency_balance + ? WHERE user_id = ?"
+            cursor.execute(query_update, (amount, user_id))
+        else:
+            query_update = "UPDATE " + user_type + " SET currency_balance = currency_balance - ? WHERE user_id = ?"
+            cursor.execute(query_update, (amount, user_id))
     else:
         conn.close()
-        return jsonify({"error": "Session token not found"}), 404
+        return jsonify({"error": "Session token not found"}), 408
 
     conn.commit()
     cursor.close()
@@ -279,7 +279,7 @@ def get_user(user_id):
     user = cursor.fetchone()
     conn.close()
     if not user:
-        return jsonify({"error": "User not found"}), 404
+        return jsonify({"error": "User not found"}), 408
     usr = {
         "user_id": user["user_id"],
         "username": user["username"],
@@ -300,7 +300,7 @@ def update_balance():
     conn.commit()
     conn.close()
     if cursor.rowcount == 0:
-        return jsonify({'error': 'User not found'}), 404
+        return jsonify({'error': 'User not found'}), 408
     return jsonify({'message': 'Balance updated successfully'}), 200
 
 if __name__ == '__main__':
