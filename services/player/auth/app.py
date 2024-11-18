@@ -3,7 +3,7 @@ import os
 import requests
 from flask import Flask, jsonify, request
 
-from shared.auth_middleware import token_required
+from shared.auth_middleware import *
 
 
 app = Flask(__name__)
@@ -44,7 +44,7 @@ def register():
     response = requests.post(url, json=data)
     return send_response(response.json(), response.status_code)
 
-@token_required
+@token_required_ret
 @app.route('/logout', methods=['POST'])
 def logout():
     session_token = request.json['session_token']
@@ -66,7 +66,7 @@ def delete():
     response = requests.post(url, json=data)
     return send_response(response.json(), response.status_code)
 
-@token_required
+@token_required_void
 #update my account pw, email, username
 @app.route('/update', methods=['PUT'])
 def update():

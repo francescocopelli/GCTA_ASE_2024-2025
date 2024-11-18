@@ -9,7 +9,7 @@ import jwt
 
 from flask import Flask, request, jsonify, make_response
 
-from shared.auth_middleware import login_required
+from shared.auth_middleware import *
 
 # Configura il logging
 logging.basicConfig(level=logging.DEBUG)
@@ -128,7 +128,7 @@ def login(user_type):
 
 # Endpoint per il logout
 @app.route("/logout/<user_type>", methods=["POST"])
-@login_required
+@login_required_ret
 def logout(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")

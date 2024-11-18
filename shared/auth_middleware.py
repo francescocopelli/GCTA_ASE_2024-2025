@@ -47,18 +47,33 @@ def _f(require_return, f, *args, **kwargs):
 
     return f(current_user, *args, **kwargs) if require_return else f(*args, **kwargs)
 
-def token_required(f):
+
+def token_required_ret(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         return _f(True, f, *args, **kwargs)
 
     return decorated
 
-def login_required(f):
+
+def token_required_void(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-
         return _f(False, f, *args, **kwargs)
+
+    return decorated
+
+def login_required_void(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        return _f(False, f, *args, **kwargs)
+
+    return decorated
+
+def login_required_ret(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        return _f(True, f, *args, **kwargs)
 
     return decorated
 

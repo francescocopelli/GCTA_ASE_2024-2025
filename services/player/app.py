@@ -29,7 +29,8 @@ def create_transaction(user_id, amount, transaction_type):
     return response
 
 # make a function that ask to the service gacha the list of all my gacha inside the db of gacha user invetory
-@token_required
+@token_required_void
+
 @app.route("/my_gacha_list/<user_id>")
 def my_gacha_list(user_id):
     response = requests.get(f"{gacha_url}/inventory", params={"user_id": user_id})
@@ -40,7 +41,7 @@ def my_gacha_list(user_id):
 
 # DA CONTROLLARE
 # function to ask for the information of a specific gacha for that user
-@token_required
+@token_required_void
 @app.route("/gacha/<user_id>/<gacha_id>")
 def gacha_info(user_id, gacha_id):
     response = requests.get(
@@ -59,7 +60,8 @@ def update_user_balance(user_id, amount, type):
     return response
 
 
-@token_required
+@token_required_void
+
 @app.route("/real_money_transaction", methods=["POST"])
 def real_money_transaction():
     """
@@ -93,7 +95,7 @@ def real_money_transaction():
     return send_response({"message": "Transaction added successfully"}, 200)
 
 # function to get the user balance information
-@token_required
+@token_required_void
 @app.route("/get_user_balance/<user_id>")
 def get_user_balance(user_id):
     response = requests.get(f"{dbm_url}/balance/PLAYER", params={"user_id": user_id})
@@ -105,7 +107,7 @@ def get_user_balance(user_id):
 if __name__ == "__main__":
     app.run()
 
-@token_required
+@token_required_void
 @app.get("/get_user/<user_id>")
 def get_user(user_id):
     url = f"{dbm_url}/get_user/" + user_id
