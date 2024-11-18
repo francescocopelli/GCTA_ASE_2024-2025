@@ -3,6 +3,7 @@ import logging
 import os
 import sqlite3
 import uuid
+import jwt
 
 from flask import Flask, request, jsonify, make_response
 
@@ -34,8 +35,9 @@ def hash_password(password):
 
 
 # Funzione per generare un token di sessione unico
-def generate_session_token():
-    return str(uuid.uuid4())
+def generate_session_token(user_id):
+    return jwt.encode({'user_id': user_id}, app.config['SECRET_KEY'], algorithm='HS256')
+    # return str(uuid.uuid4())
 
 
 # Endpoint di registrazione per USER e ADMIN
@@ -91,7 +93,7 @@ def login(user_type):
         user = cursor.fetchone()
 
         if user:
-            session_token = generate_session_token()
+            session_token = generate_session_token(user["user_id"])
             query = f"UPDATE {user_type} SET session_token = ? WHERE username = ?"
             cursor.execute(query, (session_token, username))
             conn.commit()

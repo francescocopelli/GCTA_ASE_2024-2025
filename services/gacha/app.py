@@ -65,9 +65,9 @@ def add():
     finally:
         conn.close()
 
-# Endpoint to perform a gacha roll for a random item
+# Endpoint to retrieve a user's gacha inventory
 @app.route('/inventory/<user_id>', methods=['GET'])
-@admin_required
+@token_required
 def get_user_inventory(user_id):
     # Connect to the database
     conn = get_db_connection()
@@ -86,7 +86,8 @@ def get_user_inventory(user_id):
 
     # If inventory is empty, return 404
     if not inventory:
-        return jsonify({'error': 'No gacha items found for user'}), 400
+        logging.debug("No gacha items found for user_id=%s", user_id)
+        return send_response({'error': 'No gacha items found for user'}, 404)
 
     # Format inventory for JSON response
     inventory_list = []
@@ -102,11 +103,12 @@ def get_user_inventory(user_id):
             "image": base64.b64encode(x['image']).decode('utf-8') if x['image'] else None
         })
 
-    return jsonify({'inventory': inventory_list}), 200
+    logging.debug("User inventory retrieved successfully for user_id=%s", user_id)
+    return send_response({'inventory': inventory_list}, 200)
 
 
 @app.route('/roll', methods=['POST'])
-@token_required
+@login_required
 def roll_gacha():
     # Extract roll details from request JSON
     data = request.get_json()
@@ -188,47 +190,6 @@ def roll_gacha():
         'name': gacha_item['name'],
         'rarity': gacha_item['rarity'],
     }, 200)
-
-
-# Endpoint to retrieve a user's gacha inventory
-@app.route('/inventory/<user_id>', methods=['GET'])
-def get_user_inventory(user_id):
-    # Connect to the database
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    # Retrieve all gacha items owned by the user
-    cursor.execute("""
-        SELECT GachaItems.*, UserGachaInventory.acquired_date, UserGachaInventory.locked
-        FROM UserGachaInventory
-        JOIN GachaItems ON UserGachaInventory.gacha_id = GachaItems.gacha_id
-        WHERE UserGachaInventory.user_id = ?
-    """, (user_id,))
-
-    inventory = cursor.fetchall()
-    conn.close()
-
-    # If inventory is empty, return 404
-    if not inventory:
-        logging.debug("No gacha items found for user_id=%s", user_id)
-        return send_response({'error': 'No gacha items found for user'}, 404)
-
-    # Format inventory for JSON response
-    inventory_list = []
-    for x in inventory:
-        inventory_list.append({
-            "gacha_id": x['gacha_id'],
-            "name": x['name'],
-            "rarity": x['rarity'],
-            "status": x['status'],
-            "description": x['description'],
-            "acquired_date": x['acquired_date'],
-            "locked": x['status'] == 'locked',
-            "image": base64.b64encode(x['image']).decode('utf-8') if x['image'] else None
-        })
-
-    logging.debug("User inventory retrieved successfully for user_id=%s", user_id)
-    return send_response({'inventory': inventory_list}, 200)
 
 
 # Endpoint to add a gacha item to a user's inventory
