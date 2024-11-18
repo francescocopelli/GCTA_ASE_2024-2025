@@ -349,11 +349,8 @@ def update_balance_user(user_type):
         if user:
             if transaction_type == "credit":
                 query_update = f"UPDATE {user_type} SET currency_balance = currency_balance + ? WHERE user_id = ?"
-            elif transaction_type == "debit":
-                query_update = f"UPDATE {user_type} SET currency_balance = currency_balance - ? WHERE user_id = ?"
             else:
-                logging.error(f"Invalid transaction type: {transaction_type}")
-                return send_response({"error": "Invalid transaction type"}, 400)
+                query_update = f"UPDATE {user_type} SET currency_balance = currency_balance - ? WHERE user_id = ?"
 
             cursor.execute(query_update, (amount, user_id))
             conn.commit()
