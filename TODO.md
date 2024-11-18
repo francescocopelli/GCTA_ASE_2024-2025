@@ -96,9 +96,9 @@
   - [x] Set up auctions for personal gacha items.
   - [x] Place bids on gachas listed in the market.
   - [x] Review personal transaction history.
-  - [ ] Receive a gacha upon winning an auction.
-  - [ ] Receive currency when others win personal auctions.
-  - [ ] Refund currency if a bid is lost.
+  - [x] Receive a gacha upon winning an auction.
+  - [x] Receive currency when others win personal auctions.
+  - [x] Refund currency if a bid is lost.
   - [ ] Ensure auction integrity and prevent tampering.
      
 ## Player Optional Functionalities
