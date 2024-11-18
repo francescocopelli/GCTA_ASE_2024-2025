@@ -7,6 +7,10 @@ SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
 print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 
+# Make a function that takes JSON data and returns a response
+def send_response(message, status_code):
+    return jsonify(message), status_code
+
 @app.route('/')
 def index():
     return make_response('Hello, World!\n', 200)

@@ -1,7 +1,7 @@
 import os
 
 import requests
-from flask import Flask, request
+from flask import Flask, jsonify, request
 
 from shared.auth_middleware import token_required
 
@@ -13,6 +13,11 @@ app.config['SECRET_KEY'] = SECRET_KEY
 
 dbm_url = "http://db-manager:5000"
 
+# Make a function that takes JSON data and returns a response
+def send_response(message, status_code):
+    return jsonify(message), status_code
+
+
 @app.route('/login', methods=['POST'])
 def login():
     username = request.json['username']
@@ -23,8 +28,7 @@ def login():
         "password": password
     }
     response = requests.post(url, json=data)
-    print(response.json())
-    return response.json()
+    return send_response(response.json(), response.status_code)
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -38,7 +42,7 @@ def register():
         "email": email
     }
     response = requests.post(url, json=data)
-    return response.json()
+    return send_response(response.json(), response.status_code)
 
 @token_required
 @app.route('/logout', methods=['POST'])
@@ -49,7 +53,7 @@ def logout():
         "session_token": session_token
     }
     response = requests.post(url, json=data)
-    return response.json()
+    return send_response(response.json(), response.status_code)
 
 # delete my account
 @app.route('/delete', methods=['DELETE'])
@@ -60,7 +64,7 @@ def delete():
         "session_token": session_token
     }
     response = requests.post(url, json=data)
-    return response.json()
+    return send_response(response.json(), response.status_code)
 
 @token_required
 #update my account pw, email, username
@@ -78,10 +82,9 @@ def update():
         "email": email
     }
     response = requests.post(url, json=data)
-    return response.json()
+    return send_response(response.json(), response.status_code)
 
 
 # Esempio di utilizzo
-if __name__ == '__main__':
+if __name__ == '__main__': 
     app.run()
-    

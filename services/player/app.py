@@ -18,6 +18,9 @@ user_url = "http://user_player:5000"
 dbm_url = "http://db-manager:5000"
 transaction_url = "http://transaction:5000"
 
+#make a function that take jason data and return a response
+def send_response(message, status_code):
+    return jsonify(message), status_code
 
 # A function that adds a transaction to the transaction service
 def create_transaction(user_id, amount, transaction_type):
@@ -25,17 +28,15 @@ def create_transaction(user_id, amount, transaction_type):
                              json={"user_id": user_id, "amount": amount, "type": transaction_type})
     return response
 
-
 # make a function that ask to the service gacha the list of all my gacha inside the db of gacha user invetory
 @token_required
 @app.route("/my_gacha_list/<user_id>")
 def my_gacha_list(user_id):
     response = requests.get(f"{gacha_url}/inventory", params={"user_id": user_id})
     if response.status_code == 200:
-        return response.json()
+        return send_response(response.json(), 200)
     else:
-        return "Failed to retrieve gacha list", response.status_code
-
+        return send_response("Failed to retrieve gacha list", response.status_code)
 
 # DA CONTROLLARE
 # function to ask for the information of a specific gacha for that user
@@ -46,10 +47,9 @@ def gacha_info(user_id, gacha_id):
         f"{gacha_url}/my_gacha", params={"user_id": user_id, "gacha_id": gacha_id}
     )
     if response.status_code == 200:
-        return response.json()
+        return send_response(response.json(), 200)
     else:
-        return "Failed to retrieve gacha list", response.status_code
-
+        return send_response("Failed to retrieve gacha list", response.status_code)
 
 def update_user_balance(user_id, amount, type):
     response = requests.put(
@@ -81,17 +81,16 @@ def real_money_transaction():
     amount = data.get("amount")
 
     if not user_id or amount is None:
-        return jsonify({"error": "Missing user_id or amount in request"}), 400
+        return send_response({"error": "Missing user_id or amount in request"}, 400)
 
     # Update the user's balance
     if update_user_balance(user_id, amount, "auction_credit").status_code != 200:
-        return jsonify({"error": "Failed to update user balance"}), 400
+        return send_response({"error": "Failed to update user balance"}, 400)
 
     if create_transaction(user_id, amount, "real_money").status_code != 200:
-        return jsonify({"error": "Failed to create transaction"}), 400
+        return send_response({"error": "Failed to create transaction"}, 400)
 
-    return jsonify({"message": "Transaction added successfully"}), 200
-
+    return send_response({"message": "Transaction added successfully"}, 200)
 
 # function to get the user balance information
 @token_required
@@ -99,10 +98,9 @@ def real_money_transaction():
 def get_user_balance(user_id):
     response = requests.get(f"{dbm_url}/balance/PLAYER", params={"user_id": user_id})
     if response.status_code == 200:
-        return response.json()
+        return send_response(response.json(), 200)
     else:
-        return jsonify({"error": "Failed to retrieve user balance"}), response.status_code
-
+        return send_response({"error": "Failed to retrieve user balance"}, response.status_code)
 
 if __name__ == "__main__":
     app.run()
@@ -112,9 +110,8 @@ if __name__ == "__main__":
 def get_user(user_id):
     url = f"{dbm_url}/get_user/" + user_id
     response = requests.get(url)
-    return response.json()
+    return send_response(response.json(), response.status_code)
 
-@token_required
 @app.route("/update_balance/<user_type>", methods=['PUT'])
 def update_balance(user_type):
     """
@@ -143,4 +140,4 @@ def update_balance(user_type):
     }
     logging.debug("Sending data: %s", data)
     response = requests.put(url, json=data)
-    return response.json()
+    return send_response(response.json(), response.status_code)
