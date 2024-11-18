@@ -10,6 +10,9 @@ app = Flask(__name__)
 DATABASE = './gacha.db/gacha.db'
 logging.basicConfig(level=logging.DEBUG)
 
+#make a function that take jason data and return a response
+def send_response(message, status_code):
+    return jsonify(message), status_code
 
 # Helper function to connect to the database
 def get_db_connection():
@@ -30,25 +33,30 @@ def add():
 
     # Check for required fields
     if not all([name, rarity, status]):
-        return jsonify({'error': 'Missing data to add gacha item'}), 400
+        logging.debug("Missing data to add gacha item: name=%s, rarity=%s, status=%s", name, rarity, status)
+        return send_response({'error': 'Missing data to add gacha item'}, 400)
 
     # Connect to the database
     conn = get_db_connection()
     cursor = conn.cursor()
-
-    # Add the gacha item to the database
-    cursor.execute(
-        "INSERT INTO GachaItems (name, rarity, status, image, description) VALUES (?, ?, ?, ?, ?)",
-        (name, rarity, status, image, description)
-    )
-
-    conn.commit()
-    conn.close()
-
-    if cursor.lastrowid:
-        return jsonify({'message': 'Gacha item added successfully'}), 201
-    return jsonify({'error': 'Failed to add gacha item'}), 500
-
+    try:
+        # Add the gacha item to the database
+        cursor.execute(
+            "INSERT INTO GachaItems (name, rarity, status, image, description) VALUES (?, ?, ?, ?, ?)",
+            (name, rarity, status, image, description)
+        )
+        conn.commit()
+        if cursor.lastrowid:
+            logging.debug("Gacha item added successfully with id=%s", cursor.lastrowid)
+            return send_response({'message': 'Gacha item added successfully'}, 201)
+        else:
+            logging.error("Failed to add gacha item: lastrowid is None")
+            return send_response({'error': 'Failed to add gacha item'}, 500)
+    except sqlite3.Error as e:
+        logging.error("Database error: %s", e)
+        return send_response({'error': 'Database error'}, 500)
+    finally:
+        conn.close()
 
 # Endpoint to perform a gacha roll for a random item
 @app.route('/roll', methods=['POST'])
@@ -60,37 +68,42 @@ def roll_gacha():
 
     # Check for required fields
     if not all([user_id, roll_cost]):
-        return jsonify({'error': 'Missing data for gacha roll'}), 400
+        logging.debug("Missing data for gacha roll: user_id=%s, roll_cost=%s", user_id, roll_cost)
+        return send_response({'error': 'Missing data for gacha roll'}, 400)
 
     if type(roll_cost) != int:
         roll_cost = int(roll_cost)
 
     if roll_cost <= 0:
-        return jsonify({'error': 'Invalid roll cost'}), 400
+        logging.debug("Invalid roll cost: roll_cost=%s", roll_cost)
+        return send_response({'error': 'Invalid roll cost'}, 400)
 
     # Check if the user has sufficient funds for the roll
-    # ask user service for user balance
     user = requests.get('http://user_player:5000/get_user/' + str(user_id))
     if user.status_code != 200:
-        return jsonify({'error': 'User not found'}), 408
+        logging.debug("User not found: user_id=%s", user_id)
+        return send_response({'error': 'User not found'}, 408)
     user = user.json()
     if user and user['currency_balance'] <= roll_cost:
-        return jsonify({'error': 'Insufficient funds for gacha roll'}), 403
+        logging.debug("Insufficient funds for gacha roll: user_id=%s, balance=%s, roll_cost=%s", user_id, user['currency_balance'], roll_cost)
+        return send_response({'error': 'Insufficient funds for gacha roll'}, 403)
 
-    # Update the user's currency balance to user service
+    # Update the user's currency balance
     response = requests.put('http://user_player:5000/update_balance/PLAYER',
                             json={'user_id': user_id, 'amount': roll_cost, 'type': 'roll_purchase'})
 
     if response.status_code != 200:
-        return jsonify({'error': 'Failed to update user balance'}), 500
+        logging.debug("Failed to update user balance: user_id=%s, roll_cost=%s", user_id, roll_cost)
+        return send_response({'error': 'Failed to update user balance'}, 500)
     else:
-        # add transaction to db
+        # Add transaction to db
         data = {'user_id': user_id, 'amount': roll_cost, 'type': 'roll_purchase'}
         response = requests.post('http://transaction:5000/add_transaction', json=data)
         if response.status_code != 200:
             requests.put('http://user_player:5000/update_balance/PLAYER',
                          json={'user_id': user_id, 'new_balance': user['currency_balance']})
-            return jsonify({'error': 'Failed to add transaction'}), 500
+            logging.debug("Failed to add transaction: user_id=%s, roll_cost=%s", user_id, roll_cost)
+            return send_response({'error': 'Failed to add transaction'}, 500)
 
     # Connect to the database
     conn = get_db_connection()
@@ -102,7 +115,8 @@ def roll_gacha():
 
     if not items:
         conn.close()
-        return jsonify({'error': 'No available gacha items'}), 408
+        logging.debug("No available gacha items")
+        return send_response({'error': 'No available gacha items'}, 408)
 
     # Select a random item
     gacha_item = random.choice(items)
@@ -110,20 +124,23 @@ def roll_gacha():
     conn.close()
 
     if not gacha_item:
-        return jsonify({'error': 'Failed to perform gacha roll'}), 500
+        logging.debug("Failed to perform gacha roll")
+        return send_response({'error': 'Failed to perform gacha roll'}, 500)
 
     # Add the gacha item to the user's inventory
     response = requests.post('http://gacha:5000/inventory/add',
                              json={'user_id': user_id, 'gacha_id': gacha_item['gacha_id']})
-    if response.status_code != 200:
-        return jsonify({'error': 'Failed to add gacha item to inventory'}), 500
+    if response.status_code != 201:
+        logging.debug("Failed to add gacha item to inventory: user_id=%s, gacha_id=%s", user_id, gacha_item['gacha_id'])
+        return send_response({'error': 'Failed to add gacha item to inventory'}, 500)
 
-    return jsonify({
+    logging.debug("Gacha roll successful: user_id=%s, gacha_id=%s, name=%s, rarity=%s", user_id, gacha_item['gacha_id'], gacha_item['name'], gacha_item['rarity'])
+    return send_response({
         'message': 'Gacha roll successful',
         'gacha_id': gacha_item['gacha_id'],
         'name': gacha_item['name'],
         'rarity': gacha_item['rarity'],
-    }), 200
+    }, 200)
 
 
 # Endpoint to retrieve a user's gacha inventory
@@ -146,7 +163,8 @@ def get_user_inventory(user_id):
 
     # If inventory is empty, return 404
     if not inventory:
-        return jsonify({'error': 'No gacha items found for user'}), 400
+        logging.debug("No gacha items found for user_id=%s", user_id)
+        return send_response({'error': 'No gacha items found for user'}, 404)
 
     # Format inventory for JSON response
     inventory_list = []
@@ -162,7 +180,8 @@ def get_user_inventory(user_id):
             "image": base64.b64encode(x['image']).decode('utf-8') if x['image'] else None
         })
 
-    return jsonify({'inventory': inventory_list}), 200
+    logging.debug("User inventory retrieved successfully for user_id=%s", user_id)
+    return send_response({'inventory': inventory_list}, 200)
 
 
 # Endpoint to add a gacha item to a user's inventory
@@ -175,12 +194,14 @@ def add_to_inventory():
 
     # Check for required fields
     if not all([user_id, gacha_id]):
-        return jsonify({'error': 'Missing data to add gacha to inventory'}), 400
+        logging.debug("Missing data to add gacha to inventory: user_id=%s, gacha_id=%s", user_id, gacha_id)
+        return send_response({'error': 'Missing data to add gacha to inventory'}, 400)
 
     user = requests.get('http://user_player:5000/get_user/' + user_id)
 
     if user.status_code != 200:
-        return jsonify({'error': 'User not found'}), 408
+        logging.debug("User not found: user_id=%s", user_id)
+        return send_response({'error': 'User not found'}, 404)
 
     # Connect to the database
     conn = get_db_connection()
@@ -196,11 +217,13 @@ def add_to_inventory():
 
     if cursor.rowcount == 0:
         conn.close()
-        return jsonify({'error': 'Gacha item not found or not available'}), 408
+        logging.debug("Gacha item not found or not available: gacha_id=%s", gacha_id)
+        return send_response({'error': 'Gacha item not found or not available'}, 404)
 
     conn.commit()
     conn.close()
-    return jsonify({'message': "Gacha item successfully added to user's inventory"}), 200
+    logging.debug("Gacha item successfully added to user's inventory: user_id=%s, gacha_id=%s", user_id, gacha_id)
+    return send_response({'message': "Gacha item successfully added to user's inventory"}, 201)
 
 
 @app.get("/all")
@@ -214,7 +237,8 @@ def get_all():
     conn.close()
 
     if not rows:
-        return jsonify({'error': 'No gacha items found'}), 408
+        logging.debug("No gacha items found")
+        return send_response({'error': 'No gacha items found'}, 404)
 
     items = []
     for x in rows:
@@ -227,7 +251,8 @@ def get_all():
             "image": base64.b64encode(x['image']).decode('utf-8') if x['image'] else None
         })
 
-    return jsonify({"message": items}), 202
+    logging.debug("Gacha items retrieved successfully")
+    return send_response({"message": items}, 200)
 
 
 # update gacha item
@@ -243,7 +268,8 @@ def update_gacha_item():
 
     # Check for required fields
     if not all([gacha_id, name, rarity, status]):
-        return jsonify({'error': 'Missing data to update gacha item'}), 400
+        logging.debug("Missing data to update gacha item: gacha_id=%s, name=%s, rarity=%s, status=%s", gacha_id, name, rarity, status)
+        return send_response({'error': 'Missing data to update gacha item'}, 400)
 
     # Connect to the database
     conn = get_db_connection()
@@ -253,14 +279,15 @@ def update_gacha_item():
     cursor.execute("SELECT * FROM GachaItems WHERE gacha_id = ?", (gacha_id,))
     gacha_item = cursor.fetchone()
 
+    if not gacha_item:
+        conn.close()
+        logging.debug("Gacha item not found: gacha_id=%s", gacha_id)
+        return send_response({'error': 'Gacha item not found'}, 404)
+
     if not description:
         description = gacha_item['description']
     if image:
         image = image.read()
-
-    if not gacha_item:
-        conn.close()
-        return jsonify({'error': 'Gacha item not found'}), 408
 
     # Update the gacha item details
     if image:
@@ -277,9 +304,10 @@ def update_gacha_item():
     conn.close()
 
     if cursor.rowcount:
-        return jsonify({'message': 'Gacha item updated successfully'}), 200
-    return jsonify({'error': 'Failed to update gacha item'}), 500
-
+        logging.debug("Gacha item updated successfully: gacha_id=%s", gacha_id)
+        return send_response({'message': 'Gacha item updated successfully'}, 200)
+    logging.debug("Failed to update gacha item: gacha_id=%s", gacha_id)
+    return send_response({'error': 'Failed to update gacha item'}, 500)
 
 # retrieve information about a specific gacha item
 @app.route('/get/<gacha_id>')
@@ -293,19 +321,19 @@ def get_gacha_item(gacha_id):
     gacha_item = cursor.fetchone()
     conn.close()
 
-    logging.debug("Gacha item: %s", gacha_item)
-
     if not gacha_item:
-        return jsonify({'error': 'Gacha item not found'}), 408
+        logging.debug("Gacha item not found: gacha_id=%s", gacha_id)
+        return send_response({'error': 'Gacha item not found'}, 404)
 
-    return jsonify({
+    logging.debug("Gacha item retrieved successfully: gacha_id=%s", gacha_id)
+    return send_response({
         'gacha_id': gacha_item['gacha_id'],
         'name': gacha_item['name'],
         'rarity': gacha_item['rarity'],
         'status': gacha_item['status'],
         'description': gacha_item['description'],
         'image': base64.b64encode(gacha_item['image']).decode('utf-8') if gacha_item['image'] else None
-    }), 200
+    }, 200)
 
 
 # get detail of a specific gacha of a specific user
@@ -313,7 +341,8 @@ def get_gacha_item(gacha_id):
 def get_user_gacha_item(user_id, gacha_id):
     res = requests.get('http://user_player:5000/get_user/' + user_id)
     if res.status_code != 200:
-        return jsonify({'error': 'User not found'}), 408
+        logging.debug("User not found: user_id=%s", user_id)
+        return send_response({'error': 'User not found'}, 404)
 
     # Connect to the database
     conn = get_db_connection()
@@ -330,9 +359,11 @@ def get_user_gacha_item(user_id, gacha_id):
     conn.close()
 
     if not gacha_item:
-        return jsonify({'error': 'Gacha item not found in user inventory'}), 408
+        logging.debug("Gacha item not found in user inventory: user_id=%s, gacha_id=%s", user_id, gacha_id)
+        return send_response({'error': 'Gacha item not found in user inventory'}, 404)
 
-    return jsonify({
+    logging.debug("Gacha item retrieved successfully: user_id=%s, gacha_id=%s", user_id, gacha_id)
+    return send_response({
         'gacha_id': gacha_item['gacha_id'],
         'name': gacha_item['name'],
         'rarity': gacha_item['rarity'],
@@ -341,13 +372,15 @@ def get_user_gacha_item(user_id, gacha_id):
         'acquired_date': gacha_item['acquired_date'],
         'locked': gacha_item['status'] == 'locked',
         'image': base64.b64encode(gacha_item['image']).decode('utf-8') if gacha_item['image'] else None
-    }), 200
+    }, 200)
 
 
 @app.get('/is_gacha_unlocked/<user_id>/<gacha_id>')
 def is_gacha_unlocked(user_id, gacha_id):
     if not all([user_id, gacha_id]):
-        return jsonify({'error': 'Missing data to check gacha item'}), 400
+        logging.debug("Missing data to check gacha item: user_id=%s, gacha_id=%s", user_id, gacha_id)
+        return send_response({'error': 'Missing data to check gacha item'}, 400)
+
     # Connect to the database
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -361,9 +394,12 @@ def is_gacha_unlocked(user_id, gacha_id):
     conn.close()
 
     if not gacha_item:
-        return jsonify({'message': 'Gacha item is locked'}), 403
+        logging.debug("Gacha item is locked: user_id=%s, gacha_id=%s", user_id, gacha_id)
+        return send_response({'message': 'Gacha item is locked'}, 403)
 
-    return jsonify({'message': 'Gacha item is unlocked'}), 200
+    logging.debug("Gacha item is unlocked: user_id=%s, gacha_id=%s", user_id, gacha_id)
+    return send_response({'message': 'Gacha item is unlocked'}, 200)
+
 
 @app.route("/update_gacha_status", methods=['PUT'])
 def update_gacha_status():
@@ -371,16 +407,19 @@ def update_gacha_status():
     gacha_id = request.json['gacha_id']
     status = request.json['status']
 
-    if not all ([user_id, gacha_id, status]):
-        return jsonify({'error': 'Missing data to update gacha status'}), 400
+    if not all([user_id, gacha_id, status]):
+        logging.debug("Missing data to update gacha status: user_id=%s, gacha_id=%s, status=%s", user_id, gacha_id, status)
+        return send_response({'error': 'Missing data to update gacha status'}, 400)
 
     res = requests.get('http://user_player:5000/get_user/' + user_id)
     if res.status_code != 200:
-        return jsonify({'error': 'User not found'}), 409
+        logging.debug("User not found: user_id=%s", user_id)
+        return send_response({'error': 'User not found'}, 409)
 
     res = requests.get('http://gacha:5000/get/' + gacha_id)
     if res.status_code != 200:
-        return jsonify({'error': 'Gacha item not found'}), 408
+        logging.debug("Gacha item not found: gacha_id=%s", gacha_id)
+        return send_response({'error': 'Gacha item not found'}, 408)
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -390,8 +429,10 @@ def update_gacha_status():
     conn.commit()
     conn.close()
     if cursor.rowcount:
-        return jsonify({'message': 'Gacha status updated successfully'}), 200
-    return jsonify({'error': 'Failed to update gacha status'}), 500
+        logging.debug("Gacha status updated successfully: user_id=%s, gacha_id=%s, status=%s", user_id, gacha_id, status)
+        return send_response({'message': 'Gacha status updated successfully'}, 200)
+    logging.debug("Failed to update gacha status: user_id=%s, gacha_id=%s, status=%s", user_id, gacha_id, status)
+    return send_response({'error': 'Failed to update gacha status'}, 500)
 
 
 @app.route('/update_gacha_owner', methods=['PUT'])
@@ -399,30 +440,35 @@ def update_gacha_owner():
     buyer_id = request.json['buyer_id']
     seller_id = request.json['seller_id']
     gacha_id = request.json['gacha_id']
-    # need to unlock the gacha
     status = request.json['status']
 
     if not all([buyer_id, seller_id, gacha_id, status]):
-        return jsonify({'error': 'Missing data to update gacha owner'}), 400
+        logging.debug("Missing data to update gacha owner: buyer_id=%s, seller_id=%s, gacha_id=%s, status=%s", buyer_id, seller_id, gacha_id, status)
+        return send_response({'error': 'Missing data to update gacha owner'}, 400)
 
     res = requests.get(f'http://user_player:5000/get_user/{buyer_id}')
     if res.status_code != 200:
-        return jsonify({'error': 'Buyer not found'}), 408
-    logging.debug("Buyer found")
+        logging.debug("Buyer not found: buyer_id=%s", buyer_id)
+        return send_response({'error': 'Buyer not found'}, 404)
+    logging.debug("Buyer found: buyer_id=%s", buyer_id)
 
     res = requests.get(f'http://gacha:5000/get/{seller_id}/{gacha_id}')
     if res.status_code != 200:
-        return jsonify({'error': 'Gacha item not found'}), 408
+        logging.debug("Gacha item not found: seller_id=%s, gacha_id=%s", seller_id, gacha_id)
+        return send_response({'error': 'Gacha item not found'}, 404)
+    logging.debug("Gacha item found: seller_id=%s, gacha_id=%s", seller_id, gacha_id)
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""UPDATE UserGachaInventory SET locked = ?, user_id=?
-                   WHERE user_id = ? AND gacha_id = ?""", (status, buyer_id, seller_id, gacha_id))
+    cursor.execute("""UPDATE UserGachaInventory SET locked = ?, user_id=? 
+                        WHERE user_id = ? AND gacha_id = ?""", (status, buyer_id, seller_id, gacha_id))
 
     conn.commit()
     conn.close()
 
     if cursor.rowcount:
-        return jsonify({'message': 'Gacha owner updated successfully'}), 200
-    return jsonify({'error': 'Failed to update gacha owner'}), 502
+        logging.debug("Gacha owner updated successfully: buyer_id=%s, seller_id=%s, gacha_id=%s, status=%s", buyer_id, seller_id, gacha_id, status)
+        return send_response({'message': 'Gacha owner updated successfully'}, 200)
+    logging.debug("Failed to update gacha owner: buyer_id=%s, seller_id=%s, gacha_id=%s, status=%s", buyer_id, seller_id, gacha_id, status)
+    return send_response({'error': 'Failed to update gacha owner'}, 500)

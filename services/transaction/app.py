@@ -1,9 +1,7 @@
 import logging
 from flask import Flask, request, jsonify
 import sqlite3
-import hashlib
 import uuid
-import requests
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -12,6 +10,10 @@ app = Flask(__name__)
 
 DATABASE = "./transactions.db/transactions.db"
 user_url = "http://user_player:5000"
+
+# Make a function that takes JSON data and returns a response
+def send_response(message, status_code):
+    return jsonify(message), status_code
 
 
 def get_db_connection():
@@ -80,8 +82,8 @@ def add_transaction():
     conn.commit()
     conn.close()
     if cursor.rowcount == 0:
-        return jsonify({"error": "Failed to add transaction"}), 500
-    return jsonify({"message": "Transaction added successfully"}), 200
+        return send_response({"error": "Failed to add transaction"}, 500)
+    return send_response({"message": "Transaction added successfully"}, 200)
 
 
 @app.route("/get_transaction", methods=["GET"])
@@ -103,7 +105,7 @@ def get_transaction():
     """
     transaction_id = request.args.get("transaction_id")
     if not transaction_id:
-        return jsonify({"error": "Missing transaction_id parameter"}), 400
+        return send_response({"error": "Missing transaction_id parameter"}, 400)
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -114,9 +116,9 @@ def get_transaction():
     conn.close()
 
     if transaction:
-        return jsonify(dict(transaction)), 200
+        return send_response(dict(transaction), 200)
     else:
-        return jsonify({"error": "Transaction not found"}), 408
+        return send_response({"error": "Transaction not found"}, 404)
 
 
 @app.route("/get_user_transactions", methods=["GET"])
@@ -140,7 +142,7 @@ def get_user_transactions():
     """
     user_id = request.args.get("user_id")
     if not user_id:
-        return jsonify({"error": "Missing user_id parameter"}), 400
+        return send_response({"error": "Missing user_id parameter"}, 400)
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -149,9 +151,9 @@ def get_user_transactions():
     conn.close()
 
     if transactions:
-        return jsonify([dict(transaction) for transaction in transactions]), 200
+        return send_response([dict(transaction) for transaction in transactions], 200)
     else:
-        return jsonify({"error": "No transactions found for the user"}), 408
+        return send_response({"error": "No transactions found for the user"}, 404)
 
 
 @app.get("/all")
@@ -170,8 +172,8 @@ def get_all_transactions():
     transactions = cursor.fetchall()
     conn.close()
     if not transactions:
-        return jsonify({"error": "No transactions found"}), 404
-    return jsonify([dict(transaction) for transaction in transactions]), 200
+        return send_response({"error": "No transactions found"}, 404)
+    return send_response([dict(transaction) for transaction in transactions], 200)
 
 
 if __name__ == "__main__":

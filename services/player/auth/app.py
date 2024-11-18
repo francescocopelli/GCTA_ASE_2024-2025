@@ -1,9 +1,14 @@
 import requests
-from flask import Flask, request
+from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
 dbm_url = "http://db-manager:5000"
+
+# Make a function that takes JSON data and returns a response
+def send_response(message, status_code):
+    return jsonify(message), status_code
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -15,8 +20,7 @@ def login():
         "password": password
     }
     response = requests.post(url, json=data)
-    print(response.json())
-    return response.json()
+    return send_response(response.json(), response.status_code)
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -30,7 +34,7 @@ def register():
         "email": email
     }
     response = requests.post(url, json=data)
-    return response.json()
+    return send_response(response.json(), response.status_code)
 
 @app.route('/logout', methods=['POST'])
 def logout():
@@ -40,7 +44,7 @@ def logout():
         "session_token": session_token
     }
     response = requests.post(url, json=data)
-    return response.json()
+    return send_response(response.json(), response.status_code)
 
 # delete my account
 @app.route('/delete', methods=['DELETE'])
@@ -51,7 +55,7 @@ def delete():
         "session_token": session_token
     }
     response = requests.post(url, json=data)
-    return response.json()
+    return send_response(response.json(), response.status_code)
 
 #update my account pw, email, username
 @app.route('/update', methods=['PUT'])
@@ -68,10 +72,9 @@ def update():
         "email": email
     }
     response = requests.post(url, json=data)
-    return response.json()
+    return send_response(response.json(), response.status_code)
 
 
 # Esempio di utilizzo
-if __name__ == '__main__':
+if __name__ == '__main__': 
     app.run()
-    
