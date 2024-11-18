@@ -3,9 +3,13 @@ import logging
 import os
 import sqlite3
 import uuid
+from datetime import datetime, timedelta
+
 import jwt
 
 from flask import Flask, request, jsonify, make_response
+
+from shared.auth_middleware import login_required
 
 # Configura il logging
 logging.basicConfig(level=logging.DEBUG)
@@ -35,8 +39,10 @@ def hash_password(password):
 
 
 # Funzione per generare un token di sessione unico
-def generate_session_token(user_id):
-    return jwt.encode({'user_id': user_id}, app.config['SECRET_KEY'], algorithm='HS256')
+def generate_session_token(user_id, user_type):
+    logging.debug(user_type)
+    exp = datetime.now() + timedelta(hours=6)
+    return jwt.encode({'user_id': user_id, "user_type": user_type, "expiration":str(exp)}, app.config['SECRET_KEY'], algorithm='HS256')
     # return str(uuid.uuid4())
 
 
@@ -93,7 +99,7 @@ def login(user_type):
         user = cursor.fetchone()
 
         if user:
-            session_token = generate_session_token(user["user_id"])
+            session_token = generate_session_token(user_id=user["user_id"], user_type=user_type)
             query = f"UPDATE {user_type} SET session_token = ? WHERE username = ?"
             cursor.execute(query, (session_token, username))
             conn.commit()
@@ -122,35 +128,22 @@ def login(user_type):
 
 # Endpoint per il logout
 @app.route("/logout/<user_type>", methods=["POST"])
+@login_required
 def logout(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")
         return send_response({"error": "Invalid user type"}, 401)
-
-    session_token = request.json.get("session_token")
-    if not session_token or session_token == "0":
-        logging.error("Session token is required")
-        return send_response({"error": "Session token is required"}, 400)
-
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Verifica se il token si trova nella tabella PLAYER o ADMIN
-        query = f"SELECT session_token FROM {user_type} WHERE session_token = ?"
-        cursor.execute(query, (session_token,))
-        token_found = cursor.fetchone()
-
-        if token_found:
-            # Elimina il token dalla tabella PLAYER o ADMIN
-            query_delete = f"UPDATE {user_type} SET session_token = 0 WHERE session_token = ?"
-            cursor.execute(query_delete, (session_token,))
-            conn.commit()
-            logging.info(f"User with session token {session_token} logged out successfully")
-            return send_response({"message": "Logout successful"}, 200)
-        else:
-            logging.warning(f"Session token not found: {session_token}")
-            return send_response({"error": "Session token not found"}, 408)
+        # Elimina il token dalla tabella PLAYER o ADMIN
+        query_delete = f"UPDATE {user_type} SET session_token = 0 WHERE user_id = ?"
+        user_id = jwt.decode(request.headers["Authorization"].split(" ")[1], app.config['SECRET_KEY'], algorithms=["HS256"])["user_id"]
+        cursor.execute(query_delete, (user_id,))
+        conn.commit()
+        logging.info(f"User with user_id {user_id} logged out successfully")
+        return send_response({"message": "Logout successful"}, 200)
     except sqlite3.Error as e:
         logging.error(f"Database error: {e}")
         return send_response({"error": "Database error"}, 500)
