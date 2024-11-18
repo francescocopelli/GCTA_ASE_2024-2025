@@ -39,7 +39,6 @@ def add():
     # Connect to the database
     conn = get_db_connection()
     cursor = conn.cursor()
-
     try:
         # Add the gacha item to the database
         cursor.execute(
@@ -131,7 +130,7 @@ def roll_gacha():
     # Add the gacha item to the user's inventory
     response = requests.post('http://gacha:5000/inventory/add',
                              json={'user_id': user_id, 'gacha_id': gacha_item['gacha_id']})
-    if response.status_code != 200:
+    if response.status_code != 201:
         logging.debug("Failed to add gacha item to inventory: user_id=%s, gacha_id=%s", user_id, gacha_item['gacha_id'])
         return send_response({'error': 'Failed to add gacha item to inventory'}, 500)
 
