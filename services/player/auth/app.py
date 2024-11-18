@@ -1,7 +1,15 @@
+import os
+
 import requests
 from flask import Flask, request
 
+from shared.auth_middleware import token_required
+
+
 app = Flask(__name__)
+SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
+print(SECRET_KEY)
+app.config['SECRET_KEY'] = SECRET_KEY
 
 dbm_url = "http://db-manager:5000"
 
@@ -32,6 +40,7 @@ def register():
     response = requests.post(url, json=data)
     return response.json()
 
+@token_required
 @app.route('/logout', methods=['POST'])
 def logout():
     session_token = request.json['session_token']
@@ -53,6 +62,7 @@ def delete():
     response = requests.post(url, json=data)
     return response.json()
 
+@token_required
 #update my account pw, email, username
 @app.route('/update', methods=['PUT'])
 def update():

@@ -1,14 +1,16 @@
 import logging
-from time import strftime
-
-from flask import Flask, request, jsonify
+import os
 import sqlite3
-from datetime import datetime, timedelta
 import uuid
+from datetime import datetime, timedelta
 
 import requests
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
+SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
+print(SECRET_KEY)
+app.config['SECRET_KEY'] = SECRET_KEY
 DATABASE = "./auction.db/auction.db"
 gacha_url = "http://gacha:5000"
 user_url = "http://user_player:5000"
@@ -32,7 +34,7 @@ def is_gacha_unlocked(user_id, gacha_id):
     return False
 
 
-# write a function fos sand an update request to the gacha service to lock or unlock gatcha
+# write a function fos sand an update request to the gacha service to lock or unlock gacha
 def update_gacha_status(user_id, gacha_id, status):
     response = requests.put(f"{gacha_url}/update_gacha_status",
                             json={"user_id": user_id, "gacha_id": gacha_id, "status": status})
@@ -85,7 +87,7 @@ def add_auction():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # VERIFY IF THE GACHA EXIST AND IF ITS NOT LOCKED
+    # VERIFY IF THE GACHA EXIST AND IF IT'S NOT LOCKED
     # Make a GET request to the Gacha service to verify the gacha
     if is_gacha_unlocked(seller_id, gacha_id):
         # Insert the new auction record
@@ -262,7 +264,7 @@ def get_gacha_auctions():
         return jsonify({'error': 'No auctions found for the gacha'}), 408
 
 
-# Fuctions for Bidding
+# Functions for Bidding
 # Endpoint to place a bid on an auction
 @app.route("/bid", methods=["POST"])
 def place_bid():

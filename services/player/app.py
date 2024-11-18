@@ -1,10 +1,17 @@
 # create an hello world endpoint
 
 import logging
+import os
+
 from flask import Flask, jsonify, request
 import requests
 
+from shared.auth_middleware import *
+
 app = Flask(__name__)
+SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
+print(SECRET_KEY)
+app.config['SECRET_KEY'] = SECRET_KEY
 
 gacha_url = "http://gacha:5000"
 user_url = "http://user_player:5000"
@@ -20,6 +27,7 @@ def create_transaction(user_id, amount, transaction_type):
 
 
 # make a function that ask to the service gacha the list of all my gacha inside the db of gacha user invetory
+@token_required
 @app.route("/my_gacha_list/<user_id>")
 def my_gacha_list(user_id):
     response = requests.get(f"{gacha_url}/inventory", params={"user_id": user_id})
@@ -31,6 +39,7 @@ def my_gacha_list(user_id):
 
 # DA CONTROLLARE
 # function to ask for the information of a specific gacha for that user
+@token_required
 @app.route("/gacha/<user_id>/<gacha_id>")
 def gacha_info(user_id, gacha_id):
     response = requests.get(
@@ -50,6 +59,7 @@ def update_user_balance(user_id, amount, type):
     return response
 
 
+@token_required
 @app.route("/real_money_transaction", methods=["POST"])
 def real_money_transaction():
     """
@@ -84,6 +94,7 @@ def real_money_transaction():
 
 
 # function to get the user balance information
+@token_required
 @app.route("/get_user_balance/<user_id>")
 def get_user_balance(user_id):
     response = requests.get(f"{dbm_url}/balance/PLAYER", params={"user_id": user_id})
@@ -96,14 +107,14 @@ def get_user_balance(user_id):
 if __name__ == "__main__":
     app.run()
 
-
+@token_required
 @app.get("/get_user/<user_id>")
 def get_user(user_id):
     url = f"{dbm_url}/get_user/" + user_id
     response = requests.get(url)
     return response.json()
 
-
+@token_required
 @app.route("/update_balance/<user_type>", methods=['PUT'])
 def update_balance(user_type):
     """

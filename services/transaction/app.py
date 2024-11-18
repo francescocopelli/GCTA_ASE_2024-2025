@@ -1,14 +1,17 @@
 import logging
-from flask import Flask, request, jsonify
+import os
 import sqlite3
-import hashlib
 import uuid
-import requests
+
+from flask import Flask, request, jsonify
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
+SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
+print(SECRET_KEY)
+app.config['SECRET_KEY'] = SECRET_KEY
 
 DATABASE = "./transactions.db/transactions.db"
 user_url = "http://user_player:5000"

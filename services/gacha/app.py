@@ -1,12 +1,17 @@
 import logging
+import os
 
 import requests
 from flask import Flask, request, jsonify
 import sqlite3
 import random
 import base64
+from shared.auth_middleware import *
 
 app = Flask(__name__)
+SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
+print(SECRET_KEY)
+app.config['SECRET_KEY'] = SECRET_KEY
 DATABASE = './gacha.db/gacha.db'
 logging.basicConfig(level=logging.DEBUG)
 
@@ -19,6 +24,7 @@ def get_db_connection():
 
 
 @app.post('/add')
+@admin_required
 def add():
     name = request.form.get('name')
     rarity = request.form.get('rarity')
@@ -51,7 +57,47 @@ def add():
 
 
 # Endpoint to perform a gacha roll for a random item
+@app.route('/inventory/<user_id>', methods=['GET'])
+@admin_required
+def get_user_inventory(user_id):
+    # Connect to the database
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Retrieve all gacha items owned by the user
+    cursor.execute("""
+        SELECT GachaItems.*, UserGachaInventory.acquired_date, UserGachaInventory.locked
+        FROM UserGachaInventory
+        JOIN GachaItems ON UserGachaInventory.gacha_id = GachaItems.gacha_id
+        WHERE UserGachaInventory.user_id = ?
+    """, (user_id,))
+
+    inventory = cursor.fetchall()
+    conn.close()
+
+    # If inventory is empty, return 404
+    if not inventory:
+        return jsonify({'error': 'No gacha items found for user'}), 400
+
+    # Format inventory for JSON response
+    inventory_list = []
+    for x in inventory:
+        inventory_list.append({
+            "gacha_id": x['gacha_id'],
+            "name": x['name'],
+            "rarity": x['rarity'],
+            "status": x['status'],
+            "description": x['description'],
+            "acquired_date": x['acquired_date'],
+            "locked": x['status'] == 'locked',
+            "image": base64.b64encode(x['image']).decode('utf-8') if x['image'] else None
+        })
+
+    return jsonify({'inventory': inventory_list}), 200
+
+
 @app.route('/roll', methods=['POST'])
+@token_required
 def roll_gacha():
     # Extract roll details from request JSON
     data = request.get_json()
@@ -124,49 +170,12 @@ def roll_gacha():
         'name': gacha_item['name'],
         'rarity': gacha_item['rarity'],
     }), 200
-
-
 # Endpoint to retrieve a user's gacha inventory
-@app.route('/inventory/<user_id>', methods=['GET'])
-def get_user_inventory(user_id):
-    # Connect to the database
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    # Retrieve all gacha items owned by the user
-    cursor.execute("""
-        SELECT GachaItems.*, UserGachaInventory.acquired_date, UserGachaInventory.locked
-        FROM UserGachaInventory
-        JOIN GachaItems ON UserGachaInventory.gacha_id = GachaItems.gacha_id
-        WHERE UserGachaInventory.user_id = ?
-    """, (user_id,))
-
-    inventory = cursor.fetchall()
-    conn.close()
-
-    # If inventory is empty, return 404
-    if not inventory:
-        return jsonify({'error': 'No gacha items found for user'}), 400
-
-    # Format inventory for JSON response
-    inventory_list = []
-    for x in inventory:
-        inventory_list.append({
-            "gacha_id": x['gacha_id'],
-            "name": x['name'],
-            "rarity": x['rarity'],
-            "status": x['status'],
-            "description": x['description'],
-            "acquired_date": x['acquired_date'],
-            "locked": x['status'] == 'locked',
-            "image": base64.b64encode(x['image']).decode('utf-8') if x['image'] else None
-        })
-
-    return jsonify({'inventory': inventory_list}), 200
 
 
 # Endpoint to add a gacha item to a user's inventory
 @app.route('/inventory/add', methods=['POST'])
+@admin_required
 def add_to_inventory():
     # Extract inventory details from request JSON
     data = request.get_json()
@@ -204,6 +213,7 @@ def add_to_inventory():
 
 
 @app.get("/all")
+@token_required
 def get_all():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -232,6 +242,7 @@ def get_all():
 
 # update gacha item
 @app.route('/update', methods=['PUT'])
+@admin_required
 def update_gacha_item():
     # Extract gacha item details from request JSON
     gacha_id = request.form.get('gacha_id')
@@ -283,6 +294,7 @@ def update_gacha_item():
 
 # retrieve information about a specific gacha item
 @app.route('/get/<gacha_id>')
+@token_required
 def get_gacha_item(gacha_id):
     # Connect to the database
     conn = get_db_connection()
@@ -310,6 +322,7 @@ def get_gacha_item(gacha_id):
 
 # get detail of a specific gacha of a specific user
 @app.get('/get/<user_id>/<gacha_id>')
+@token_required
 def get_user_gacha_item(user_id, gacha_id):
     res = requests.get('http://user_player:5000/get_user/' + user_id)
     if res.status_code != 200:
@@ -345,6 +358,7 @@ def get_user_gacha_item(user_id, gacha_id):
 
 
 @app.get('/is_gacha_unlocked/<user_id>/<gacha_id>')
+@admin_required
 def is_gacha_unlocked(user_id, gacha_id):
     if not all([user_id, gacha_id]):
         return jsonify({'error': 'Missing data to check gacha item'}), 400
@@ -366,6 +380,7 @@ def is_gacha_unlocked(user_id, gacha_id):
     return jsonify({'message': 'Gacha item is unlocked'}), 200
 
 @app.route("/update_gacha_status", methods=['PUT'])
+@admin_required
 def update_gacha_status():
     user_id = request.json['user_id']
     gacha_id = request.json['gacha_id']
@@ -395,6 +410,7 @@ def update_gacha_status():
 
 
 @app.route('/update_gacha_owner', methods=['PUT'])
+@admin_required
 def update_gacha_owner():
     buyer_id = request.json['buyer_id']
     seller_id = request.json['seller_id']

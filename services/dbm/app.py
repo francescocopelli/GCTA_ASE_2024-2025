@@ -1,15 +1,18 @@
-import logging
-from flask import Flask, request, jsonify, make_response
-import sqlite3
 import hashlib
+import logging
+import os
+import sqlite3
 import uuid
 
-import requests
+from flask import Flask, request, jsonify, make_response
 
 # Configura il logging
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
+SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
+print(SECRET_KEY)
+app.config['SECRET_KEY'] = SECRET_KEY
 
 DATABASE = './users.db/user.db'
 transaction_url = "http://transaction:5000"

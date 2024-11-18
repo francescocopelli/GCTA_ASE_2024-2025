@@ -1,7 +1,12 @@
+import os
+
 import requests
 from flask import Flask, request
 
 app = Flask(__name__)
+SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
+print(SECRET_KEY)
+app.config['SECRET_KEY'] = SECRET_KEY
 
 
 @app.route('/logout', methods=['POST'])
