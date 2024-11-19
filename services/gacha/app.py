@@ -1,11 +1,11 @@
-import logging
-import os
-
-import requests
-from flask import Flask, request, jsonify
-import sqlite3
-import random
 import base64
+import os
+import random
+import sqlite3
+
+import jwt
+from flask import Flask, jsonify
+
 from shared.auth_middleware import *
 
 app = Flask(__name__)
@@ -31,6 +31,8 @@ def get_db_connection():
 @app.post('/add')
 @admin_required
 def add():
+    if not check_header(): return send_response({'error': 'Admin authorization required'}, 401)
+
     name = request.form.get('name')
     rarity = request.form.get('rarity')
     status = request.form.get('status')
@@ -117,6 +119,9 @@ def roll_gacha():
     user_id = data.get('user_id')
     roll_cost = 5
 
+    if check_header() or jwt.decode(request.headers.get("Authorization").split(" ")[1], app.config['SECRET_KEY'], algorithms=["HS256"])['user_type'] == 'ADMIN':
+        return send_response({'error': 'Admins cannot roll gacha'}, 403)
+
     # Check for required fields
     if not all([user_id, roll_cost]):
         logging.debug("Missing data for gacha roll: user_id=%s, roll_cost=%s", user_id, roll_cost)
@@ -130,7 +135,7 @@ def roll_gacha():
         return send_response({'error': 'Invalid roll cost'}, 400)
 
     # Check if the user has sufficient funds for the roll
-    user = requests.get('http://user_player:5000/get_user/' + str(user_id))
+    user = requests.get('http://user_player:5000/get_user/' + str(user_id), headers=generate_session_token_system())
     if user.status_code != 200:
         logging.debug("User not found: user_id=%s", user_id)
         return send_response({'error': 'User not found'}, 408)
@@ -141,7 +146,7 @@ def roll_gacha():
         return send_response({'error': 'Insufficient funds for gacha roll'}, 403)
 
     # Update the user's currency balance
-    response = requests.put('http://user_player:5000/update_balance/PLAYER',
+    response = requests.put('http://user_player:5000/update_balance/PLAYER', headers=generate_session_token_system(),
                             json={'user_id': user_id, 'amount': roll_cost, 'type': 'roll_purchase'})
 
     if response.status_code != 200:
@@ -150,9 +155,9 @@ def roll_gacha():
     else:
         # Add transaction to db
         data = {'user_id': user_id, 'amount': roll_cost, 'type': 'roll_purchase'}
-        response = requests.post('http://transaction:5000/add_transaction', json=data)
+        response = requests.post('http://transaction:5000/add_transaction', json=data, headers=generate_session_token_system())
         if response.status_code != 200:
-            requests.put('http://user_player:5000/update_balance/PLAYER',
+            requests.put('http://user_player:5000/update_balance/PLAYER', headers=generate_session_token_system(),
                          json={'user_id': user_id, 'new_balance': user['currency_balance']})
             logging.debug("Failed to add transaction: user_id=%s, roll_cost=%s", user_id, roll_cost)
             return send_response({'error': 'Failed to add transaction'}, 500)
@@ -180,7 +185,7 @@ def roll_gacha():
         return send_response({'error': 'Failed to perform gacha roll'}, 500)
 
     # Add the gacha item to the user's inventory
-    response = requests.post('http://gacha:5000/inventory/add',
+    response = requests.post('http://gacha:5000/inventory/add', headers=generate_session_token_system(),
                              json={'user_id': user_id, 'gacha_id': gacha_item['gacha_id']})
     if response.status_code != 201:
         logging.debug("Failed to add gacha item to inventory: user_id=%s, gacha_id=%s", user_id, gacha_item['gacha_id'])
@@ -198,7 +203,7 @@ def roll_gacha():
 
 # Endpoint to add a gacha item to a user's inventory
 @app.route('/inventory/add', methods=['POST'])
-# @admin_required
+@admin_required
 def add_to_inventory():
     # Extract inventory details from request JSON
     data = request.get_json()
@@ -210,7 +215,7 @@ def add_to_inventory():
         logging.debug("Missing data to add gacha to inventory: user_id=%s, gacha_id=%s", user_id, gacha_id)
         return send_response({'error': 'Missing data to add gacha to inventory'}, 400)
 
-    user = requests.get('http://user_player:5000/get_user/' + user_id)
+    user = requests.get('http://user_player:5000/get_user/' + user_id, headers=generate_session_token_system())
 
     if user.status_code != 200:
         logging.debug("User not found: user_id=%s", user_id)

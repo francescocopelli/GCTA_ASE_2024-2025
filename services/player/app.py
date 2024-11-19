@@ -29,9 +29,9 @@ def create_transaction(user_id, amount, transaction_type):
     return response
 
 # make a function that ask to the service gacha the list of all my gacha inside the db of gacha user invetory
-@token_required_void
 
 @app.route("/my_gacha_list/<user_id>")
+@token_required_void
 def my_gacha_list(user_id):
     response = requests.get(f"{gacha_url}/inventory", params={"user_id": user_id})
     if response.status_code == 200:
@@ -41,8 +41,8 @@ def my_gacha_list(user_id):
 
 # DA CONTROLLARE
 # function to ask for the information of a specific gacha for that user
-@token_required_void
 @app.route("/gacha/<user_id>/<gacha_id>")
+@token_required_void
 def gacha_info(user_id, gacha_id):
     response = requests.get(
         f"{gacha_url}/my_gacha", params={"user_id": user_id, "gacha_id": gacha_id}
@@ -60,9 +60,8 @@ def update_user_balance(user_id, amount, type):
     return response
 
 
-@token_required_void
-
 @app.route("/real_money_transaction", methods=["POST"])
+@token_required_void
 def real_money_transaction():
     """
     Handle real money transactions.
@@ -95,8 +94,8 @@ def real_money_transaction():
     return send_response({"message": "Transaction added successfully"}, 200)
 
 # function to get the user balance information
-@token_required_void
 @app.route("/get_user_balance/<user_id>")
+@token_required_void
 def get_user_balance(user_id):
     response = requests.get(f"{dbm_url}/balance/PLAYER", params={"user_id": user_id})
     if response.status_code == 200:
@@ -107,14 +106,15 @@ def get_user_balance(user_id):
 if __name__ == "__main__":
     app.run()
 
-@token_required_void
 @app.get("/get_user/<user_id>")
+@token_required_void
 def get_user(user_id):
     url = f"{dbm_url}/get_user/" + user_id
-    response = requests.get(url)
+    response = requests.get(url, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
 @app.route("/update_balance/<user_type>", methods=['PUT'])
+@admin_required
 def update_balance(user_type):
     """
     Update the balance of a user.
@@ -141,5 +141,5 @@ def update_balance(user_type):
         "type": type
     }
     logging.debug("Sending data: %s", data)
-    response = requests.put(url, json=data)
+    response = requests.put(url, json=data, headers=request.headers)
     return send_response(response.json(), response.status_code)

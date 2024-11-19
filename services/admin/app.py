@@ -12,6 +12,8 @@ app.config['SECRET_KEY'] = SECRET_KEY
 def send_response(message, status_code):
     return jsonify(message), status_code
 
+
+
 @app.route('/login', methods=['POST'])
 def login():
     username = request.json['username']

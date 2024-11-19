@@ -109,3 +109,7 @@ volumes:
 networks:
   microservice-network:
     driver: bridge
+
+
+#add an environmental variable to the docker-compose.yml file to specify the debug mode or not
+
