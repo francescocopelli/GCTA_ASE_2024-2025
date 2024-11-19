@@ -447,5 +447,6 @@ def update_balance(user_type):
         except Exception as e:
             logging.error(f"Error closing connection: {e}")
 
+
 if __name__ == '__main__':
     app.run()

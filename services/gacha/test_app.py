@@ -8,14 +8,14 @@ class UserBehavior(TaskSet):
             "rarity": "Common",
             "status": "available",
             "description": "A test item"
-        })
+        }, header=create_header("valid_session_token"))
 
     @task
     def roll_gacha(self):
         self.client.post("/gacha/roll", json={
             "user_id": 1,
             "roll_cost": 5
-        })
+        }, header=create_header("valid_session_token"))
 
     @task
     def get_user_inventory(self):
@@ -26,7 +26,7 @@ class UserBehavior(TaskSet):
         self.client.post("/gacha/inventory/add", json={
             "user_id": 1,
             "gacha_id": 1
-        })
+        }, header=create_header("valid_session_token"))
 
     @task
     def get_all(self):
@@ -40,7 +40,7 @@ class UserBehavior(TaskSet):
             "rarity": "Rare",
             "status": "available",
             "description": "An updated test item"
-        })
+        }, header=create_header("valid_session_token"))
 
     @task
     def get_gacha_item(self):
@@ -60,7 +60,7 @@ class UserBehavior(TaskSet):
             "user_id": 1,
             "gacha_id": 1,
             "status": "unlocked"
-        })
+        }, header=create_header("valid_session_token"))
 
     @task
     def update_gacha_owner(self):
@@ -69,7 +69,7 @@ class UserBehavior(TaskSet):
             "seller_id": 1,
             "gacha_id": 1,
             "status": "unlocked"
-        })
+        }, header=create_header("valid_session_token"))
 
 class GachaTest(HttpUser):
     tasks = [UserBehavior]

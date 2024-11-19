@@ -1,6 +1,10 @@
 from locust import HttpUser, TaskSet, task, between
 
-class UserBehavior(TaskSet):
+def create_header(token):
+    return {"Authorization": f"Bearer {token}"}
+    
+    
+class UserAuthBehavior(TaskSet):
     @task
     def login_success(self):
         response = self.client.post('/login', json={
@@ -33,7 +37,7 @@ class UserBehavior(TaskSet):
     def logout(self):
         response = self.client.post('/logout', json={
             "session_token": "valid_session_token"
-        })
+        }, header=create_header("valid_session_token"))
         assert response.status_code == 200
         assert response.json()["message"] == "Logout successful"
 
@@ -41,7 +45,7 @@ class UserBehavior(TaskSet):
     def delete_account(self):
         response = self.client.delete('/delete', json={
             "session_token": "valid_session_token"
-        })
+        }, header=create_header("valid_session_token"))
         assert response.status_code == 200
         assert response.json()["message"] == "Account deleted successfully"
 
@@ -52,10 +56,10 @@ class UserBehavior(TaskSet):
             "username": "updated_username",
             "password": "updated_password",
             "email": "updated_email@example.com"
-        })
+        }, header=create_header("valid_session_token"))
         assert response.status_code == 200
         assert response.json()["message"] == "Account updated successfully"
 
 class AuthUser(HttpUser):
-    tasks = [UserBehavior]
+    tasks = [UserAuthBehavior]
     wait_time = between(1, 5)

@@ -74,6 +74,17 @@ def update():
     response = requests.post(url, json=data)
     return send_response(response.json(), response.status_code)
 
+#TODO implementare parte in DBM
+
+@app.route('/users/auth/reset_pwd', methods=['POST'])
+def reset_password():
+    email = request.json['email']
+    url = f"{dbm_url}/reset_pwd/PLAYER"
+    data = {
+        "email": email
+    }
+    response = requests.post(url, json=data)
+    return send_response(response.json(), response.status_code)
 
 # Esempio di utilizzo
 if __name__ == '__main__': 
