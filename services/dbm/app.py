@@ -447,6 +447,51 @@ def update_balance(user_type):
         except Exception as e:
             logging.error(f"Error closing connection: {e}")
 
+#Make the function that delete the user from the database with the given session_token
+@app.route('/delete/<user_type>/<session_token>', methods=['DELETE'])
+def delete_user(user_type,session_token):
+    if user_type not in ['PLAYER', 'ADMIN']:
+        logging.error(f"Invalid user type: {user_type}")
+        return send_response({'error': 'Invalid user type'}, 400)
+
+    if not session_token:
+        logging.error("Session token is required")
+        return send_response({"error": "Session token is required"}, 400)
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verify if the session_token exists in the table
+        query = f"SELECT * FROM {user_type} WHERE session_token = ?"
+        cursor.execute(query, (session_token,))
+        user = cursor.fetchone()
+
+        if user:
+            # Delete the user from the table
+            query_delete = f"DELETE FROM {user_type} WHERE session_token = ?"
+            cursor.execute(query_delete, (session_token,))
+            conn.commit()
+            logging.info(f"User with session token {session_token} deleted successfully")
+            return send_response({"message": "User deleted successfully", "user_id": user["user_id"]}, 200)
+        else:
+            logging.warning(f"Session token not found: {session_token}")
+            return send_response({"error": "Session token not found"}, 404)
+    except sqlite3.Error as e:
+        logging.error(f"Database error: {e}")
+        return send_response({"error": "Database error"}, 500)
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
+        return send_response({"error": "Unexpected error"}, 500)
+    finally:
+        try:
+            cursor.close()
+        except Exception as e:
+            logging.error(f"Error closing cursor: {e}")
+        try:
+            conn.close()
+        except Exception as e:
+            logging.error(f"Error closing connection: {e}")
 
 if __name__ == '__main__':
     app.run()

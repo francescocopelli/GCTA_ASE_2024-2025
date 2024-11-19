@@ -4,6 +4,8 @@ from flask import Flask, jsonify, request
 app = Flask(__name__)
 
 dbm_url = "http://db-manager:5000"
+auction_url = "http://auction:5000"
+gacha_url = "http://gacha:5000"
 
 # Make a function that takes JSON data and returns a response
 def send_response(message, status_code):
@@ -49,13 +51,26 @@ def logout():
 # delete my account
 @app.route('/delete', methods=['DELETE'])
 def delete():
+    #call to dbm for delete account infos
     session_token = request.json['session_token']
-    url = f"{dbm_url}/delete/PLAYER"
-    data = {
-        "session_token": session_token
-    }
-    response = requests.post(url, json=data)
-    return send_response(response.json(), response.status_code)
+    url = f"{dbm_url}/delete/PLAYER/{session_token}"
+    response = requests.delete(url)
+    if response.status_code == 200:
+        #call to auction for delete all my auctions
+        url = f"{auction_url}/delete"
+        data = {
+            "user_id": response.json()['user_id']
+        }
+        response2 = requests.put(url, json=data)
+        
+        #call to auction for delete the inventory
+        url = f"{gacha_url}/delete"
+        data = {
+            "user_id": response.json()['user_id']
+        }
+        response3 = requests.put(url, json=data)
+        
+        return send_response(response3.json(), response3.status_code)
 
 #update my account pw, email, username
 @app.route('/update', methods=['PUT'])

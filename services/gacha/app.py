@@ -472,3 +472,40 @@ def update_gacha_owner():
         return send_response({'message': 'Gacha owner updated successfully'}, 200)
     logging.debug("Failed to update gacha owner: buyer_id=%s, seller_id=%s, gacha_id=%s, status=%s", buyer_id, seller_id, gacha_id, status)
     return send_response({'error': 'Failed to update gacha owner'}, 500)
+
+#Make a function that receives the id of a user and delete his id from all the 2 dbs
+@app.route('/delete', methods=['PUT'])
+def delete_user():
+    # Extract user_id from the request JSON
+    data = request.get_json()
+    user_id = data.get("user_id")
+
+    # Check if all required fields are provided
+    if not user_id:
+        return send_response({"error": "Missing data for delete"}, 400)
+
+    conn = None
+    try:
+        # Connect to the database
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Update the user_id in the Inventory table
+        cursor.execute(
+            "UPDATE UserGachaInventory SET user_id = -1 WHERE user_id = ?",
+            (user_id,),
+        )
+        conn.commit()
+        return send_response({"message": "User references updated successfully"}, 200)
+
+    except sqlite3.Error as e:
+        logging.error(f"Database error occurred: {e}")
+        return send_response({"error": "Database error occurred"}, 500)
+
+    except Exception as e:
+        logging.error(f"Error occurred: {e}")
+        return send_response({"error": "An error occurred"}, 500)
+
+    finally:
+        if conn:
+            conn.close()

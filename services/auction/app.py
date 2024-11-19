@@ -149,7 +149,8 @@ def add_auction():
             end_time = (datetime.now() + timedelta(hours=6)).timestamp()
 
             response = update_gacha_status(seller_id, gacha_id, "locked")
-            if response.status_code == 200:
+            logging.debug(f"Response from gacha service: {response}")
+            if response[1] == 200:
                 cursor.execute(
                     "INSERT INTO Auctions (auction_id, gacha_id, seller_id, base_price, highest_bid, buyer_id, status, end_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                     (auction_id, gacha_id, seller_id, base_price, 0, None, "active", end_time),
@@ -381,7 +382,7 @@ def place_bid():
 
         # Check if the user has enough funds for the bid
         user_balance = get_user_balance(user_id)
-        if int(user_balance) < int(bid_amount):
+        if int(user_balance[0].get_json('currency_balance')) < int(bid_amount):
             return send_response({"error": "Insufficient funds"}, 403)
 
         # Update the auction with the new highest bid
@@ -462,3 +463,51 @@ def get_bids():
     result = [dict(bid) for bid in bids]
     logging.debug(f"Retrieved {len(result)} bids for auction_id {auction_id}")
     return send_response({"bids": result}, 200)
+
+#Make a function that receives the id of a user and delete his id from all the 2 dbs
+@app.route('/delete', methods=['PUT'])
+def delete_user():
+    # Extract user_id from the request JSON
+    data = request.get_json()
+    user_id = data.get("user_id")
+
+    # Check if all required fields are provided
+    if not user_id:
+        return send_response({"error": "Missing data for delete"}, 400)
+
+    conn = None
+    try:
+        # Connect to the database
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Update the seller_id or buyer_id in the Auctions table
+        cursor.execute(
+            "UPDATE Auctions SET seller_id = -1 WHERE seller_id = ?",
+            (user_id,),
+        )
+        cursor.execute(
+            "UPDATE Auctions SET buyer_id = -1 WHERE buyer_id = ?",
+            (user_id,),
+        )
+
+        # Update the user_id in the Bids table
+        cursor.execute(
+            "UPDATE Bids SET user_id = -1 WHERE user_id = ?",
+            (user_id,),
+        )
+
+        conn.commit()
+        return send_response({"message": "User references updated successfully"}, 200)
+
+    except sqlite3.Error as e:
+        logging.error(f"Database error occurred: {e}")
+        return send_response({"error": "Database error occurred"}, 500)
+
+    except Exception as e:
+        logging.error(f"Error occurred: {e}")
+        return send_response({"error": "An error occurred"}, 500)
+
+    finally:
+        if conn:
+            conn.close()
