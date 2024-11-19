@@ -55,8 +55,7 @@ def register(user_type):
         # Inserimento nel database
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = f"INSERT INTO {
-            user_type} (username, password, email, currency_balance,session_token) VALUES (?, ?, ?, 0,0)"
+        query = f"INSERT INTO {user_type} (username, password, email, currency_balance,session_token) VALUES (?, ?, ?, 0,0)"
         cursor.execute(query, (username, hashed_password, email))
         conn.commit()
         return send_response({"message": f"{user_type} registered successfully"}, 200)
@@ -94,8 +93,7 @@ def login(user_type):
 
         if user:
             session_token = generate_session_token()
-            query = f"UPDATE {
-                user_type} SET session_token = ? WHERE username = ?"
+            query = f"UPDATE {user_type} SET session_token = ? WHERE username = ?"
             cursor.execute(query, (session_token, username))
             conn.commit()
             # response.set_cookie('session_token', session_token, httponly=True, secure=True)
@@ -138,19 +136,16 @@ def logout(user_type):
         cursor = conn.cursor()
 
         # Verifica se il token si trova nella tabella PLAYER o ADMIN
-        query = f"SELECT session_token FROM {
-            user_type} WHERE session_token = ?"
+        query = f"SELECT session_token FROM {user_type} WHERE session_token = ?"
         cursor.execute(query, (session_token,))
         token_found = cursor.fetchone()
 
         if token_found:
             # Elimina il token dalla tabella PLAYER o ADMIN
-            query_delete = f"UPDATE {
-                user_type} SET session_token = 0 WHERE session_token = ?"
+            query_delete = f"UPDATE {user_type} SET session_token = 0 WHERE session_token = ?"
             cursor.execute(query_delete, (session_token,))
             conn.commit()
-            logging.info(f"User with session token {
-                         session_token} logged out successfully")
+            logging.info(f"User with session token {session_token} logged out successfully")
             return send_response({"message": "Logout successful"}, 200)
         else:
             logging.warning(f"Session token not found: {session_token}")
@@ -240,8 +235,7 @@ def delete(user_type):
             query_delete = f"DELETE FROM {user_type} WHERE session_token = ?"
             cursor.execute(query_delete, (session_token,))
             conn.commit()
-            logging.info(f"User with session token {
-                         session_token} deleted successfully")
+            logging.info(f"User with session token {session_token} deleted successfully")
             return send_response({"message": "Profile deleted successfully"}, 200)
         else:
             logging.warning(f"Session token not found: {session_token}")
@@ -289,25 +283,16 @@ def update(user_type):
         if token_found:
             # Update the player profile
             if request.json.get("username"):
-                query_update = (
-                    "UPDATE " + user_type + " SET username = ? WHERE session_token = ?"
-                )
+                query_update = ("UPDATE " + user_type + " SET username = ? WHERE session_token = ?")
                 cursor.execute(
                     query_update, (request.json.get("username"), session_token))
             if request.json.get("password"):
-                query_update = (
-                    "UPDATE " + user_type + " SET password = ? WHERE session_token = ?"
-                )
+                query_update = ("UPDATE " + user_type + " SET password = ? WHERE session_token = ?")
                 cursor.execute(
-                    query_update,
-                    (hash_password(request.json.get("password")), session_token),
-                )
+                    query_update,(hash_password(request.json.get("password")), session_token),)
             if request.json.get("email"):
-                query_update = (
-                    "UPDATE " + user_type + " SET email = ? WHERE session_token = ?"
-                )
-                cursor.execute(
-                    query_update, (request.json.get("email"), session_token))
+                query_update = ("UPDATE " + user_type + " SET email = ? WHERE session_token = ?")
+                cursor.execute(query_update, (request.json.get("email"), session_token))
         else:
             return send_response({"error": "Session token not found"}, 408)
 
@@ -353,16 +338,13 @@ def update_balance_user(user_type):
         query = f"SELECT * FROM {user_type} WHERE user_id = ?"
         cursor.execute(query, (user_id,))
         user = cursor.fetchone()
-        logging.debug(f"Received: user_id={user_id}, amount={
-                      amount}, type={transaction_type}")
+        logging.debug(f"Received: user_id={user_id}, amount={amount}, type={transaction_type}")
 
         if user:
             if transaction_type == "credit":
-                query_update = f"UPDATE {
-                    user_type} SET currency_balance = currency_balance + ? WHERE user_id = ?"
+                query_update = f"UPDATE {user_type} SET currency_balance = currency_balance + ? WHERE user_id = ?"
             else:
-                query_update = f"UPDATE {
-                    user_type} SET currency_balance = currency_balance - ? WHERE user_id = ?"
+                query_update = f"UPDATE {user_type} SET currency_balance = currency_balance - ? WHERE user_id = ?"
 
             cursor.execute(query_update, (amount, user_id))
             conn.commit()
@@ -402,8 +384,7 @@ def get_user(user_type, user_id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = f"SELECT user_id, username, email, currency_balance, session_token FROM {
-            user_type} WHERE user_id = ?"
+        query = f"SELECT user_id, username, email, currency_balance, session_token FROM {user_type} WHERE user_id = ?"
         cursor.execute(query, (user_id,))
         user = cursor.fetchone()
         conn.close()
@@ -442,8 +423,7 @@ def update_balance(user_type):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = f"UPDATE {
-            user_type} SET currency_balance = ? WHERE user_id = ?"
+        query = f"UPDATE {user_type} SET currency_balance = ? WHERE user_id = ?"
         cursor.execute(query, (new_balance, user_id))
         conn.commit()
         if cursor.rowcount == 0:
