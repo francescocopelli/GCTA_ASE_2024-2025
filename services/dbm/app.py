@@ -456,5 +456,43 @@ def update_balance(user_type):
         except Exception as e:
             logging.error(f"Error closing connection: {e}")
 
+@app.route("/get_all/<user_type>", methods=["GET"])
+@admin_required
+def get_all(user_type):
+    if user_type not in ["PLAYER", "ADMIN"]:
+        return send_response({"error": "Invalid user type"}, 400)
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        query = f"SELECT * FROM {user_type}"
+        cursor.execute(query)
+        users = cursor.fetchall()
+        logging.info(f"Users retrieved successfully from {user_type} #{users.count}")
+        conn.close()
+        if not users:
+            logging.warning(f"No users found")
+            return send_response({"error": "No users found"}, 404)
+        users_list = []
+        for user in users:
+            usr = {
+                "user_id": user["user_id"],
+                "username": user["username"],
+                "email": user["email"],
+                "currency_balance": user["currency_balance"],
+                # "image": base64.b64encode(user["image"]).decode('utf-8') if user["image"] else None,
+                "session_token": user["session_token"],
+            }
+            users_list.append(usr)
+
+        logging.info(f"Users retrieved successfully")
+        return send_response({"users":users_list}, 200)
+    except sqlite3.Error as e:
+        logging.error(f"Database error: {e}")
+        return send_response({"error": "Database error"}, 500)
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
+        return send_response({"error": "Unexpected error"}, 500)
+
 if __name__ == '__main__':
     app.run()

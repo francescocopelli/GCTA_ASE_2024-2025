@@ -1,12 +1,16 @@
 import os
 
 import requests
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
+
+from shared.auth_middleware import *
 
 app = Flask(__name__)
 SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
 print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
+logging.basicConfig(level=logging.DEBUG)
+
 
 # Make a function that takes JSON data and returns a response
 def send_response(message, status_code):
@@ -60,6 +64,14 @@ def reset_password():
         "new_password": new_password
     }
     response = requests.post(url, json=data)
+    return send_response(response.json(), response.status_code)
+
+@app.get('/get_all/<user_type>')
+@admin_required
+def get_all(user_type):
+    logging.info(f"Get all users {user_type}")
+    url = f"http://db-manager:5000/get_all/{user_type}"
+    response = requests.get(url, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
 # Esempio di utilizzo
