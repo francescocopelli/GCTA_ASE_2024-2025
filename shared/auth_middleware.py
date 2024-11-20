@@ -7,12 +7,13 @@ from flask import request, abort
 from flask import current_app
 
 def is_system_call(token):
-    logging.warning("Checking if system call")
+    logging.warning("Checking if system call token: " + token)
     try:
         data = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
-        logging.debug(f"Data: {data}")
+        logging.warning(f"Data: {data}")
         return data["user_id"] == "SYSTEM" and data["user_type"] == "SYSTEM" and token_is_valid(data["expiration"])
     except Exception as e:
+        logging.error(f"Error: {e}")
         return False
 
 def generate_session_token_system():
@@ -45,6 +46,7 @@ def _f(require_return, f, *args, **kwargs):
         abort(401, "Authentication Token is missing!")
     if is_system_call(token):
         return f(*args, **kwargs)
+    logging.debug(f"Token: {token}")
     try:
         data = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
         logging.debug("Expiration time: " + str(data["expiration"]))
@@ -52,7 +54,7 @@ def _f(require_return, f, *args, **kwargs):
         if not (token_is_valid(data["expiration"])):
             abort(401, "Token expired!")
 
-        rst = requests.get(f"http://db-manager:5000/get_user/{data['user_type']}/{data['user_id']}")
+        rst = requests.get(f"http://db-manager:5000/get_user/{data['user_type']}/{data['user_id']}", headers=generate_session_token_system())
         current_user = rst.json()
 
         if current_user is None:
