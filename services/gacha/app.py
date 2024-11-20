@@ -231,7 +231,6 @@ def add_to_inventory():
 
 
 @app.get("/all")
-@token_required_void
 def get_all():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -317,7 +316,6 @@ def update_gacha_item():
 
 # retrieve information about a specific gacha item
 @app.route('/get/<gacha_id>')
-@token_required_void
 def get_gacha_item(gacha_id):
     # Connect to the database
     conn = get_db_connection()
