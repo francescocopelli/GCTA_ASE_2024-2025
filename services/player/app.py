@@ -18,10 +18,6 @@ user_url = "http://user_player:5000"
 dbm_url = "http://db-manager:5000"
 transaction_url = "http://transaction:5000"
 
-#make a function that take jason data and return a response
-def send_response(message, status_code):
-    return jsonify(message), status_code
-
 # A function that adds a transaction to the transaction service
 def create_transaction(user_id, amount, transaction_type):
     response = requests.post(f"{transaction_url}/add_transaction/",

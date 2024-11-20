@@ -16,12 +16,6 @@ app.config['SECRET_KEY'] = SECRET_KEY
 DATABASE = './gacha.db/gacha.db'
 logging.basicConfig(level=logging.DEBUG)
 
-
-# make a function that take jason data and return a response
-def send_response(message, status_code):
-    return jsonify(message), status_code
-
-
 # Helper function to connect to the database
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)

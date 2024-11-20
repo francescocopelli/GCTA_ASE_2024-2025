@@ -23,10 +23,6 @@ app.config['SECRET_KEY'] = SECRET_KEY
 DATABASE = './users.db/user.db'
 transaction_url = "http://transaction:5000"
 
-#make a function that take jason data and return a response
-def send_response(message, status_code):
-    return jsonify(message), status_code
-
 # Funzione di connessione al database
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)

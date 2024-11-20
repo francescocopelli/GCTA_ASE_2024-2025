@@ -5,6 +5,8 @@ import uuid
 
 from flask import Flask, request, jsonify
 
+from shared.auth_middleware import *
+
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -15,11 +17,6 @@ app.config['SECRET_KEY'] = SECRET_KEY
 
 DATABASE = "./transactions.db/transactions.db"
 user_url = "http://user_player:5000"
-
-# Make a function that takes JSON data and returns a response
-def send_response(message, status_code):
-    return jsonify(message), status_code
-
 
 def get_db_connection():
     """

@@ -11,13 +11,6 @@ print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 logging.basicConfig(level=logging.DEBUG)
 
-
-# Make a function that takes JSON data and returns a response
-def send_response(message, status_code):
-    return jsonify(message), status_code
-
-
-
 @app.route('/login', methods=['POST'])
 def login():
     username = request.json['username']

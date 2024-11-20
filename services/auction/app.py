@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import requests
 from flask import Flask, request, jsonify
 
-from shared.auth_middleware import generate_session_token_system
+from shared.auth_middleware import *
 
 app = Flask(__name__)
 SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
@@ -21,10 +21,6 @@ user_url = "http://user_player:5000"
 transaction_url = "http://transaction:5000"
 
 logging.basicConfig(level=logging.DEBUG)
-
-#make a function that take jason data and return a response
-def send_response(message, status_code):
-    return jsonify(message), status_code
 
     
 # Helper function to connect to the database

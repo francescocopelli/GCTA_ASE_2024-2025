@@ -3,8 +3,13 @@ from datetime import datetime, timedelta
 from functools import wraps
 import jwt
 import requests
-from flask import request, abort
+from flask import request, abort, jsonify
 from flask import current_app
+
+
+#make a function that take json data and return a response
+def send_response(message, status_code):
+    return jsonify(message), status_code
 
 def is_system_call(token):
     logging.warning("Checking if system call token: " + token)
