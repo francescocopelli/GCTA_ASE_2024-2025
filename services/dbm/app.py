@@ -108,7 +108,8 @@ def login(user_type):
             conn.commit()
             # response.set_cookie('session_token', session_token, httponly=True, secure=True)
             logging.info(f"User {username} logged in successfully")
-            return send_response(({"message": "Login successful", "session_token": session_token}), 200)
+            return send_response(({"message": "Login successful", "session_token": session_token,
+                                   'user_id': user["user_id"]}), 200)
         else:
             logging.warning(f"Invalid credentials for user: {username}")
             return send_response({"error": "Invalid credentials"}, 401)
