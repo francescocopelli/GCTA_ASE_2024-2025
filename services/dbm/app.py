@@ -16,7 +16,7 @@ from shared.auth_middleware import *
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
-SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
+
 print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 
@@ -411,46 +411,6 @@ def get_user(user_type, user_id):
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
         return send_response({"error": "Unexpected error"}, 500)
-
-
-@app.route("/update_balance/<user_type>", methods=["PUT"])
-def update_balance(user_type):
-    if user_type not in ["PLAYER", "ADMIN"]:
-        logging.error(f"Invalid user type: {user_type}")
-        return send_response({"error": "Invalid user type"}, 400)
-
-    user_id = request.json.get("user_id")
-    new_balance = request.json.get("new_balance")
-    if not user_id or new_balance is None:
-        logging.error("user_id and new_balance are required")
-        return send_response({"error": "user_id and new_balance are required"}, 400)
-
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        query = f"UPDATE {user_type} SET currency_balance = ? WHERE user_id = ?"
-        cursor.execute(query, (new_balance, user_id))
-        conn.commit()
-        if cursor.rowcount == 0:
-            logging.warning(f"User not found: {user_id}")
-            return send_response({"error": "User not found"}, 404)
-        logging.info(f"Balance updated successfully for user_id={user_id}")
-        return send_response({"message": "Balance updated successfully"}, 200)
-    except sqlite3.Error as e:
-        logging.error(f"Database error: {e}")
-        return send_response({"error": "Database error"}, 500)
-    except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        return send_response({"error": "Unexpected error"}, 500)
-    finally:
-        try:
-            cursor.close()
-        except Exception as e:
-            logging.error(f"Error closing cursor: {e}")
-        try:
-            conn.close()
-        except Exception as e:
-            logging.error(f"Error closing connection: {e}")
 
 @app.route("/get_all/<user_type>", methods=["GET"])
 @admin_required

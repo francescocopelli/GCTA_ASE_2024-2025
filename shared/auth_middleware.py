@@ -113,12 +113,7 @@ def login_required_ret(f):
 
 def admin_required(f):
     def admin_f(require_return, f, *args, **kwargs):
-        if not check_header():
-            abort(403, "Unauthorized access!")
-
-        logging.info("Admin required check")
-        token = None
-
+        token=None
         if "Authorization" in request.headers:
             token = request.headers["Authorization"].split(" ")[1]
         if not token:
@@ -127,22 +122,34 @@ def admin_required(f):
 
         if is_system_call(token):
             return f(*args, **kwargs)
+
+
+        if not check_header():
+            abort(403, "Unauthorized access!")
+
+        logging.info("Admin required check")
+
+
+
         try:
             data = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
 
             if not (token_is_valid(data["expiration"])):
                 abort(401, "Token expired!")
+            logging.info(f"Data: {data}")
+            # user_id = int(data["user_id"]) if not type(data["user_id"]) == int else data["user_id"]
+            user_id=data["user_id"]
+            logging.info(f"User id: {user_id}")
+            rst= requests.get(f"http://db-manager:5000/get_user/ADMIN/{user_id}", headers=generate_session_token_system())
+            current_user = rst.json()
+            logging.info(f"Response: {current_user}")
 
-            user_id = int(data["user_id"]) if not type(data["user_id"]) == int else data["user_id"]
 
-            rst = requests.get(f"http://db-manager:5000/get_user/ADMIN/{user_id}", headers=generate_session_token_system())
-            current_user = rst
+            if not rst.status_code == 200:
+                abort(403, "Unauthorized access! Maybe")
+            logging.info(f"Current user: {current_user}")
 
-            logging.debug(f"Current user: {current_user}")
 
-            if not current_user.status_code == 200:
-                abort(403, "Unauthorized access!")
-            current_user = current_user.json()
             if not current_user["session_token"] == token:
                 abort(401, "Token mismatch!")
 

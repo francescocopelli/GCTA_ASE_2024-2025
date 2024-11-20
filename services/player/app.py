@@ -137,5 +137,7 @@ def update_balance(user_type):
         "type": type
     }
     logging.debug("Sending data: %s", data)
-    response = requests.put(url, json=data, headers=request.headers)
+    #takes the request headers and add a new key called X-Gateway-Port with the value 8081
+    response=requests.put(url, json=data)
+    logging.debug("Received response: %s", response)
     return send_response(response.json(), response.status_code)

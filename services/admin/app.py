@@ -3,6 +3,7 @@ import os
 import requests
 from flask import Flask, jsonify
 
+#from services.gacha.app import add_to_inventory
 from shared.auth_middleware import *
 
 app = Flask(__name__)
@@ -64,7 +65,7 @@ def reset_password():
 def get_all(user_type):
     logging.info(f"Get all users {user_type}")
     url = f"http://db-manager:5000/get_all/{user_type}"
-    response = requests.get(url, headers=request.headers)
+    response = requests.get(url, headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
 
 # Esempio di utilizzo
