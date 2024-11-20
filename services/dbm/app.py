@@ -404,7 +404,7 @@ def get_user(user_type, user_id):
             "username": user["username"],
             "email": user["email"],
             "currency_balance": user["currency_balance"],
-            "image": base64.b64encode(user["image"]).decode('utf-8') if user["image"] else None,
+            "image": base64.b64encode(user["image"]).decode('utf-8') if "PLAYER" in user_type and user["image"] else None,
             "session_token": user["session_token"],
         }
         logging.info(f"User {user_id} retrieved successfully")
