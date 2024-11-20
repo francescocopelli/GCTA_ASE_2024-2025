@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import logging
 import os
@@ -52,18 +53,20 @@ def register(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         return send_response({"error": "Invalid user type"}, 401)
 
+    conn = get_db_connection()
     try:
-        data = request.get_json()
+        data = request.form
         username = data.get("username")
         password = data.get("password")
         email = data.get("email")
+        image = base64.b64decode(data.get("image")) if data.get("image") else None
+
         hashed_password = hash_password(password)
 
         # Inserimento nel database
-        conn = get_db_connection()
         cursor = conn.cursor()
-        query = f"INSERT INTO {user_type} (username, password, email, currency_balance,session_token) VALUES (?, ?, ?, 0,0)"
-        cursor.execute(query, (username, hashed_password, email))
+        query = f"INSERT INTO {user_type} (username, password, email, image) VALUES (?, ?, ?,?)"
+        cursor.execute(query, (username, hashed_password, email,image))
         conn.commit()
         return send_response({"message": f"{user_type} registered successfully"}, 200)
     except sqlite3.IntegrityError:
@@ -253,13 +256,10 @@ def delete(user_type):
 
 # create a function to update the player profile
 @app.route("/update/<user_type>", methods=["PUT"])
+# @token_required_void
 def update(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         return send_response({"error": "Invalid user type"}, 400)
-
-    session_token = request.json.get("session_token")
-    if not session_token:
-        return send_response({"error": "Session token is required"}, 400)
 
     try:
         conn = get_db_connection()
@@ -267,13 +267,14 @@ def update(user_type):
     except sqlite3.Error as e:
         logging.error(f"Database connection error: {e}")
         return send_response({"error": "Database connection error"}, 500)
-
+    session_token = request.headers["Authorization"].split(" ")[1]
     try:
+        logging.warning(f"Session token: {session_token}")
         # Verifica se il token si trova nella tabella PLAYER
         query_player = "SELECT * FROM " + user_type + " WHERE session_token = ?"
         cursor.execute(query_player, (session_token,))
         token_found = cursor.fetchone()
-
+        logging.info(f"Token found: {token_found}")
         if token_found:
             # Update the player profile
             if request.json.get("username"):
@@ -294,6 +295,14 @@ def update(user_type):
                     "UPDATE " + user_type + " SET email = ? WHERE session_token = ?"
                 )
                 cursor.execute(query_update, (request.json.get("email"), session_token))
+            if request.json.get("image"):
+                logging.warning("Image found in request" + request.json.get("image"))
+                image = base64.b64decode(request.json.get("image"))
+                query_update = (
+                    "UPDATE " + user_type + " SET image = ? WHERE session_token = ?"
+                )
+                cursor.execute(query_update, (image, session_token))
+
         else:
             return send_response({"error": "Session token not found"}, 408)
 
@@ -382,7 +391,7 @@ def get_user(user_type, user_id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = f"SELECT user_id, username, email, currency_balance, session_token FROM {user_type} WHERE user_id = ?"
+        query = f"SELECT * FROM {user_type} WHERE user_id = ?"
         cursor.execute(query, (user_id,))
         user = cursor.fetchone()
         conn.close()
@@ -394,6 +403,7 @@ def get_user(user_type, user_id):
             "username": user["username"],
             "email": user["email"],
             "currency_balance": user["currency_balance"],
+            "image": base64.b64encode(user["image"]).decode('utf-8') if user["image"] else None,
             "session_token": user["session_token"],
         }
         logging.info(f"User {user_id} retrieved successfully")
