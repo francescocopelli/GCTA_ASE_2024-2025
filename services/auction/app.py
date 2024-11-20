@@ -117,7 +117,7 @@ def update_user_balance(user_id, amount, type):
 # write a function that sends a get request to user service to get the user's balance if the user exists
 def get_user_balance(user_id):
     try:
-        response = requests.get(f"{user_url}/get_user_balance/{user_id}")
+        response = requests.get(f"{user_url}/get_user_balance/{user_id}", headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from user service: {response.json()}")
         return send_response(response.json().get("currency_balance"),200)
