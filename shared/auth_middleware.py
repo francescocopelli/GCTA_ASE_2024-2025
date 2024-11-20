@@ -127,7 +127,9 @@ def admin_required(f):
             if not (token_is_valid(data["expiration"])):
                 abort(401, "Token expired!")
 
-            rst = requests.get(f"http://db-manager:5000/get_user/ADMIN/{data['user_id']}")
+            user_id = int(data["user_id"]) if not type(data["user_id"]) == int else data["user_id"]
+
+            rst = requests.get(f"http://db-manager:5000/get_user/ADMIN/{user_id}", headers=generate_session_token_system())
             current_user = rst
 
             logging.debug(f"Current user: {current_user}")
