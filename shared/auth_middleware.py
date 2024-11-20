@@ -107,6 +107,8 @@ def login_required_ret(f):
 
 def admin_required(f):
     def admin_f(require_return, f, *args, **kwargs):
+        if not check_header():
+            abort(403, "Unauthorized access!")
 
         logging.info("Admin required check")
         token = None
