@@ -1,10 +1,10 @@
+import base64
 import os
 
 import requests
 from flask import Flask, jsonify, request
 
 from shared.auth_middleware import *
-
 
 app = Flask(__name__)
 SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
@@ -32,20 +32,24 @@ def login():
 
 @app.route('/register', methods=['POST'])
 def register():
-    username = request.json['username']
-    password = request.json['password']
-    email = request.json['email']
+    username = request.form.get('username')
+    password = request.form.get('password')
+    email = request.form.get('email')
+    image = request.files.get('image')
+    if image:
+        image = image.read()
     url = f"{dbm_url}/register/PLAYER"
     data = {
         "username": username,
         "password": password,
-        "email": email
+        "email": email,
+        "image": base64.b64encode(image).decode('utf-8') if image else None
     }
-    response = requests.post(url, json=data)
+    response = requests.post(url, data=data)
     return send_response(response.json(), response.status_code)
 
-@token_required_ret
 @app.route('/logout', methods=['POST'])
+@token_required_ret
 def logout():
     session_token = request.json['session_token']
     url = f"{dbm_url}/logout/PLAYER"
@@ -66,23 +70,27 @@ def delete():
     response = requests.post(url, json=data)
     return send_response(response.json(), response.status_code)
 
-@token_required_void
 #update my account pw, email, username
 @app.route('/update', methods=['PUT'])
+@token_required_void
 def update():
-    session_token = request.json['session_token']
-    username = request.json['username']
-    password = request.json['password']
-    email = request.json['email']
+    data = request.form
+    username = data.get('username')
+    password = data.get('password')
+    email = data.get('email')
+    image = request.files.get('image')
+    if image:
+        image = image.read()
+
     url = f"{dbm_url}/update/PLAYER"
     data = {
-        "session_token": session_token,
-        "username": username,
-        "password": password,
-        "email": email
+        "username": str(username),
+        "password": str(password),
+        "email": str(email),
+        # "image": base64.b64encode(image).decode('utf-8') if image else None
     }
-    response = requests.post(url, json=data)
-    return send_response(response.json(), response.status_code)
+    response, status_code = requests.post(url, json=data, headers=generate_session_token_system())
+    return send_response(response, status_code)
 
 
 # Esempio di utilizzo
