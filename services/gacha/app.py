@@ -4,6 +4,7 @@ import random
 import sqlite3
 
 import jwt
+import requests
 from flask import Flask, jsonify
 
 from shared.auth_middleware import *
@@ -127,20 +128,13 @@ def roll_gacha():
         logging.debug("Missing data for gacha roll: user_id=%s, roll_cost=%s", user_id, roll_cost)
         return send_response({'error': 'Missing data for gacha roll'}, 400)
 
-    if type(roll_cost) != int:
-        roll_cost = int(roll_cost)
-
-    if roll_cost <= 0:
-        logging.debug("Invalid roll cost: roll_cost=%s", roll_cost)
-        return send_response({'error': 'Invalid roll cost'}, 400)
-
     # Check if the user has sufficient funds for the roll
     user = requests.get('http://user_player:5000/get_user/' + str(user_id), headers=generate_session_token_system())
     if user.status_code != 200:
         logging.debug("User not found: user_id=%s", user_id)
         return send_response({'error': 'User not found'}, 408)
     user = user.json()
-    if user and user['currency_balance'] <= roll_cost:
+    if user and user['currency_balance'] < roll_cost:
         logging.debug("Insufficient funds for gacha roll: user_id=%s, balance=%s, roll_cost=%s", user_id,
                       user['currency_balance'], roll_cost)
         return send_response({'error': 'Insufficient funds for gacha roll'}, 403)
@@ -157,8 +151,6 @@ def roll_gacha():
         data = {'user_id': user_id, 'amount': roll_cost, 'type': 'roll_purchase'}
         response = requests.post('http://transaction:5000/add_transaction', json=data, headers=generate_session_token_system())
         if response.status_code != 200:
-            requests.put('http://user_player:5000/update_balance/PLAYER', headers=generate_session_token_system(),
-                         json={'user_id': user_id, 'new_balance': user['currency_balance']})
             logging.debug("Failed to add transaction: user_id=%s, roll_cost=%s", user_id, roll_cost)
             return send_response({'error': 'Failed to add transaction'}, 500)
 
@@ -167,16 +159,10 @@ def roll_gacha():
     cursor = conn.cursor()
 
     # Perform the gacha roll by selecting a random item based on rarity
-    cursor.execute("SELECT * FROM GachaItems WHERE status = 'available'")
-    items = cursor.fetchall()
-
-    if not items:
-        conn.close()
-        logging.debug("No available gacha items")
-        return send_response({'error': 'No available gacha items'}, 408)
+    cursor.execute("SELECT * FROM GachaItems WHERE status = 'available' ORDER BY RANDOM() LIMIT 1")
+    gacha_item = cursor.fetchone()
 
     # Select a random item
-    gacha_item = random.choice(items)
     conn.commit()
     conn.close()
 
@@ -250,7 +236,8 @@ def get_all():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM GachaItems LIMIT 10")
+    # write another execute cursor to get all the gacha items with an arbitrary offset limit taken from request if present otherwise use a default one
+    cursor.execute("SELECT * FROM GachaItems LIMIT 10 OFFSET ?", (request.args.get('offset') or 0,))
     rows = cursor.fetchall()
 
     conn.close()
@@ -309,9 +296,6 @@ def update_gacha_item():
         description = gacha_item['description']
     if image:
         image = image.read()
-
-    # Update the gacha item details
-    if image:
         cursor.execute(
             "UPDATE GachaItems SET name = ?, rarity = ?, status = ?, image = ?, description = ? WHERE gacha_id = ?",
             (name, rarity, status, image, description, gacha_id)
@@ -363,7 +347,7 @@ def get_gacha_item(gacha_id):
 @app.get('/get/<user_id>/<gacha_id>')
 @token_required_void
 def get_user_gacha_item(user_id, gacha_id):
-    res = requests.get('http://user_player:5000/get_user/' + user_id)
+    res = requests.get('http://user_player:5000/get_user/' + user_id, headers=request.headers)
     if res.status_code != 200:
         logging.debug("User not found: user_id=%s", user_id)
         return send_response({'error': 'User not found'}, 404)
@@ -438,12 +422,12 @@ def update_gacha_status():
                       status)
         return send_response({'error': 'Missing data to update gacha status'}, 400)
 
-    res = requests.get('http://user_player:5000/get_user/' + user_id)
+    res = requests.get('http://user_player:5000/get_user/' + user_id, headers=request.headers)
     if res.status_code != 200:
         logging.debug("User not found: user_id=%s", user_id)
         return send_response({'error': 'User not found'}, 409)
 
-    res = requests.get('http://gacha:5000/get/' + gacha_id)
+    res = requests.get('http://gacha:5000/get/' + gacha_id, headers=request.headers)
     if res.status_code != 200:
         logging.debug("Gacha item not found: gacha_id=%s", gacha_id)
         return send_response({'error': 'Gacha item not found'}, 408)
@@ -451,8 +435,12 @@ def update_gacha_status():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("UPDATE UserGachaInventory SET locked = ? WHERE user_id = ? AND gacha_id = ?",
-                   (status, user_id, gacha_id))
+    # cursor.execute("UPDATE UserGachaInventory SET locked = ? WHERE user_id = ? AND gacha_id = ? LIMIT 1",
+    #                (status, user_id, gacha_id))
+    not_status = "unlocked" if status == "locked" else "locked"
+
+    cursor.execute("UPDATE UserGachaInventory SET locked = ? WHERE user_id = ? AND gacha_id = ? AND locked= ? AND inventory_id = (SELECT inventory_id FROM UserGachaInventory WHERE user_id = ? AND gacha_id = ? AND locked=? ORDER BY RANDOM() LIMIT 1)",
+                     (status, user_id, gacha_id, not_status, user_id, gacha_id, not_status))
 
     conn.commit()
     conn.close()
@@ -477,13 +465,13 @@ def update_gacha_owner():
                       seller_id, gacha_id, status)
         return send_response({'error': 'Missing data to update gacha owner'}, 400)
 
-    res = requests.get(f'http://user_player:5000/get_user/{buyer_id}')
+    res = requests.get(f'http://user_player:5000/get_user/{buyer_id}', headers=request.headers)
     if res.status_code != 200:
         logging.debug("Buyer not found: buyer_id=%s", buyer_id)
         return send_response({'error': 'Buyer not found'}, 404)
     logging.debug("Buyer found: buyer_id=%s", buyer_id)
 
-    res = requests.get(f'http://gacha:5000/get/{seller_id}/{gacha_id}')
+    res = requests.get(f'http://gacha:5000/get/{seller_id}/{gacha_id}', headers=request.headers)
     if res.status_code != 200:
         logging.debug("Gacha item not found: seller_id=%s, gacha_id=%s", seller_id, gacha_id)
         return send_response({'error': 'Gacha item not found'}, 404)
