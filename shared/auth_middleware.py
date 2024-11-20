@@ -1,11 +1,12 @@
 import logging
+import os
 from datetime import datetime, timedelta
 from functools import wraps
 import jwt
 import requests
-from flask import request, abort, jsonify
-from flask import current_app
+from flask import request, abort, jsonify, current_app
 
+SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
 
 #make a function that take json data and return a response
 def send_response(message, status_code):
