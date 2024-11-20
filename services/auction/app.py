@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import requests
 from flask import Flask, request, jsonify
 
+from shared.auth_middleware import generate_session_token_system
 
 app = Flask(__name__)
 SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
@@ -41,7 +42,7 @@ def get_db_connection():
 # Function to check if the gacha is unlocked
 def is_gacha_unlocked(user_id, gacha_id):
     try:
-        response = requests.get(f"{gacha_url}/is_gacha_unlocked/{user_id}/{gacha_id}")
+        response = requests.get(f"{gacha_url}/is_gacha_unlocked/{user_id}/{gacha_id}", headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from gacha service: {response.json()}")
         return True
@@ -56,7 +57,7 @@ def is_gacha_unlocked(user_id, gacha_id):
 def update_gacha_status(user_id, gacha_id, status):
     try:
         response = requests.put(f"{gacha_url}/update_gacha_status",
-                                json={"user_id": user_id, "gacha_id": gacha_id, "status": status})
+                                json={"user_id": user_id, "gacha_id": gacha_id, "status": status}, headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from gacha service: {response.json()}")
         return send_response(response.json(),200)
@@ -72,7 +73,7 @@ def update_gacha_status(user_id, gacha_id, status):
 def update_gacha_owner(buyer_id, gacha_id, seller_id, status):
     try:
         response = requests.put(f"{gacha_url}/update_gacha_owner",
-                                json={"buyer_id": buyer_id, "seller_id": seller_id, "gacha_id": gacha_id, "status": status})
+                                json={"buyer_id": buyer_id, "seller_id": seller_id, "gacha_id": gacha_id, "status": status}, headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from gacha service: {response.json()}")
         return send_response(response.json(),200)
@@ -86,7 +87,7 @@ def update_gacha_owner(buyer_id, gacha_id, seller_id, status):
 def create_transaction(user_id, amount, transaction_type):
     try:
         response = requests.post(f"{transaction_url}/add_transaction",
-                                    json={"user_id": user_id, "amount": amount, "type": transaction_type})
+                                    json={"user_id": user_id, "amount": amount, "type": transaction_type}, headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from transaction service: {response.json()}")
         return send_response(response.json(),200)
@@ -100,7 +101,7 @@ def create_transaction(user_id, amount, transaction_type):
 
 def update_user_balance(user_id, amount, type):
     try:
-        response = requests.put(f"{user_url}/update_balance/PLAYER",
+        response = requests.put(f"{user_url}/update_balance/PLAYER", headers=generate_session_token_system(),
                                 json={"user_id": user_id, "amount": amount, "type": type})
         response.raise_for_status()
         logging.debug(f"Response from user service: {response.json()}")
@@ -154,8 +155,8 @@ def add_auction():
             auction_id = str(uuid.uuid4())
             end_time = (datetime.now() + timedelta(hours=6)).timestamp()
 
-            response = update_gacha_status(seller_id, gacha_id, "locked")
-            if response.status_code == 200:
+            response, status_code = update_gacha_status(seller_id, gacha_id, "locked")
+            if status_code == 200:
                 cursor.execute(
                     "INSERT INTO Auctions (auction_id, gacha_id, seller_id, base_price, highest_bid, buyer_id, status, end_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                     (auction_id, gacha_id, seller_id, base_price, 0, None, "active", end_time),
