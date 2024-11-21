@@ -489,32 +489,58 @@ def get_auction():
         specified auction_id, or an error message if the auction_id
         parameter is missing.
     """
-    auction_id = request.args.get("auction_id")
-    if not auction_id:
-        logging.error("Missing auction_id parameter")
-        return send_response({"error": "Missing auction_id parameter"}, 400)
+    auction_id = request.args.get("auction_id") or None
+    user_id = request.args.get("user_id") or None
+    if all([auction_id, user_id]):
+        return send_response({"error": "Both auction_id and user_id cannot be provided"}, 400)
+    if not auction_id and not user_id:
+        return send_response({"error": "Missing auction_id or user_id parameter"}, 400)
 
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM Auctions WHERE auction_id = ?", (auction_id,))
-        auction = cursor.fetchone()
-    except sqlite3.Error as e:
-        logging.error(f"Database error occurred: {e}")
-        return send_response({"error": "Database error occurred"}, 500)
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-        return send_response({"error": "An error occurred"}, 500)
-    finally:
-        if conn:
-            conn.close()
 
-    if not auction:
-        logging.error(f"No auction found for auction_id {auction_id}")
-        return send_response({"error": "No auction found"}, 404)
+    if auction_id:
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Auctions WHERE auction_id = ?", (auction_id,))
+            auction = cursor.fetchone()
+        except sqlite3.Error as e:
+            logging.error(f"Database error occurred: {e}")
+            return send_response({"error": "Database error occurred"}, 500)
+        except Exception as e:
+            logging.error(f"Error occurred: {e}")
+            return send_response({"error": "An error occurred"}, 500)
+        finally:
+            if conn:
+                conn.close()
 
-    logging.debug(f"Retrieved auction information for auction_id {auction_id}")
-    return send_response(dict(auction), 200)
+        if not auction:
+            logging.error(f"No auction found for auction_id {auction_id}")
+            return send_response({"error": "No auction found"}, 404)
+
+        logging.debug(f"Retrieved auction information for auction_id {auction_id}")
+        return send_response(dict(auction), 200)
+    elif user_id:
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Auctions WHERE buyer_id = ? OR seller_id = ?", (user_id, user_id))
+            auctions = cursor.fetchall()
+        except sqlite3.Error as e:
+            logging.error(f"Database error occurred: {e}")
+            return send_response({"error": "Database error occurred"}, 500)
+        except Exception as e:
+            logging.error(f"Error occurred: {e}")
+            return send_response({"error": "An error occurred"}, 500)
+        finally:
+            if conn:
+                conn.close()
+
+        result = [dict(auction) for auction in auctions]
+        logging.debug(f"Retrieved {len(result)} auctions for user_id {user_id}")
+        return send_response({"auctions": result}, 200)
+    else:
+        return send_response({"error": "Missing auction_id or user_id parameter"}, 400)
+
 
 @app.get("/highest_bid")
 @admin_required
