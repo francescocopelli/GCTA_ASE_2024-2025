@@ -1,4 +1,6 @@
 # create an hello world endpoint
+import base64
+import logging
 
 from flask import Flask
 
@@ -148,3 +150,32 @@ def update_balance(user_type):
     response = requests.put(url, json=data)
     logging.debug("Received response: %s", response)
     return send_response(response.json(), response.status_code)
+
+@app.route("/update", methods=['PUT'])
+@login_required_ret
+def update(user):
+    if not any(request.form):
+        return send_response({"error": "No fields to update"}, 400)
+
+    data = request.form
+    user_id = user['user_id']
+    username = data.get("username") or user['username']
+    email = data.get("email") or user['email']
+    image = request.files.get("image") or None
+    password = data.get("password") or None
+
+    if image:
+        image = base64.b64encode(image.read()).decode('utf-8')
+
+    url = f"{dbm_url}/update/PLAYER"
+    data = {
+        "session_token": request.headers["Authorization"].split(" ")[1],
+        "user_id": user_id,
+        "username": username,
+        "email": email,
+        "image": image,
+        "password": password
+    }
+    response = requests.put(url, json=data, headers=generate_session_token_system())
+    return send_response(response.json(), response.status_code)
+

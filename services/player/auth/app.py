@@ -68,29 +68,6 @@ def delete():
     return send_response(response.json(), response.status_code)
 
 
-# update my account pw, email, username
-@app.route('/update', methods=['PUT'])
-@token_required_void
-def update():
-    data = request.form
-    username = data.get('username')
-    password = data.get('password')
-    email = data.get('email')
-    image = request.files.get('image')
-    if image:
-        image = image.read()
-
-    url = f"{dbm_url}/update/PLAYER"
-    data = {
-        "username": str(username),
-        "password": str(password),
-        "email": str(email),
-        # "image": base64.b64encode(image).decode('utf-8') if image else None
-    }
-    response, status_code = requests.post(url, json=data, headers=generate_session_token_system())
-    return send_response(response, status_code)
-
-
 # Esempio di utilizzo
 if __name__ == '__main__':
     app.run()

@@ -249,9 +249,51 @@ def delete(user_type):
             logging.error(f"Error closing connection: {e}")
 
 
+def change_user_info(conn, cursor, user_type, request, column, identifier):
+    logging.warning(f"Session token: {identifier}")
+    # Verifica se il token si trova nella tabella PLAYER
+    query_player = "SELECT * FROM " + user_type + " WHERE " + column + " = ?"
+    cursor.execute(query_player, (identifier,))
+    token_found = cursor.fetchone()
+
+    if token_found:
+        # Update the player profile
+        if request.json.get("username"):
+            query_update = (
+                    "UPDATE " + user_type + " SET username = ? WHERE " + column + " = ?"
+            )
+            cursor.execute(query_update, (request.json.get("username"), identifier))
+        if request.json.get("password"):
+            query_update = (
+                    "UPDATE " + user_type + " SET password = ? WHERE " + column + " = ?"
+            )
+            cursor.execute(
+                query_update,
+                (hash_password(request.json.get("password")), identifier),
+            )
+        if request.json.get("email"):
+            query_update = (
+                    "UPDATE " + user_type + " SET email = ? WHERE " + column + " = ?"
+            )
+            cursor.execute(query_update, (request.json.get("email"), identifier))
+        if request.json.get("image"):
+            logging.warning("Image found in request" + request.json.get("image"))
+            image = base64.b64decode(request.json.get("image"))
+            query_update = (
+                    "UPDATE " + user_type + " SET image = ? WHERE " + column + " = ?"
+            )
+            cursor.execute(query_update, (image, identifier))
+
+    else:
+        return send_response({"error": column+" not found"}, 408)
+
+    conn.commit()
+    return send_response({"message": "Profile updated successfully"}, 200)
+
+
 # create a function to update the player profile
 @app.route("/update/<user_type>", methods=["PUT"])
-# @token_required_void
+@admin_required
 def update(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         return send_response({"error": "Invalid user type"}, 400)
@@ -262,50 +304,17 @@ def update(user_type):
     except sqlite3.Error as e:
         logging.error(f"Database connection error: {e}")
         return send_response({"error": "Database connection error"}, 500)
-    session_token = request.headers["Authorization"].split(" ")[1]
     try:
-        logging.warning(f"Session token: {session_token}")
-        # Verifica se il token si trova nella tabella PLAYER
-        query_player = "SELECT * FROM " + user_type + " WHERE session_token = ?"
-        cursor.execute(query_player, (session_token,))
-        token_found = cursor.fetchone()
-        logging.info(f"Token found: {token_found}")
-        if token_found:
-            # Update the player profile
-            if request.json.get("username"):
-                query_update = (
-                        "UPDATE " + user_type + " SET username = ? WHERE session_token = ?"
-                )
-                cursor.execute(query_update, (request.json.get("username"), session_token))
-            if request.json.get("password"):
-                query_update = (
-                        "UPDATE " + user_type + " SET password = ? WHERE session_token = ?"
-                )
-                cursor.execute(
-                    query_update,
-                    (hash_password(request.json.get("password")), session_token),
-                )
-            if request.json.get("email"):
-                query_update = (
-                        "UPDATE " + user_type + " SET email = ? WHERE session_token = ?"
-                )
-                cursor.execute(query_update, (request.json.get("email"), session_token))
-            if request.json.get("image"):
-                logging.warning("Image found in request" + request.json.get("image"))
-                image = base64.b64decode(request.json.get("image"))
-                query_update = (
-                        "UPDATE " + user_type + " SET image = ? WHERE session_token = ?"
-                )
-                cursor.execute(query_update, (image, session_token))
+        session_token = request.json.get("session_token") or request.headers["Authorization"].split(" ")[1]
 
-        else:
-            return send_response({"error": "Session token not found"}, 408)
+        if jwt.decode(session_token, app.config['SECRET_KEY'], algorithms=["HS256"])["user_type"] != "PLAYER":
+            return change_user_info(conn, cursor, user_type, request, "user_id", request.json.get("user_id"))
+        return change_user_info(conn, cursor, user_type, request, "session_token", session_token)
 
-        conn.commit()
-        return send_response({"message": "Profile updated successfully"}, 200)
     except sqlite3.Error as e:
         logging.error(f"Database error: {e}")
         return send_response({"error": "Database error"}, 500)
+
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
         return send_response({"error": "Unexpected error"}, 500)

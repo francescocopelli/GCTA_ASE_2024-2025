@@ -1,3 +1,5 @@
+import base64
+
 from flask import Flask
 
 # from services.gacha.app import add_to_inventory
@@ -78,6 +80,33 @@ def get_user(user_id):
     response = requests.get(url, headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
 
+@app.route('/update', methods=['PUT'])
+@admin_required
+@login_required_ret
+def update(user):
+    if not any(request.form):
+        return send_response({"error": "No fields to update"}, 400)
+
+    data = request.form
+    user_id = request.args.get("user_id")
+    if not user_id:
+        return send_response({"error": "Missing user_id parameter"}, 400)
+    username = data.get("username") or user['username']
+    email = data.get("email") or user['email']
+    image = request.files.get("image") or None
+
+    if image:
+        image = base64.b64encode(image.read()).decode('utf-8')
+
+    url = f"http://db-manager:5000/update/PLAYER"
+    data = {
+        "user_id": user_id,
+        "username": username,
+        "email": email,
+        "image": image
+    }
+    response = requests.put(url, json=data, headers=generate_session_token_system())
+    return send_response(response.json(), response.status_code)
 
 # Esempio di utilizzo
 if __name__ == '__main__':
