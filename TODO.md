@@ -3,8 +3,8 @@
 ## Project Setup
 - [x] Initialize GitHub repository and set up README with a "Get Started" section.
 - [x] Configure Docker Compose for microservices architecture.
-- [ ] Implement REST API endpoints for each microservice.
-- [ ] Ensure inter-service communication via REST API.
+- [x] Implement REST API endpoints for each microservice.
+- [x] Ensure inter-service communication via REST API.
 
 ## Testing
 - [ ] **Unit Testing**:
@@ -52,7 +52,7 @@
 ## Admin Functionalities (Mandatory)
 - [x] **Login/Logout**: Allow admin to log in and out of the system.
 - [ ] **User Management**:
-  - [ ] View all user accounts/profiles.
+  - [x] View all user accounts/profiles.
   - [ ] Access and modify specific user accounts/profiles.
   - [ ] Review currency transaction history for specific players.
   - [ ] Review market history for specific players.
@@ -62,10 +62,10 @@
   - [X] View details of specific gachas.
   - [X] Update information on specific gachas.
 - [ ] **Auction Market**:
-  - [ ] View all active auctions.
-  - [ ] Access and review individual auction details.
+  - [x] View all active auctions.
+  - [x] Access and review individual auction details.
   - [ ] Modify details of specific auctions.
-  - [ ] View complete auction market history.
+  - [x] View complete auction market history.
      
 ## Admin Optional Functionalities
 - [ ] **User Analytics**: Generate user activity reports for analysis.
@@ -77,8 +77,8 @@
 
 ## Player Functionalities (Mandatory)
 - [ ] **Account Management**:
-  - [ ] Create game account/profile.
-  - [ ] Delete game account/profile.
+  - [x] Create game account/profile.
+  - [x] Delete game account/profile.
   - [ ] Modify account/profile details.
   - [x] Log in and out of the system.
   - [ ] Ensure data security for account/profile.
@@ -89,7 +89,7 @@
   - [x] Access details of gachas in the system collection.
   - [x] Use in-game currency to roll a gacha.
 - [ ] **In-Game Currency**:
-  - [ ] Purchase in-game currency.
+  - [x] Purchase in-game currency.
   - [ ] Secure transaction processes for currency.
 - [ ] **Auction Market**:
   - [x] Access the auction market.
