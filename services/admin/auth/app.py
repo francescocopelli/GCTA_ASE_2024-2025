@@ -41,16 +41,17 @@ def login():
 
 @app.route('/register', methods=['POST'])
 def register():
-    username = request.json['username']
-    password = request.json['password']
-    email = request.json['email']
+    logging.info(f"Registering new user {request}")
+    username = request.form.get('username')
+    password = request.form.get('password')
+    email = request.form.get('email')
     url = f"http://db-manager:5000/register/ADMIN"
     data = {
         "username": username,
         "password": password,
         "email": email
     }
-    response = requests.post(url, json=data)
+    response = requests.post(url, data=data)
     return send_response(response.json(), response.status_code)
 
 

@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import re
 import sqlite3
 
 from flask import Flask
@@ -48,17 +49,29 @@ def register(user_type):
     conn = get_db_connection()
     try:
         data = request.form
+        logging.info(f'Se nel mondo esistesse un po\' di {data}')
         username = data.get("username")
         password = data.get("password")
         email = data.get("email")
-        image = base64.b64decode(data.get("image")) if data.get("image") else None
-
+        if not all([username, password, email]):
+            return send_response({"error": "Missing required fields"}, 400)
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            return send_response({"error": "Invalid email address"}, 400)
         hashed_password = hash_password(password)
 
         # Inserimento nel database
         cursor = conn.cursor()
-        query = f"INSERT INTO {user_type} (username, password, email, image) VALUES (?, ?, ?,?)"
-        cursor.execute(query, (username, hashed_password, email, image))
+        if "PLAYER" in user_type:
+            image = base64.b64decode(data.get("image")) if data.get("image") else None
+            query = (
+                "INSERT INTO PLAYER (username, password, email, image, session_token) VALUES (?, ?, ?, ?, 0)"
+            )
+            cursor.execute(query, (username, hashed_password, email, image))
+        elif "ADMIN":
+            query = (
+                "INSERT INTO ADMIN (username, password, email, session_token) VALUES (?, ?, ?, 0)"
+            )
+            cursor.execute(query, (username, hashed_password, email))
         conn.commit()
         return send_response({"message": f"{user_type} registered successfully"}, 200)
     except sqlite3.IntegrityError:
@@ -123,21 +136,20 @@ def login(user_type):
 
 
 # Endpoint per il logout
-@app.route("/logout/<user_type>", methods=["POST"])
+@app.route("/logout", methods=["DELETE"])
 @login_required_ret
-def logout(user_type):
+def logout(user):
+    user_type = jwt.decode(user["session_token"], app.config['SECRET_KEY'], algorithms=["HS256"])["user_type"]
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")
         return send_response({"error": "Invalid user type"}, 401)
+    conn = get_db_connection()
+    cursor = conn.cursor()
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
 
         # Elimina il token dalla tabella PLAYER o ADMIN
         query_delete = f"UPDATE {user_type} SET session_token = 0 WHERE user_id = ?"
-        user_id = \
-            jwt.decode(request.headers["Authorization"].split(" ")[1], app.config['SECRET_KEY'], algorithms=["HS256"])[
-                "user_id"]
+        user_id = user["user_id"]
         cursor.execute(query_delete, (user_id,))
         conn.commit()
         logging.info(f"User with user_id {user_id} logged out successfully")
@@ -150,11 +162,12 @@ def logout(user_type):
         return send_response({"error": "Unexpected error"}, 500)
     finally:
         try:
-            cursor.close()
+            if cursor:
+                cursor.close()
         except Exception as e:
             logging.error(f"Error closing cursor: {e}")
         try:
-            conn.close()
+            if conn: conn.close()
         except Exception as e:
             logging.error(f"Error closing connection: {e}")
 
@@ -285,7 +298,7 @@ def change_user_info(conn, cursor, user_type, request, column, identifier):
             cursor.execute(query_update, (image, identifier))
 
     else:
-        return send_response({"error": column+" not found"}, 408)
+        return send_response({"error": column + " not found"}, 408)
 
     conn.commit()
     return send_response({"message": "Profile updated successfully"}, 200)

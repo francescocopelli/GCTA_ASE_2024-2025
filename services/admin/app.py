@@ -25,21 +25,6 @@ def login():
     return send_response(response.json(), response.status_code)
 
 
-@app.route('/register', methods=['POST'])
-def register():
-    username = request.json['username']
-    password = request.json['password']
-    email = request.json['email']
-    url = f"http://db-manager:5000/register/ADMIN"
-    data = {
-        "username": username,
-        "password": password,
-        "email": email
-    }
-    response = requests.post(url, json=data)
-    return send_response(response.json(), response.status_code)
-
-
 @app.route('/logout', methods=['POST'])
 def logout():
     username = request.json['username']
@@ -86,11 +71,17 @@ def get_user(user_id):
 def update(user):
     if not any(request.form):
         return send_response({"error": "No fields to update"}, 400)
-
+    logging.info(f"Received as user value:  {user}")
     data = request.form
     user_id = request.args.get("user_id")
     if not user_id:
         return send_response({"error": "Missing user_id parameter"}, 400)
+    if jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])["user_type"] != "PLAYER":
+        req = requests.get(f"http://db-manager:5000/get_user/{user_id}", headers=generate_session_token_system())
+        user = req.json()
+        if not user:
+            return send_response({"error": "User not found"}, 404)
+
     username = data.get("username") or user['username']
     email = data.get("email") or user['email']
     image = request.files.get("image") or None
