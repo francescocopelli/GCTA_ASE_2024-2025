@@ -51,9 +51,9 @@
 
 ## Admin Functionalities (Mandatory)
 - [x] **Login/Logout**: Allow admin to log in and out of the system.
-- [ ] **User Management**:
+- [x] **User Management**:
   - [x] View all user accounts/profiles.
-  - [ ] Access and modify specific user accounts/profiles.
+  - [x] Access and modify specific user accounts/profiles.
   - [x] Review currency transaction history for specific players.
   - [x] Review market history for specific players.
 - [x] **Gacha Collection Management**:
@@ -61,7 +61,7 @@
   - [x] Modify the overall gacha collection.
   - [X] View details of specific gachas.
   - [X] Update information on specific gachas.
-- [ ] **Auction Market**:
+- [x] **Auction Market**:
   - [x] View all active auctions.
   - [x] Access and review individual auction details.
   - [x] Modify details of specific auctions.
@@ -79,7 +79,7 @@
 - [ ] **Account Management**:
   - [x] Create game account/profile.
   - [x] Delete game account/profile.
-  - [ ] Modify account/profile details.
+  - [x] Modify account/profile details.
   - [x] Log in and out of the system.
   - [ ] Ensure data security for account/profile.
 - [x] **Gacha Collection**:
