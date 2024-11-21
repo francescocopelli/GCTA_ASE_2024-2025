@@ -64,7 +64,7 @@
 - [ ] **Auction Market**:
   - [x] View all active auctions.
   - [x] Access and review individual auction details.
-  - [ ] Modify details of specific auctions.
+  - [x] Modify details of specific auctions.
   - [x] View complete auction market history.
      
 ## Admin Optional Functionalities
