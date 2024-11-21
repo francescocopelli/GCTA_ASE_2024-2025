@@ -496,7 +496,6 @@ def get_auction():
     if not auction_id and not user_id:
         return send_response({"error": "Missing auction_id or user_id parameter"}, 400)
 
-
     if auction_id:
         try:
             conn = get_db_connection()
@@ -562,6 +561,8 @@ def get_highest_bid():
     conn.close()
 
     if auction:
-        return send_response({"auction":auction['auction_id'],"highest_bid": auction["highest_bid"], "buyer_id":auction["buyer_id"]}, 200)
+        return send_response(
+            {"auction": auction['auction_id'], "highest_bid": auction["highest_bid"], "buyer_id": auction["buyer_id"]},
+            200)
     else:
         return send_response({"error": "Auction not found"}, 404)

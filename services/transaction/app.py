@@ -1,4 +1,3 @@
-import logging
 import sqlite3
 import uuid
 
@@ -178,11 +177,13 @@ def get_all_transactions():
         return send_response({"error": "No transactions found"}, 404)
     return send_response([dict(transaction) for transaction in transactions], 200)
 
+
 @app.get("/all/<user_id>")
 @login_required_void
 def get_all_transactions_user(user_id):
     logging.debug(f"Get all transactions for user {user_id}")
-    jwt_usr_id = jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])
+    jwt_usr_id = jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"],
+                            algorithms=["HS256"])
 
     if str(jwt_usr_id["user_id"]) != str(user_id) and jwt_usr_id['user_type'] != 'ADMIN':
         return send_response({"error": "Cannot view other user transaction history"}, 403)
@@ -203,6 +204,7 @@ def get_all_transactions_user(user_id):
     if not transactions:
         return send_response({"error": "No transactions found for the user"}, 404)
     return send_response([dict(transaction) for transaction in transactions], 200)
+
 
 if __name__ == "__main__":
     app.run()

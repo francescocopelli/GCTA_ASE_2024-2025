@@ -486,6 +486,7 @@ def update_gacha_owner():
                   seller_id, gacha_id, status)
     return send_response({'error': 'Failed to update gacha owner'}, 500)
 
+
 # TODO: Delete a specific gacha item
 @app.route('/delete/<gacha_id>', methods=['DELETE'])
 @admin_required
@@ -507,13 +508,15 @@ def delete_gacha_item(gacha_id):
     cursor.fetchall()
     if cursor.rowcount:
         # get the highest bid from auction table
-        req = requests.get('http://auction:5000/highest_bid?gacha_id=' + gacha_id, headers=generate_session_token_system())
+        req = requests.get('http://auction:5000/highest_bid?gacha_id=' + gacha_id,
+                           headers=generate_session_token_system())
         if req.status_code != 200:
             return send_response({'error': 'Failed to get highest bid'}, 500)
         bid = req.json()['highest_bid']
         user_id = req.json()['buyer_id']
         # undo the auction
-        response = requests.put(f"http://user_player:5000/update_balance/PLAYER", headers=generate_session_token_system(),
+        response = requests.put(f"http://user_player:5000/update_balance/PLAYER",
+                                headers=generate_session_token_system(),
                                 json={"user_id": user_id, "amount": bid, "type": "credit"})
         if response.status_code != 200:
             return send_response({"error": "Failed to update balance"}, 500)

@@ -136,8 +136,8 @@ def logout(user_type):
         # Elimina il token dalla tabella PLAYER o ADMIN
         query_delete = f"UPDATE {user_type} SET session_token = 0 WHERE user_id = ?"
         user_id = \
-        jwt.decode(request.headers["Authorization"].split(" ")[1], app.config['SECRET_KEY'], algorithms=["HS256"])[
-            "user_id"]
+            jwt.decode(request.headers["Authorization"].split(" ")[1], app.config['SECRET_KEY'], algorithms=["HS256"])[
+                "user_id"]
         cursor.execute(query_delete, (user_id,))
         conn.commit()
         logging.info(f"User with user_id {user_id} logged out successfully")
