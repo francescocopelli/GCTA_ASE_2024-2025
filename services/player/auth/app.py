@@ -44,15 +44,11 @@ def register():
     return send_response(response.json(), response.status_code)
 
 
-@app.route('/logout', methods=['POST'])
-@token_required_ret
+@app.route('/logout', methods=['DELETE'])
+@token_required_void
 def logout():
-    session_token = request.json['session_token']
-    url = f"{dbm_url}/logout/PLAYER"
-    data = {
-        "session_token": session_token
-    }
-    response = requests.post(url, json=data)
+    url = f"{dbm_url}/logout"
+    response = requests.delete(url, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
 
