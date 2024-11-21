@@ -1,78 +1,71 @@
+# jobs:
+# Job 1: Unit Testing
+# unit_tests:
+#   runs-on: ubuntu-latest
+#   steps:
+#     - name: Check out code
+#       uses: actions/checkout@v2
+
+#     - name: Set up Python
+#       uses: actions/setup-python@v2
+#       with:
+#         python-version: '3.x' # Define version based on requirements
+
+#     - name: Install dependencies
+#       run: |
+#         pip install -r requirements.txt
+
+#     - name: Run Unit Tests
+#       run: |
+#         pytest path/to/your/tests/unit_tests
+
 name: CI Pipeline
 
 on:
   push:
     branches:
       - ci-testing-postman
-      - 'feature/*'
-      # - 'feature/*' # Customize as needed
+      # - "feature/*"
 
 jobs:
-  # Job 1: Unit Testing
-  # unit_tests:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Check out code
-  #       uses: actions/checkout@v2
-
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v2
-  #       with:
-  #         python-version: '3.x' # Define version based on requirements
-
-  #     - name: Install dependencies
-  #       run: |
-  #         pip install -r requirements.txt
-
-  #     - name: Run Unit Tests
-  #       run: |
-  #         pytest path/to/your/tests/unit_tests
-
-  # Job 2: Build Microservice Architecture
-  # Job 2: Build Microservice Architecture
-  build_services:
+  build_and_test:
     runs-on: ubuntu-latest
-    container:
-      image: docker/compose:latest
     steps:
+      # Step 1: Check out code
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Build Docker containers
-        run: docker-compose up --build -d
+      # Step 2: Set up Docker
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
 
-      - name: Stop Docker services
-        if: always()
-        run: docker-compose down
+      # Step 3: Create .env file for Docker Compose
+      - name: Create environment file
+        run: |
+          echo "DEBUG_MODE=false" >> .env
 
-   # Job 3: Postman Tests
-  postman_tests:
-    runs-on: ubuntu-latest
-    needs: build_services
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v2
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: "18"
-      - name: Install newman
-        run: npm install -g newman
+      # Step 4: Build and start Docker Compose services
+      - name: Build and start services
+        run: |
+          docker-compose up --build -d
+
+      # Step 5: Wait for services to be ready
       - name: Wait for services to be ready
         run: |
           while ! nc -z localhost 8080; do
-            echo "Waiting for service on port 8080..."
+            echo "Waiting for gateway_user on port 8080..."
             sleep 2
           done
-          echo "Service is ready!"
+          echo "Services are ready!"
+
+      # Step 6: Run Postman tests
+      - name: Install Newman
+        run: npm install -g newman
       - name: Run Postman Tests
         run: |
-          mkdir -p reports
-          newman run postman_tests/GCTA_Tests.postman_collection.json -e postman_tests/gcta_env.postman_environment.json --reporters cli,html --reporter-html-export reports/newman-report.html
-      - name: Upload Newman Report
-        uses: actions/upload-artifact@v3
-        with:
-          name: newman-report
-          path: reports/newman-report.html
-      - name: Stop Docker services
+          newman run postman_tests/GCTA_Tests.postman_collection.json -e postman_tests/gcta_env.postman_environment.json
+
+      # Step 7: Stop Docker Compose services
+      - name: Stop Docker Compose services
+        if: always()
         run: docker-compose down
