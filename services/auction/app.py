@@ -1,6 +1,8 @@
 import sqlite3
 import uuid
+from urllib import request
 
+import requests
 from flask import Flask
 
 from shared.auth_middleware import *
@@ -267,6 +269,7 @@ def get_all_auctions_restricted():
 @admin_required
 # Endpoint to retrieve all auction
 def get_all_auctions():
+    check_auction_status()
     status = request.args.get("status") or "all"
     """
     Retrieve all auctions or filter by auction status.
@@ -300,6 +303,11 @@ def get_all_auctions():
 
         # Format the auctions for JSON response
         result = [dict(auction) for auction in auctions]
+
+        # replace all end_time with human readable date
+        for auction in result:
+            auction['end_time'] = datetime.fromtimestamp(float(auction['end_time'])).strftime('%Y-%m-%d %H:%M:%S')
+
         return send_response({"auctions": result}, 200)
 
     except sqlite3.Error as e:
@@ -471,9 +479,16 @@ def get_bids():
     logging.debug(f"Retrieved {len(result)} bids for auction_id {auction_id}")
     return send_response({"bids": result}, 200)
 
+@app.get("/my")
+@login_required_ret
+def all_my_auction(user):
+    user_id = user["user_id"]
+    req = requests.get("http://localhost:5000/get_auction?user_id="+str(user_id), headers=generate_session_token_system())
+    return send_response(req.json(), req.status_code)
 
 # TODO: Get information for a specific auction
 @app.route("/get_auction", methods=["GET"])
+@admin_required
 def get_auction():
     check_auction_status()
     """
@@ -566,3 +581,56 @@ def get_highest_bid():
             200)
     else:
         return send_response({"error": "Auction not found"}, 404)
+
+@app.route("/update", methods=["PUT"])
+@login_required_ret
+def update_auction(user):
+    """
+    Update an existing auction.
+    This endpoint updates an existing auction in the database with the provided data.
+    The auction_id parameter must be provided in the request JSON to identify the auction to update.
+    The function connects to the database, updates the auction record, and returns a success message.
+    Returns:
+        Response: A JSON response indicating that the auction was updated successfully.
+    """
+    auction_id = request.args.get("auction_id") or None
+    if not auction_id:
+        return send_response({"error": "Missing auction_id parameter"}, 400)
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Auctions WHERE auction_id = ?", (auction_id,))
+    auction = cursor.fetchone()
+
+    if not auction:
+        return send_response({"error": "Auction not found"}, 404)
+
+    if auction['seller_id'] != user["user_id"] and user["user_type"] == "PLAYER":
+        return send_response({"error": "You are not the seller of this auction"}, 403)
+
+    if auction['status'] != 'active':
+        return send_response({"error": "Auction has finished"}, 400)
+
+    data = request.get_json()
+    base_price = data.get("base_price") or auction["base_price"]
+    end_time = auction["end_time"]
+
+    if data.get("end_time"):
+        end_time = (datetime.strptime(data.get("end_time"), "%Y-%m-%d %H:%M:%S")+timedelta(hours=1)).timestamp()
+
+
+    # Update the auction record with the new data
+    cursor.execute(
+        "UPDATE Auctions SET base_price = ?, end_time = ? WHERE auction_id = ?",
+        (
+            base_price,
+            end_time,
+            auction_id,
+        ),
+    )
+    conn.commit()
+    conn.close()
+    check_auction_status()
+    if not cursor.rowcount:
+        return send_response({"error": "Failed to update auction"}, 400)
+    return send_response({"message": "Auction updated successfully"}, 200)
