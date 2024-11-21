@@ -43,7 +43,7 @@ jobs:
       - name: Run Postman Tests
         run: |
           mkdir -p reports
-          newman run postman_tests/GCTA_Tests.postman_collection.json -e postman_tests/gcta_env.postman_environment.json --reporters cli,html --reporter-html-export reports/newman-report.html
+          newman run postman_tests\GCTA_Tests.postman_collection.json -e postman_tests/gcta_env.postman_environment.json --reporters cli,html --reporter-html-export reports/newman-report.html
 
       - name: Upload Newman Report
         uses: actions/upload-artifact@v3
