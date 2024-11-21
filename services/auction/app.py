@@ -252,10 +252,19 @@ def check_auction_status():
     finally:
         if conn:
             conn.close()
-            
-# Endpoint to retrieve all auction
+
+@app.route("/all_active", methods=["GET"])
+@login_required_void
+def get_all_auctions_restricted():
+    req = requests.get("http://localhost:5000/all?status=active", headers=generate_session_token_system())
+    return send_response(req.json(), req.status_code)
+
+
 @app.route("/all", methods=["GET"])
+@admin_required
+# Endpoint to retrieve all auction
 def get_all_auctions():
+    status = request.args.get("status") or "all"
     """
     Retrieve all auctions or filter by auction status.
     This endpoint retrieves all auctions from the database. Optionally, it can filter
@@ -271,21 +280,14 @@ def get_all_auctions():
         GET /all?status=expired
     """
     # Optional query parameter to filter by auction status (active or expired)
-    status = request.args.get("status")
 
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
 
         # If status filter is provided, retrieve only the matching auctions
-        if status == "active":
-            cursor.execute(
-                "SELECT * FROM Auctions WHERE status = 'active'",
-            )
-        elif status == "expired":
-            cursor.execute(
-                "SELECT * FROM Auctions WHERE status = 'expired'"
-            )
+        if ("active" in status) or ("expired" in status) or ("completed" in status):
+            cursor.execute("SELECT * FROM Auctions WHERE status = ?", (status,))
         else:
             # If no status filter is provided, return all auctions
             cursor.execute("SELECT * FROM Auctions")
@@ -465,3 +467,48 @@ def get_bids():
     result = [dict(bid) for bid in bids]
     logging.debug(f"Retrieved {len(result)} bids for auction_id {auction_id}")
     return send_response({"bids": result}, 200)
+
+
+# TODO: Get information for a specific auction
+@app.route("/get_auction", methods=["GET"])
+def get_auction():
+    check_auction_status()
+    """
+    Endpoint to retrieve information for a specific auction.
+    This endpoint handles GET requests to the /get_auction route. It expects an
+    auction_id parameter to be provided in the query string. If the
+    auction_id parameter is missing, it returns a 400 error with a
+    message indicating the missing parameter.
+    The function connects to the database, retrieves the auction information
+    associated with the given auction_id, and returns it in JSON format.
+    Returns:
+        Response: A JSON response containing the auction information for the
+        specified auction_id, or an error message if the auction_id
+        parameter is missing.
+    """
+    auction_id = request.args.get("auction_id")
+    if not auction_id:
+        logging.error("Missing auction_id parameter")
+        return send_response({"error": "Missing auction_id parameter"}, 400)
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM Auctions WHERE auction_id = ?", (auction_id,))
+        auction = cursor.fetchone()
+    except sqlite3.Error as e:
+        logging.error(f"Database error occurred: {e}")
+        return send_response({"error": "Database error occurred"}, 500)
+    except Exception as e:
+        logging.error(f"Error occurred: {e}")
+        return send_response({"error": "An error occurred"}, 500)
+    finally:
+        if conn:
+            conn.close()
+
+    if not auction:
+        logging.error(f"No auction found for auction_id {auction_id}")
+        return send_response({"error": "No auction found"}, 404)
+
+    logging.debug(f"Retrieved auction information for auction_id {auction_id}")
+    return send_response(dict(auction), 200)
