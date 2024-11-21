@@ -108,6 +108,9 @@ if __name__ == "__main__":
 @app.get("/get_user/<user_id>")
 @token_required_void
 def get_user(user_id):
+    jwt_dec = jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])
+    if str(jwt_dec["user_id"]) != str(user_id) and jwt_dec['user_type'] != 'ADMIN':
+        return send_response({"error": "Cannot view other user information"}, 403)
     url = f"{dbm_url}/get_user/" + user_id
     response = requests.get(url, headers=request.headers)
     return send_response(response.json(), response.status_code)

@@ -71,6 +71,14 @@ def get_all(user_type):
     return send_response(response.json(), response.status_code)
 
 
+@app.get("/get_user/<user_id>")
+@admin_required
+def get_user(user_id):
+    url = f"http://db-manager:5000/get_user/" + user_id
+    response = requests.get(url, headers=generate_session_token_system())
+    return send_response(response.json(), response.status_code)
+
+
 # Esempio di utilizzo
 if __name__ == '__main__':
     app.run()
