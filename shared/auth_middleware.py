@@ -2,6 +2,7 @@ import logging
 import os
 from datetime import datetime, timedelta
 from functools import wraps
+
 import jwt
 import requests
 from flask import request, abort, jsonify, current_app

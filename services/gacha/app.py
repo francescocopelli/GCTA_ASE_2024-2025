@@ -1,11 +1,7 @@
 import base64
-import os
-import random
 import sqlite3
 
-import jwt
-import requests
-from flask import Flask, jsonify
+from flask import Flask
 
 from shared.auth_middleware import *
 
@@ -15,6 +11,7 @@ print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 DATABASE = './gacha.db/gacha.db'
 logging.basicConfig(level=logging.DEBUG)
+
 
 # Helper function to connect to the database
 def get_db_connection():
@@ -114,7 +111,8 @@ def roll_gacha():
     user_id = data.get('user_id')
     roll_cost = 5
 
-    if check_header() or jwt.decode(request.headers.get("Authorization").split(" ")[1], app.config['SECRET_KEY'], algorithms=["HS256"])['user_type'] == 'ADMIN':
+    if check_header() or jwt.decode(request.headers.get("Authorization").split(" ")[1], app.config['SECRET_KEY'],
+                                    algorithms=["HS256"])['user_type'] == 'ADMIN':
         return send_response({'error': 'Admins cannot roll gacha'}, 403)
 
     # Check for required fields
@@ -143,7 +141,8 @@ def roll_gacha():
     else:
         # Add transaction to db
         data = {'user_id': user_id, 'amount': roll_cost, 'type': 'roll_purchase'}
-        response = requests.post('http://transaction:5000/add_transaction', json=data, headers=generate_session_token_system())
+        response = requests.post('http://transaction:5000/add_transaction', json=data,
+                                 headers=generate_session_token_system())
         if response.status_code != 200:
             logging.debug("Failed to add transaction: user_id=%s, roll_cost=%s", user_id, roll_cost)
             return send_response({'error': 'Failed to add transaction'}, 500)
@@ -431,8 +430,9 @@ def update_gacha_status():
     #                (status, user_id, gacha_id))
     not_status = "unlocked" if status == "locked" else "locked"
 
-    cursor.execute("UPDATE UserGachaInventory SET locked = ? WHERE user_id = ? AND gacha_id = ? AND locked= ? AND inventory_id = (SELECT inventory_id FROM UserGachaInventory WHERE user_id = ? AND gacha_id = ? AND locked=? ORDER BY RANDOM() LIMIT 1)",
-                     (status, user_id, gacha_id, not_status, user_id, gacha_id, not_status))
+    cursor.execute(
+        "UPDATE UserGachaInventory SET locked = ? WHERE user_id = ? AND gacha_id = ? AND locked= ? AND inventory_id = (SELECT inventory_id FROM UserGachaInventory WHERE user_id = ? AND gacha_id = ? AND locked=? ORDER BY RANDOM() LIMIT 1)",
+        (status, user_id, gacha_id, not_status, user_id, gacha_id, not_status))
 
     conn.commit()
     conn.close()

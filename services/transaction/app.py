@@ -1,9 +1,7 @@
-import logging
-import os
 import sqlite3
 import uuid
 
-from flask import Flask, request, jsonify
+from flask import Flask
 
 from shared.auth_middleware import *
 
@@ -17,6 +15,7 @@ app.config['SECRET_KEY'] = SECRET_KEY
 
 DATABASE = "./transactions.db/transactions.db"
 user_url = "http://user_player:5000"
+
 
 def get_db_connection():
     """

@@ -1,14 +1,8 @@
 import base64
 import hashlib
-import logging
-import os
 import sqlite3
-import uuid
-from datetime import datetime, timedelta
 
-import jwt
-
-from flask import Flask, request, jsonify, make_response
+from flask import Flask
 
 from shared.auth_middleware import *
 
@@ -22,6 +16,7 @@ app.config['SECRET_KEY'] = SECRET_KEY
 
 DATABASE = './users.db/user.db'
 transaction_url = "http://transaction:5000"
+
 
 # Funzione di connessione al database
 def get_db_connection():
@@ -39,7 +34,8 @@ def hash_password(password):
 def generate_session_token(user_id, user_type):
     logging.debug(user_type)
     exp = datetime.now() + timedelta(hours=6)
-    return jwt.encode({'user_id': user_id, "user_type": user_type, "expiration":str(exp)}, app.config['SECRET_KEY'], algorithm='HS256')
+    return jwt.encode({'user_id': user_id, "user_type": user_type, "expiration": str(exp)}, app.config['SECRET_KEY'],
+                      algorithm='HS256')
     # return str(uuid.uuid4())
 
 
@@ -62,7 +58,7 @@ def register(user_type):
         # Inserimento nel database
         cursor = conn.cursor()
         query = f"INSERT INTO {user_type} (username, password, email, image) VALUES (?, ?, ?,?)"
-        cursor.execute(query, (username, hashed_password, email,image))
+        cursor.execute(query, (username, hashed_password, email, image))
         conn.commit()
         return send_response({"message": f"{user_type} registered successfully"}, 200)
     except sqlite3.IntegrityError:
@@ -139,7 +135,9 @@ def logout(user_type):
 
         # Elimina il token dalla tabella PLAYER o ADMIN
         query_delete = f"UPDATE {user_type} SET session_token = 0 WHERE user_id = ?"
-        user_id = jwt.decode(request.headers["Authorization"].split(" ")[1], app.config['SECRET_KEY'], algorithms=["HS256"])["user_id"]
+        user_id = \
+        jwt.decode(request.headers["Authorization"].split(" ")[1], app.config['SECRET_KEY'], algorithms=["HS256"])[
+            "user_id"]
         cursor.execute(query_delete, (user_id,))
         conn.commit()
         logging.info(f"User with user_id {user_id} logged out successfully")
@@ -276,12 +274,12 @@ def update(user_type):
             # Update the player profile
             if request.json.get("username"):
                 query_update = (
-                    "UPDATE " + user_type + " SET username = ? WHERE session_token = ?"
+                        "UPDATE " + user_type + " SET username = ? WHERE session_token = ?"
                 )
                 cursor.execute(query_update, (request.json.get("username"), session_token))
             if request.json.get("password"):
                 query_update = (
-                    "UPDATE " + user_type + " SET password = ? WHERE session_token = ?"
+                        "UPDATE " + user_type + " SET password = ? WHERE session_token = ?"
                 )
                 cursor.execute(
                     query_update,
@@ -289,14 +287,14 @@ def update(user_type):
                 )
             if request.json.get("email"):
                 query_update = (
-                    "UPDATE " + user_type + " SET email = ? WHERE session_token = ?"
+                        "UPDATE " + user_type + " SET email = ? WHERE session_token = ?"
                 )
                 cursor.execute(query_update, (request.json.get("email"), session_token))
             if request.json.get("image"):
                 logging.warning("Image found in request" + request.json.get("image"))
                 image = base64.b64decode(request.json.get("image"))
                 query_update = (
-                    "UPDATE " + user_type + " SET image = ? WHERE session_token = ?"
+                        "UPDATE " + user_type + " SET image = ? WHERE session_token = ?"
                 )
                 cursor.execute(query_update, (image, session_token))
 
@@ -320,6 +318,7 @@ def update(user_type):
             conn.close()
         except Exception as e:
             logging.error(f"Error closing connection: {e}")
+
 
 # Create a function that updates user balance of a given user_id with a given amount
 @app.route('/update_balance/<user_type>', methods=['PUT'])
@@ -378,7 +377,8 @@ def update_balance_user(user_type):
 @app.route("/get_user/<user_id>", methods=["GET"])
 def get_users(user_id):
     return get_user("PLAYER", user_id)
-    
+
+
 @app.route("/get_user/<user_type>/<user_id>", methods=["GET"])
 def get_user(user_type, user_id):
     if user_type not in ["PLAYER", "ADMIN"]:
@@ -400,7 +400,8 @@ def get_user(user_type, user_id):
             "username": user["username"],
             "email": user["email"],
             "currency_balance": user["currency_balance"],
-            "image": base64.b64encode(user["image"]).decode('utf-8') if "PLAYER" in user_type and user["image"] else None,
+            "image": base64.b64encode(user["image"]).decode('utf-8') if "PLAYER" in user_type and user[
+                "image"] else None,
             "session_token": user["session_token"],
         }
         logging.info(f"User {user_id} retrieved successfully")
@@ -411,6 +412,7 @@ def get_user(user_type, user_id):
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
         return send_response({"error": "Unexpected error"}, 500)
+
 
 @app.route("/get_all/<user_type>", methods=["GET"])
 @admin_required
@@ -442,13 +444,14 @@ def get_all(user_type):
             users_list.append(usr)
 
         logging.info(f"Users retrieved successfully")
-        return send_response({"users":users_list}, 200)
+        return send_response({"users": users_list}, 200)
     except sqlite3.Error as e:
         logging.error(f"Database error: {e}")
         return send_response({"error": "Database error"}, 500)
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
         return send_response({"error": "Unexpected error"}, 500)
+
 
 if __name__ == '__main__':
     app.run()

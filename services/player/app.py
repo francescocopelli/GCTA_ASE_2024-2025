@@ -1,10 +1,6 @@
 # create an hello world endpoint
 
-import logging
-import os
-
-from flask import Flask, jsonify, request
-import requests
+from flask import Flask
 
 from shared.auth_middleware import *
 
@@ -18,11 +14,13 @@ user_url = "http://user_player:5000"
 dbm_url = "http://db-manager:5000"
 transaction_url = "http://transaction:5000"
 
+
 # A function that adds a transaction to the transaction service
 def create_transaction(user_id, amount, transaction_type):
     response = requests.post(f"{transaction_url}/add_transaction/",
                              json={"user_id": user_id, "amount": amount, "type": transaction_type})
     return response
+
 
 # make a function that ask to the service gacha the list of all my gacha inside the db of gacha user invetory
 
@@ -34,6 +32,7 @@ def my_gacha_list(user_id):
         return send_response(response.json(), 200)
     else:
         return send_response("Failed to retrieve gacha list", response.status_code)
+
 
 # DA CONTROLLARE
 # function to ask for the information of a specific gacha for that user
@@ -47,6 +46,7 @@ def gacha_info(user_id, gacha_id):
         return send_response(response.json(), 200)
     else:
         return send_response("Failed to retrieve gacha list", response.status_code)
+
 
 def update_user_balance(user_id, amount, type):
     response = requests.put(
@@ -89,6 +89,7 @@ def real_money_transaction():
 
     return send_response({"message": "Transaction added successfully"}, 200)
 
+
 # function to get the user balance information
 @app.route("/get_user_balance/<user_id>")
 @token_required_void
@@ -99,8 +100,10 @@ def get_user_balance(user_id):
     else:
         return send_response({"error": "Failed to retrieve user balance"}, response.status_code)
 
+
 if __name__ == "__main__":
     app.run()
+
 
 @app.get("/get_user/<user_id>")
 @token_required_void
@@ -108,6 +111,7 @@ def get_user(user_id):
     url = f"{dbm_url}/get_user/" + user_id
     response = requests.get(url, headers=request.headers)
     return send_response(response.json(), response.status_code)
+
 
 @app.route("/update_balance/<user_type>", methods=['PUT'])
 @admin_required
@@ -137,7 +141,7 @@ def update_balance(user_type):
         "type": type
     }
     logging.debug("Sending data: %s", data)
-    #takes the request headers and add a new key called X-Gateway-Port with the value 8081
-    response=requests.put(url, json=data)
+    # takes the request headers and add a new key called X-Gateway-Port with the value 8081
+    response = requests.put(url, json=data)
     logging.debug("Received response: %s", response)
     return send_response(response.json(), response.status_code)

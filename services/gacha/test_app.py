@@ -1,5 +1,6 @@
 from locust import HttpUser, TaskSet, task, between
 
+
 class UserBehavior(TaskSet):
     @task
     def add_item(self):
@@ -70,6 +71,7 @@ class UserBehavior(TaskSet):
             "gacha_id": 1,
             "status": "unlocked"
         })
+
 
 class GachaTest(HttpUser):
     tasks = [UserBehavior]

@@ -1,9 +1,6 @@
-import os
+from flask import Flask
 
-import requests
-from flask import Flask, jsonify
-
-#from services.gacha.app import add_to_inventory
+# from services.gacha.app import add_to_inventory
 from shared.auth_middleware import *
 
 app = Flask(__name__)
@@ -11,6 +8,7 @@ app = Flask(__name__)
 print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 logging.basicConfig(level=logging.DEBUG)
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -23,6 +21,7 @@ def login():
     }
     response = requests.post(url, json=data)
     return send_response(response.json(), response.status_code)
+
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -38,6 +37,7 @@ def register():
     response = requests.post(url, json=data)
     return send_response(response.json(), response.status_code)
 
+
 @app.route('/logout', methods=['POST'])
 def logout():
     username = request.json['username']
@@ -47,6 +47,7 @@ def logout():
     }
     response = requests.post(url, json=data)
     return send_response(response.json(), response.status_code)
+
 
 @app.route('/reset_pwd', methods=['POST'])
 def reset_password():
@@ -60,6 +61,7 @@ def reset_password():
     response = requests.post(url, json=data)
     return send_response(response.json(), response.status_code)
 
+
 @app.get('/get_all/<user_type>')
 @admin_required
 def get_all(user_type):
@@ -67,6 +69,7 @@ def get_all(user_type):
     url = f"http://db-manager:5000/get_all/{user_type}"
     response = requests.get(url, headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
+
 
 # Esempio di utilizzo
 if __name__ == '__main__':

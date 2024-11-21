@@ -1,8 +1,6 @@
 import base64
-import os
 
-import requests
-from flask import Flask, jsonify, request
+from flask import Flask
 
 from shared.auth_middleware import *
 
@@ -12,6 +10,7 @@ print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 
 dbm_url = "http://db-manager:5000"
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -24,6 +23,7 @@ def login():
     }
     response = requests.post(url, json=data)
     return send_response(response.json(), response.status_code)
+
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -43,6 +43,7 @@ def register():
     response = requests.post(url, data=data)
     return send_response(response.json(), response.status_code)
 
+
 @app.route('/logout', methods=['POST'])
 @token_required_ret
 def logout():
@@ -53,6 +54,7 @@ def logout():
     }
     response = requests.post(url, json=data)
     return send_response(response.json(), response.status_code)
+
 
 # delete my account
 @app.route('/delete', methods=['DELETE'])
@@ -65,7 +67,8 @@ def delete():
     response = requests.post(url, json=data)
     return send_response(response.json(), response.status_code)
 
-#update my account pw, email, username
+
+# update my account pw, email, username
 @app.route('/update', methods=['PUT'])
 @token_required_void
 def update():
@@ -89,5 +92,5 @@ def update():
 
 
 # Esempio di utilizzo
-if __name__ == '__main__': 
+if __name__ == '__main__':
     app.run()

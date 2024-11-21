@@ -1,5 +1,6 @@
 from locust import HttpUser, TaskSet, task, between
 
+
 class UserBehavior(TaskSet):
     @task
     def login_success(self):
@@ -55,6 +56,7 @@ class UserBehavior(TaskSet):
         })
         assert response.status_code == 200
         assert response.json()["message"] == "Account updated successfully"
+
 
 class AuthUser(HttpUser):
     tasks = [UserBehavior]

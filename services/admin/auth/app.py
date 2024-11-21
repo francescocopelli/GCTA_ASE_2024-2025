@@ -1,7 +1,4 @@
-import os
-
-import requests
-from flask import Flask, jsonify, request
+from flask import Flask
 
 from shared.auth_middleware import *
 
@@ -9,6 +6,7 @@ app = Flask(__name__)
 
 print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
+
 
 @app.route('/logout', methods=['POST'])
 def logout():
@@ -19,6 +17,7 @@ def logout():
     }
     response = requests.post(url, json=data)
     return send_response(response.json(), response.status_code)
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -31,6 +30,7 @@ def login():
     }
     response = requests.post(url, json=data)
     return send_response(response.json(), response.status_code)
+
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -45,6 +45,7 @@ def register():
     }
     response = requests.post(url, json=data)
     return send_response(response.json(), response.status_code)
+
 
 # Esempio di utilizzo
 if __name__ == '__main__':

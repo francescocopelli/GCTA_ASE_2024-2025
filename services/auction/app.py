@@ -1,13 +1,7 @@
-import logging
-import os
-from time import strftime
-from flask import Flask, request, jsonify
 import sqlite3
 import uuid
-from datetime import datetime, timedelta
 
-import requests
-from flask import Flask, request, jsonify
+from flask import Flask
 
 from shared.auth_middleware import *
 
@@ -22,7 +16,7 @@ transaction_url = "http://transaction:5000"
 
 logging.basicConfig(level=logging.DEBUG)
 
-    
+
 # Helper function to connect to the database
 def get_db_connection():
     try:
@@ -38,7 +32,8 @@ def get_db_connection():
 # Function to check if the gacha is unlocked
 def is_gacha_unlocked(user_id, gacha_id):
     try:
-        response = requests.get(f"{gacha_url}/is_gacha_unlocked/{user_id}/{gacha_id}", headers=generate_session_token_system())
+        response = requests.get(f"{gacha_url}/is_gacha_unlocked/{user_id}/{gacha_id}",
+                                headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from gacha service: {response.json()}")
         return True
@@ -49,14 +44,16 @@ def is_gacha_unlocked(user_id, gacha_id):
         logging.error(f"Other error occurred: {err}")
         return False
 
+
 # Function to update gacha status
 def update_gacha_status(user_id, gacha_id, status):
     try:
         response = requests.put(f"{gacha_url}/update_gacha_status",
-                                json={"user_id": user_id, "gacha_id": gacha_id, "status": status}, headers=generate_session_token_system())
+                                json={"user_id": user_id, "gacha_id": gacha_id, "status": status},
+                                headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from gacha service: {response.json()}")
-        return send_response(response.json(),200)
+        return send_response(response.json(), 200)
     except requests.exceptions.HTTPError as http_err:
         logging.error(f"HTTP error occurred: {http_err}")
         return send_response({"error": "Failed to update gacha status"}, 408)
@@ -69,24 +66,28 @@ def update_gacha_status(user_id, gacha_id, status):
 def update_gacha_owner(buyer_id, gacha_id, seller_id, status):
     try:
         response = requests.put(f"{gacha_url}/update_gacha_owner",
-                                json={"buyer_id": buyer_id, "seller_id": seller_id, "gacha_id": gacha_id, "status": status}, headers=generate_session_token_system())
+                                json={"buyer_id": buyer_id, "seller_id": seller_id, "gacha_id": gacha_id,
+                                      "status": status}, headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from gacha service: {response.json()}")
-        return send_response(response.json(),200)
+        return send_response(response.json(), 200)
     except requests.exceptions.HTTPError as http_err:
         logging.error(f"HTTP error occurred: {http_err}")
         return send_response({"error": "Failed to update gacha owner"}, 408)
     except Exception as err:
         logging.error(f"Other error occurred: {err}")
         return send_response({"error": "An error occurred"}, 500)
+
+
 # Function to create a transaction
 def create_transaction(user_id, amount, transaction_type):
     try:
         response = requests.post(f"{transaction_url}/add_transaction",
-                                    json={"user_id": user_id, "amount": amount, "type": transaction_type}, headers=generate_session_token_system())
+                                 json={"user_id": user_id, "amount": amount, "type": transaction_type},
+                                 headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from transaction service: {response.json()}")
-        return send_response(response.json(),200)
+        return send_response(response.json(), 200)
     except requests.exceptions.HTTPError as http_err:
         logging.error(f"HTTP error occurred: {http_err}")
         return send_response({"error": "Failed to create transaction"}, 408)
@@ -101,7 +102,7 @@ def update_user_balance(user_id, amount, type):
                                 json={"user_id": user_id, "amount": amount, "type": type})
         response.raise_for_status()
         logging.debug(f"Response from user service: {response.json()}")
-        return send_response(response.json(),200)
+        return send_response(response.json(), 200)
     except requests.exceptions.HTTPError as http_err:
         logging.error(f"HTTP error occurred: {http_err}")
         return send_response({"error": "Failed to update user balance"}, 408)
@@ -116,7 +117,7 @@ def get_user_balance(user_id):
         response = requests.get(f"{user_url}/get_user_balance/{user_id}", headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from user service: {response.json()}")
-        return send_response(response.json().get("currency_balance"),200)
+        return send_response(response.json().get("currency_balance"), 200)
     except requests.exceptions.HTTPError as http_err:
         logging.error(f"HTTP error occurred: {http_err}")
         return send_response({"error": "User not found"}, 408)
@@ -205,7 +206,8 @@ def check_auction_status():
                     (auction["auction_id"],),
                 )
                 # Update the owner of the gacha
-                if update_gacha_owner(auction['buyer_id'], auction['gacha_id'], auction['seller_id'], "unlocked")[1] != 200:
+                if update_gacha_owner(auction['buyer_id'], auction['gacha_id'], auction['seller_id'], "unlocked")[
+                    1] != 200:
                     logging.error("Failed to unlock gacha")
                     continue
 
@@ -252,6 +254,7 @@ def check_auction_status():
     finally:
         if conn:
             conn.close()
+
 
 @app.route("/all_active", methods=["GET"])
 @login_required_void
