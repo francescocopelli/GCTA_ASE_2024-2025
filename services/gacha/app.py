@@ -485,3 +485,48 @@ def update_gacha_owner():
     logging.debug("Failed to update gacha owner: buyer_id=%s, seller_id=%s, gacha_id=%s, status=%s", buyer_id,
                   seller_id, gacha_id, status)
     return send_response({'error': 'Failed to update gacha owner'}, 500)
+
+# TODO: Delete a specific gacha item
+@app.route('/delete/<gacha_id>', methods=['DELETE'])
+@admin_required
+def delete_gacha_item(gacha_id):
+    # Connect to the database
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Check if the gacha item exists
+    cursor.execute("SELECT * FROM GachaItems WHERE gacha_id = ?", (gacha_id,))
+    gacha_item = cursor.fetchone()
+
+    if not gacha_item:
+        conn.close()
+        logging.debug("Gacha item not found: gacha_id=%s", gacha_id)
+        return send_response({'error': 'Gacha item not found'}, 404)
+
+    cursor.execute("SELECT * FROM UserGachaInventory WHERE locked='locked' AND gacha_id = ?", (gacha_id,))
+    cursor.fetchall()
+    if cursor.rowcount:
+        # get the highest bid from auction table
+        req = requests.get('http://auction:5000/highest_bid?gacha_id=' + gacha_id, headers=generate_session_token_system())
+        if req.status_code != 200:
+            return send_response({'error': 'Failed to get highest bid'}, 500)
+        bid = req.json()['highest_bid']
+        user_id = req.json()['buyer_id']
+        # undo the auction
+        response = requests.put(f"http://user_player:5000/update_balance/PLAYER", headers=generate_session_token_system(),
+                                json={"user_id": user_id, "amount": bid, "type": "credit"})
+        if response.status_code != 200:
+            return send_response({"error": "Failed to update balance"}, 500)
+        cursor.execute("UPDATE UserGachaInventory SET locked='unlocked' WHERE gacha_id = ?", (gacha_id,))
+
+    # Delete the gacha item
+    cursor.execute("DELETE FROM UserGachaInventory WHERE gacha_id = ?", (gacha_id,))
+    cursor.execute("DELETE FROM GachaItems WHERE gacha_id = ?", (gacha_id,))
+    conn.commit()
+    conn.close()
+
+    if cursor.rowcount:
+        logging.debug("Gacha item deleted successfully: gacha_id=%s", gacha_id)
+        return send_response({'message': 'Gacha item deleted successfully'}, 200)
+    logging.debug("Failed to delete gacha item: gacha_id=%s", gacha_id)
+    return send_response({'error': 'Failed to delete gacha item'}, 500)

@@ -515,3 +515,27 @@ def get_auction():
 
     logging.debug(f"Retrieved auction information for auction_id {auction_id}")
     return send_response(dict(auction), 200)
+
+@app.get("/highest_bid")
+@admin_required
+def get_highest_bid():
+    gacha_id = request.args.get("gacha_id") or None
+    """
+    Retrieve the highest bid for a specific auction.
+    This endpoint queries the database for the highest bid amount for the specified auction_id.
+    If the auction_id is not provided or if the auction is not found, an error message is returned.
+    Returns:
+        Response: A JSON response containing the highest bid amount for the specified auction_id.
+    """
+    if not gacha_id:
+        return send_response({"error": "Missing gacha_id parameter"}, 400)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT auction_id,highest_bid,buyer_id FROM Auctions WHERE gacha_id = ?", (gacha_id,))
+    auction = cursor.fetchone()
+    conn.close()
+
+    if auction:
+        return send_response({"auction":auction['auction_id'],"highest_bid": auction["highest_bid"], "buyer_id":auction["buyer_id"]}, 200)
+    else:
+        return send_response({"error": "Auction not found"}, 404)
