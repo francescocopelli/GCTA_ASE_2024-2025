@@ -54,8 +54,8 @@
 - [ ] **User Management**:
   - [x] View all user accounts/profiles.
   - [ ] Access and modify specific user accounts/profiles.
-  - [ ] Review currency transaction history for specific players.
-  - [ ] Review market history for specific players.
+  - [x] Review currency transaction history for specific players.
+  - [x] Review market history for specific players.
 - [x] **Gacha Collection Management**:
   - [x] Access and review the entire gacha collection.
   - [x] Modify the overall gacha collection.
