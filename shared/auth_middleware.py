@@ -4,13 +4,21 @@ from datetime import datetime, timedelta
 from functools import wraps
 import jwt
 import requests
-from flask import request, abort, jsonify, current_app
+from flask import json, request, abort, jsonify, current_app
 
 SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
 
 #make a function that take json data and return a response
 def send_response(message, status_code):
+    if status_code >= 300:
+        try:
+            error_response(message, status_code)
+        except Exception as e:
+            logging.error(f"Error in response: {e}")
     return jsonify(message), status_code
+
+def error_response(message, status_code):
+    raise Exception(message)
 
 def is_system_call(token):
     logging.warning("Checking if system call token: " + token)
