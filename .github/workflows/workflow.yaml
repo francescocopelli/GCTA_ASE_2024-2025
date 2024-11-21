@@ -65,9 +65,15 @@ jobs:
         run: npm install -g newman
       - name: Wait for services to be ready
         run: |
+          retries=30
           while ! nc -z localhost 8080; do
             echo "Waiting for service on port 8080..."
-            sleep 2
+            sleep 10
+            retries=$((retries - 1))
+            if [ $retries -le 0 ]; then
+              echo "Service did not start in time."
+              exit 1
+            fi
           done
           echo "Service is ready!"
       - name: Run Postman Tests
