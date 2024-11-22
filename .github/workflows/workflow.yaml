@@ -71,13 +71,20 @@ jobs:
       #     done
       #     echo "Localhost is accessible!"
 
+      - name: Debug failing service
+        run: |
+          echo "Checking dbm logs:"
+          docker logs gcta_ase_2024-2025-db-manager-1
+           echo "Checking dbm logs version 2:"
+          docker logs gcta_ase_2024-2025_db-manager_1
 
       - name: Install newman
         run: npm install -g newman
 
       - name: Run Postman Tests
         run: |
-          newman run postman_tests/GCTA_Tests.postman_collection.json --global-var "base_url=http://127.0.0.1:8080"
+          newman run postman_tests/GCTA_Tests.postman_collection.json -e postman_tests/gcta_env.postman_environment.json
+
 
 
       - name: Upload Newman Report
