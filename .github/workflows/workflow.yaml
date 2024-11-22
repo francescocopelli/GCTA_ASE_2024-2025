@@ -42,34 +42,6 @@ jobs:
           done
           echo "Service is ready!"
 
-        
-      # - name: Check if containers can reach each other
-      #   run: |
-      #     retries=30
-      #     while ! docker exec gcta_ase_2024-2025_gateway_user_1 curl -s http://127.0.0.1:8080; do
-      #       echo "Waiting for containers to be able to reach each other..."
-      #       sleep 10
-      #       retries=$((retries - 1))
-      #       if [ $retries -le 0 ]; then
-      #         echo "Containers cannot reach each other."
-      #         exit 1
-      #       fi
-      #     done
-      #     echo "Containers can reach each other!"
-
-      # - name: Check if localhost is accessible
-      #   run: |
-      #     retries=30
-      #     while ! curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 | grep -q 200; do
-      #       echo "Waiting for localhost to be accessible..."
-      #       sleep 5
-      #       retries=$((retries - 1))
-      #       if [ $retries -le 0 ]; then
-      #         echo "Localhost is not accessible. Exiting."
-      #         exit 1
-      #       fi
-      #     done
-      #     echo "Localhost is accessible!"
 
       - name: Run Docker logs 
         run: |
@@ -87,14 +59,19 @@ jobs:
             user_player_logs.txt
             user_player_auth_logs.txt
 
-      - name: Install newman
-        run: npm install -g newman
+      # - name: Install newman
+      #   run: npm install -g newman
 
-      - name: Run Postman Tests
+      # - name: Automated API tests using Postman CLI
+      #     - uses: actions/checkout@v4
+      - name: Install Postman CLI
         run: |
-          newman run postman_tests/GCTA_Tests.postman_collection.json -e postman_tests/gcta_env.postman_environment.json
-
-
+          curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+      - name: Login to Postman CLI
+        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+      - name: Run API tests
+        run: |
+          postman collection run "${{ github.workspace }}/postman/collections/GCTA Tests.json" -e "39570797-6ed4f213-c7dd-4d9d-ad28-a5089e5c7de4"
 
       - name: Upload Newman Report
         uses: actions/upload-artifact@v3
