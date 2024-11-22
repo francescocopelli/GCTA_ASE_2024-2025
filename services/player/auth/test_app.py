@@ -60,6 +60,7 @@ class UserAuthBehavior(TaskSet):
         assert response.status_code == 200
         assert response.json()["message"] == "Account updated successfully"
 
+
 class AuthUser(HttpUser):
     tasks = [UserAuthBehavior]
     wait_time = between(1, 5)

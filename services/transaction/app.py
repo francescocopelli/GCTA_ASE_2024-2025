@@ -1,19 +1,19 @@
-import logging
-from flask import Flask, request, jsonify
 import sqlite3
 import uuid
+
+from flask import Flask
+
+from shared.auth_middleware import *
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
-DATABASE = "./transactions.db/transactions.db"
-user_url = "http://user_player:5000"
+print(SECRET_KEY)
+app.config['SECRET_KEY'] = SECRET_KEY
 
-# Make a function that takes JSON data and returns a response
-def send_response(message, status_code):
-    return jsonify(message), status_code
+DATABASE = "./transactions.db/transactions.db"
 
 
 def get_db_connection():
@@ -29,6 +29,7 @@ def get_db_connection():
 
 
 @app.route("/add_transaction", methods=["POST"])
+@admin_required
 def add_transaction():
     """
     Add a new transaction to the database.
@@ -59,6 +60,7 @@ def add_transaction():
     """
     data = request.get_json()
     transaction_id = str(uuid.uuid4())
+    logging.debug(f"Adding transaction: {data}")
 
     transaction_type = "unknown"
     if "roll_purchase" in data['type']:
@@ -74,7 +76,7 @@ def add_transaction():
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO TRANSACTIONS (transaction_id, user_id, transaction_type, amount) VALUES (?, ?, ?, ?)",
-        (transaction_id, int(data["user_id"]), transaction_type, data["amount"]),
+        (transaction_id, str(data["user_id"]), transaction_type, data["amount"]),
     )
 
     # Log the derived transaction type
@@ -87,6 +89,7 @@ def add_transaction():
 
 
 @app.route("/get_transaction", methods=["GET"])
+@login_required_void
 def get_transaction():
     """
     Retrieve a transaction by its ID.
@@ -117,12 +120,24 @@ def get_transaction():
 
     if transaction:
         return send_response(dict(transaction), 200)
-    else:
-        return send_response({"error": "Transaction not found"}, 404)
+    return send_response({"error": "Transaction not found"}, 404)
 
 
 @app.route("/get_user_transactions", methods=["GET"])
-def get_user_transactions():
+@login_required_ret
+def get_my_transactions(user):
+    if jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"],
+                  algorithms=["HS256"])['user_type'] == 'ADMIN':
+        return send_response({"error": "You don't have a transaction history (as an ADMIN)"}, 403)
+    user_id = str(user['user_id'])
+    req = requests.get(f"http://localhost:5000/get_user_transactions/{user_id}",
+                       headers=generate_session_token_system())
+    return send_response(req.json(), req.status_code)
+
+
+@app.route("/get_user_transactions/<user_id>", methods=["GET"])
+@admin_required
+def get_user_transactions(user_id):
     """
     Endpoint to retrieve transactions for a specific user.
 
@@ -140,7 +155,6 @@ def get_user_transactions():
         400: A JSON error message indicating that the user_id parameter is missing.
         404: A JSON error message indicating that no transactions were found for the specified user.
     """
-    user_id = request.args.get("user_id")
     if not user_id:
         return send_response({"error": "Missing user_id parameter"}, 400)
 
@@ -152,12 +166,14 @@ def get_user_transactions():
 
     if transactions:
         return send_response([dict(transaction) for transaction in transactions], 200)
-    else:
-        return send_response({"error": "No transactions found for the user"}, 404)
+    return send_response({"error": "No transactions found for the user"}, 404)
 
 
 @app.get("/all")
+@login_required_void
 def get_all_transactions():
+    user = jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])
+    is_admin = not user['user_type'] == 'PLAYER'
     """
     Retrieve all transactions from the database.
 
@@ -168,13 +184,15 @@ def get_all_transactions():
     """
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM TRANSACTIONS")
+    if not is_admin:
+        cursor.execute("SELECT * FROM TRANSACTIONS WHERE user_id = ?", (str(user['user_id']),))
+    else:
+        cursor.execute("SELECT * FROM TRANSACTIONS")
     transactions = cursor.fetchall()
     conn.close()
     if not transactions:
         return send_response({"error": "No transactions found"}, 404)
     return send_response([dict(transaction) for transaction in transactions], 200)
-
 
 if __name__ == "__main__":
     app.run()

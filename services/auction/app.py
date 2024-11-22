@@ -1,25 +1,24 @@
-import logging
-from time import strftime
-from flask import Flask, request, jsonify
 import sqlite3
-from datetime import datetime, timedelta
 import uuid
-import requests
+from urllib import request
 
+from flask import Flask
+
+from shared.auth_middleware import *
 
 app = Flask(__name__)
+
+print(SECRET_KEY)
+app.config['SECRET_KEY'] = SECRET_KEY
 DATABASE = "./auction.db/auction.db"
 gacha_url = "http://gacha:5000"
 user_url = "http://user_player:5000"
 transaction_url = "http://transaction:5000"
+admin_url = "http://user_admin:5000"
 
 logging.basicConfig(level=logging.DEBUG)
 
-#make a function that take jason data and return a response
-def send_response(message, status_code):
-    return jsonify(message), status_code
 
-    
 # Helper function to connect to the database
 def get_db_connection():
     try:
@@ -32,10 +31,76 @@ def get_db_connection():
         return None
 
 
+@app.route("/all", methods=["GET"])
+@admin_required
+# Endpoint to retrieve all auction
+def get_all_auctions():
+    check_auction_status()
+    status = request.args.get("status") or "all"
+    """
+    Retrieve all auctions or filter by auction status.
+    This endpoint retrieves all auctions from the database. Optionally, it can filter
+    the auctions based on their status (active or expired) using a query parameter.
+    Query Parameters:
+        status (str, optional): The status of the auctions to filter by. Can be "active" or "expired".
+    Returns:
+        Response: A JSON response containing a list of auctions. Each auction is represented
+        as a dictionary. The response status code is 200.
+    Example:
+        GET /all
+        GET /all?status=active
+        GET /all?status=expired
+    """
+    # Optional query parameter to filter by auction status (active or expired)
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # If status filter is provided, retrieve only the matching auctions
+        if ("active" in status) or ("expired" in status) or ("completed" in status):
+            cursor.execute("SELECT * FROM Auctions WHERE status = ?", (status,))
+        else:
+            # If no status filter is provided, return all auctions
+            cursor.execute("SELECT * FROM Auctions")
+
+        auctions = cursor.fetchall()
+        conn.close()
+
+        # Format the auctions for JSON response
+        result = [dict(auction) for auction in auctions]
+
+        # replace all end_time with human readable date
+        for auction in result:
+            auction['end_time'] = datetime.fromtimestamp(float(auction['end_time'])).strftime('%Y-%m-%d %H:%M:%S')
+
+        return send_response({"auctions": result}, 200)
+
+    except sqlite3.Error as e:
+        logging.error(f"Database error occurred: {e}")
+        return send_response({"error": "Database error occurred"}, 500)
+
+    except Exception as e:
+        logging.error(f"Error occurred: {e}")
+        return send_response({"error": "An error occurred"}, 500)
+
+    finally:
+        if conn:
+            conn.close()
+
+
+@app.route("/all_active", methods=["GET"])
+@login_required_void
+def get_all_auctions_restricted():
+    req = requests.get("http://localhost:5000/all?status=active", headers=generate_session_token_system())
+    return send_response(req.json(), req.status_code)
+
+
 # Function to check if the gacha is unlocked
 def is_gacha_unlocked(user_id, gacha_id):
     try:
-        response = requests.get(f"{gacha_url}/is_gacha_unlocked/{user_id}/{gacha_id}")
+        response = requests.get(f"{gacha_url}/is_gacha_unlocked/{user_id}/{gacha_id}",
+                                headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from gacha service: {response.json()}")
         return True
@@ -46,14 +111,16 @@ def is_gacha_unlocked(user_id, gacha_id):
         logging.error(f"Other error occurred: {err}")
         return False
 
+
 # Function to update gacha status
 def update_gacha_status(user_id, gacha_id, status):
     try:
         response = requests.put(f"{gacha_url}/update_gacha_status",
-                                json={"user_id": user_id, "gacha_id": gacha_id, "status": status})
+                                json={"user_id": user_id, "gacha_id": gacha_id, "status": status},
+                                headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from gacha service: {response.json()}")
-        return send_response(response.json(),200)
+        return send_response(response.json(), 200)
     except requests.exceptions.HTTPError as http_err:
         logging.error(f"HTTP error occurred: {http_err}")
         return send_response({"error": "Failed to update gacha status"}, 408)
@@ -66,24 +133,28 @@ def update_gacha_status(user_id, gacha_id, status):
 def update_gacha_owner(buyer_id, gacha_id, seller_id, status):
     try:
         response = requests.put(f"{gacha_url}/update_gacha_owner",
-                                json={"buyer_id": buyer_id, "seller_id": seller_id, "gacha_id": gacha_id, "status": status})
+                                json={"buyer_id": buyer_id, "seller_id": seller_id, "gacha_id": gacha_id,
+                                      "status": status}, headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from gacha service: {response.json()}")
-        return send_response(response.json(),200)
+        return send_response(response.json(), 200)
     except requests.exceptions.HTTPError as http_err:
         logging.error(f"HTTP error occurred: {http_err}")
         return send_response({"error": "Failed to update gacha owner"}, 408)
     except Exception as err:
         logging.error(f"Other error occurred: {err}")
         return send_response({"error": "An error occurred"}, 500)
+
+
 # Function to create a transaction
 def create_transaction(user_id, amount, transaction_type):
     try:
         response = requests.post(f"{transaction_url}/add_transaction",
-                                    json={"user_id": user_id, "amount": amount, "type": transaction_type})
+                                 json={"user_id": user_id, "amount": amount, "type": transaction_type},
+                                 headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from transaction service: {response.json()}")
-        return send_response(response.json(),200)
+        return send_response(response.json(), 200)
     except requests.exceptions.HTTPError as http_err:
         logging.error(f"HTTP error occurred: {http_err}")
         return send_response({"error": "Failed to create transaction"}, 408)
@@ -94,11 +165,11 @@ def create_transaction(user_id, amount, transaction_type):
 
 def update_user_balance(user_id, amount, type):
     try:
-        response = requests.put(f"{user_url}/update_balance/PLAYER",
+        response = requests.put(f"{user_url}/update_balance/PLAYER", headers=generate_session_token_system(),
                                 json={"user_id": user_id, "amount": amount, "type": type})
         response.raise_for_status()
         logging.debug(f"Response from user service: {response.json()}")
-        return send_response(response.json(),200)
+        return send_response(response.json(), 200)
     except requests.exceptions.HTTPError as http_err:
         logging.error(f"HTTP error occurred: {http_err}")
         return send_response({"error": "Failed to update user balance"}, 408)
@@ -110,10 +181,10 @@ def update_user_balance(user_id, amount, type):
 # write a function that sends a get request to user service to get the user's balance if the user exists
 def get_user_balance(user_id):
     try:
-        response = requests.get(f"{user_url}/get_user_balance/{user_id}")
+        response = requests.get(f"{admin_url}/get_user_balance/{user_id}", headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from user service: {response.json()}")
-        return send_response(response.json().get("currency_balance"),200)
+        return send_response(response.json(), 200)
     except requests.exceptions.HTTPError as http_err:
         logging.error(f"HTTP error occurred: {http_err}")
         return send_response({"error": "User not found"}, 408)
@@ -124,13 +195,19 @@ def get_user_balance(user_id):
 
 # Endpoint to add a new auction
 @app.route("/add", methods=["POST"])
+@login_required_void
 def add_auction():
-    conn = get_db_connection()
+
+    user = jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])
+    if user['user_type'] != "PLAYER":
+        return send_response({"error": "Only players can create auctions"}, 403)
+    if check_header() is True and user["user_type"] == "PLAYER":
+        return send_response({"error": "Unauthorized access"}, 403)
     try:
         # Extract auction details from the request JSON
         data = request.get_json()
         gacha_id = data.get("gacha_id")
-        seller_id = data.get("seller_id")
+        seller_id = user["user_id"]
         base_price = data.get("base_price")
 
         # Check if all required fields are provided
@@ -139,6 +216,7 @@ def add_auction():
             return send_response({"error": "Missing data for new auction"}, 400)
 
         # Connect to the database
+        conn = get_db_connection()
         cursor = conn.cursor()
 
         # VERIFY IF THE GACHA EXIST AND IF ITS NOT LOCKED
@@ -148,9 +226,8 @@ def add_auction():
             auction_id = str(uuid.uuid4())
             end_time = (datetime.now() + timedelta(hours=6)).timestamp()
 
-            response = update_gacha_status(seller_id, gacha_id, "locked")
-            logging.debug(f"Response from gacha service: {response}")
-            if response[1] == 200:
+            response, status_code = update_gacha_status(seller_id, gacha_id, "locked")
+            if status_code == 200:
                 cursor.execute(
                     "INSERT INTO Auctions (auction_id, gacha_id, seller_id, base_price, highest_bid, buyer_id, status, end_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                     (auction_id, gacha_id, seller_id, base_price, 0, None, "active", end_time),
@@ -203,7 +280,8 @@ def check_auction_status():
                     (auction["auction_id"],),
                 )
                 # Update the owner of the gacha
-                if update_gacha_owner(auction['buyer_id'], auction['gacha_id'], auction['seller_id'], "unlocked")[1] != 200:
+                if update_gacha_owner(auction['buyer_id'], auction['gacha_id'], auction['seller_id'], "unlocked")[
+                    1] != 200:
                     logging.error("Failed to unlock gacha")
                     continue
 
@@ -250,66 +328,11 @@ def check_auction_status():
     finally:
         if conn:
             conn.close()
-            
-# Endpoint to retrieve all auction
-@app.route("/all", methods=["GET"])
-def get_all_auctions():
-    """
-    Retrieve all auctions or filter by auction status.
-    This endpoint retrieves all auctions from the database. Optionally, it can filter
-    the auctions based on their status (active or expired) using a query parameter.
-    Query Parameters:
-        status (str, optional): The status of the auctions to filter by. Can be "active" or "expired".
-    Returns:
-        Response: A JSON response containing a list of auctions. Each auction is represented
-        as a dictionary. The response status code is 200.
-    Example:
-        GET /all
-        GET /all?status=active
-        GET /all?status=expired
-    """
-    # Optional query parameter to filter by auction status (active or expired)
-    status = request.args.get("status")
-
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        # If status filter is provided, retrieve only the matching auctions
-        if status == "active":
-            cursor.execute(
-                "SELECT * FROM Auctions WHERE status = 'active'",
-            )
-        elif status == "expired":
-            cursor.execute(
-                "SELECT * FROM Auctions WHERE status = 'expired'"
-            )
-        else:
-            # If no status filter is provided, return all auctions
-            cursor.execute("SELECT * FROM Auctions")
-
-        auctions = cursor.fetchall()
-        conn.close()
-
-        # Format the auctions for JSON response
-        result = [dict(auction) for auction in auctions]
-        return send_response({"auctions": result}, 200)
-
-    except sqlite3.Error as e:
-        logging.error(f"Database error occurred: {e}")
-        return send_response({"error": "Database error occurred"}, 500)
-
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-        return send_response({"error": "An error occurred"}, 500)
-
-    finally:
-        if conn:
-            conn.close()
 
 
 # Endpoint to retrieve all auctions for a specific gacha
 @app.route('/get_gacha_auctions', methods=['GET'])
+@login_required_void
 def get_gacha_auctions():
     """
     Endpoint to retrieve gacha auctions based on gacha_id.
@@ -339,7 +362,10 @@ def get_gacha_auctions():
 
     if auctions:
         logging.debug(f"Found {len(auctions)} auctions for gacha_id {gacha_id}")
-        return send_response([dict(auction) for auction in auctions], 200)
+        res = [dict(auction) for auction in auctions]
+        for auction in res:
+            auction['end_time'] = datetime.fromtimestamp(float(auction['end_time'])).strftime('%Y-%m-%d %H:%M:%S')
+        return send_response(res, 200)
     else:
         logging.debug(f"No auctions found for gacha_id {gacha_id}")
         return send_response({'error': 'No auctions found for the gacha'}, 404)
@@ -348,12 +374,13 @@ def get_gacha_auctions():
 # Functions for Bidding
 # Endpoint to place a bid on an auction
 @app.route("/bid", methods=["POST"])
-def place_bid():
+@login_required_ret
+def place_bid(user):
     check_auction_status()
     # Extract bid details from the request JSON
     data = request.get_json()
     auction_id = data.get("auction_id")
-    user_id = data.get("user_id")
+    user_id = user["user_id"]
     bid_amount = data.get("bid_amount")
 
     # Check if all required fields are provided
@@ -361,6 +388,8 @@ def place_bid():
         return send_response({"error": "Missing data for bid"}, 400)
 
     conn = None
+    if jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])['user_type'] == "ADMIN":
+        return send_response({"error": "You cannot place a bid as an admin"}, 403)
     try:
         # Connect to the database
         conn = get_db_connection()
@@ -381,8 +410,8 @@ def place_bid():
             return send_response({"error": "Bid amount must be higher than current highest bid"}, 400)
 
         # Check if the user has enough funds for the bid
-        user_balance = get_user_balance(user_id)
-        if int(user_balance[0].get_json('currency_balance')) < int(bid_amount):
+        user_balance = str(get_user_balance(user_id)[0].get_json().get("currency_balance"))
+        if int(user_balance) < int(bid_amount):
             return send_response({"error": "Insufficient funds"}, 403)
 
         # Update the auction with the new highest bid
@@ -464,50 +493,203 @@ def get_bids():
     logging.debug(f"Retrieved {len(result)} bids for auction_id {auction_id}")
     return send_response({"bids": result}, 200)
 
-#Make a function that receives the id of a user and delete his id from all the 2 dbs
-@app.route('/delete', methods=['PUT'])
-def delete_user():
-    # Extract user_id from the request JSON
+
+@app.get("/my")
+@login_required_ret
+def all_my_auction(user):
+    user_id = user["user_id"]
+    if jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])['user_type'] == "ADMIN":
+        return send_response({"error": "Admins don't have auctions"}, 403)
+    req = requests.get("http://localhost:5000/get_auction?user_id=" + str(user_id),
+                       headers=generate_session_token_system())
+    return send_response(req.json(), req.status_code)
+
+
+@app.route("/get_auction", methods=["GET"])
+@admin_required
+def get_auction():
+    check_auction_status()
+    """
+    Endpoint to retrieve information for a specific auction.
+    This endpoint handles GET requests to the /get_auction route. It expects an
+    auction_id parameter to be provided in the query string. If the
+    auction_id parameter is missing, it returns a 400 error with a
+    message indicating the missing parameter.
+    The function connects to the database, retrieves the auction information
+    associated with the given auction_id, and returns it in JSON format.
+    Returns:
+        Response: A JSON response containing the auction information for the
+        specified auction_id, or an error message if the auction_id
+        parameter is missing.
+    """
+    auction_id = request.args.get("auction_id") or None
+    user_id = request.args.get("user_id") or None
+    if all([auction_id, user_id]):
+        return send_response({"error": "Both auction_id and user_id cannot be provided"}, 400)
+    if not auction_id and not user_id:
+        return send_response({"error": "Missing auction_id or user_id parameter"}, 400)
+
+    if auction_id:
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Auctions WHERE auction_id = ?", (auction_id,))
+            auction = cursor.fetchone()
+        except sqlite3.Error as e:
+            logging.error(f"Database error occurred: {e}")
+            return send_response({"error": "Database error occurred"}, 500)
+        except Exception as e:
+            logging.error(f"Error occurred: {e}")
+            return send_response({"error": "An error occurred"}, 500)
+        finally:
+            if conn:
+                conn.close()
+
+        if not auction:
+            logging.error(f"No auction found for auction_id {auction_id}")
+            return send_response({"error": "No auction found"}, 404)
+
+        logging.debug(f"Retrieved auction information for auction_id {auction_id}")
+        res = dict(auction)
+        for a in res.keys():
+            if a == "end_time":
+                res[a] = datetime.fromtimestamp(float(res[a])).strftime('%Y-%m-%d %H:%M:%S')
+        return send_response(res, 200)
+    elif user_id:
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Auctions WHERE buyer_id = ? OR seller_id = ?", (user_id, user_id))
+            auctions = cursor.fetchall()
+        except sqlite3.Error as e:
+            logging.error(f"Database error occurred: {e}")
+            return send_response({"error": "Database error occurred"}, 500)
+        except Exception as e:
+            logging.error(f"Error occurred: {e}")
+            return send_response({"error": "An error occurred"}, 500)
+        finally:
+            if conn:
+                conn.close()
+
+        result = [dict(auction) for auction in auctions]
+        for auction in result:
+            auction['end_time'] = datetime.fromtimestamp(float(auction['end_time'])).strftime('%Y-%m-%d %H:%M:%S')
+        logging.debug(f"Retrieved {len(result)} auctions for user_id {user_id}")
+        return send_response({"auctions": result}, 200)
+    else:
+        return send_response({"error": "Missing auction_id or user_id parameter"}, 400)
+
+
+@app.get("/highest_bid")
+@admin_required
+def get_highest_bid():
+    gacha_id = request.args.get("gacha_id") or None
+    """
+    Retrieve the highest bid for a specific auction.
+    This endpoint queries the database for the highest bid amount for the specified auction_id.
+    If the auction_id is not provided or if the auction is not found, an error message is returned.
+    Returns:
+        Response: A JSON response containing the highest bid amount for the specified auction_id.
+    """
+    if not gacha_id:
+        return send_response({"error": "Missing gacha_id parameter"}, 400)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT auction_id,highest_bid,buyer_id FROM Auctions WHERE gacha_id = ?", (gacha_id,))
+    auction = cursor.fetchone()
+    conn.close()
+
+    if auction:
+        return send_response(
+            {"auction": auction['auction_id'], "highest_bid": auction["highest_bid"], "buyer_id": auction["buyer_id"]},
+            200)
+    else:
+        return send_response({"error": "Auction not found"}, 404)
+
+
+@app.route("/update", methods=["PUT"])
+@login_required_ret
+def update_auction(user):
+    """
+    Update an existing auction.
+    This endpoint updates an existing auction in the database with the provided data.
+    The auction_id parameter must be provided in the request JSON to identify the auction to update.
+    The function connects to the database, updates the auction record, and returns a success message.
+    Returns:
+        Response: A JSON response indicating that the auction was updated successfully.
+    """
+    auction_id = request.args.get("auction_id") or None
+    if not auction_id:
+        return send_response({"error": "Missing auction_id parameter"}, 400)
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Auctions WHERE auction_id = ?", (auction_id,))
+    auction = cursor.fetchone()
+
+    if not auction:
+        return send_response({"error": "Auction not found"}, 404)
+
+    if auction['seller_id'] != user["user_id"] and user["user_type"] == "PLAYER":
+        return send_response({"error": "You are not the seller of this auction"}, 403)
+
+    if auction['status'] != 'active':
+        return send_response({"error": "Auction has finished"}, 400)
+
     data = request.get_json()
-    user_id = data.get("user_id")
+    base_price = data.get("base_price") or auction["base_price"]
+    end_time = auction["end_time"]
 
-    # Check if all required fields are provided
-    if not user_id:
-        return send_response({"error": "Missing data for delete"}, 400)
+    if data.get("end_time"):
+        end_time = (datetime.strptime(data.get("end_time"), "%Y-%m-%d %H:%M:%S") + timedelta(hours=1)).timestamp()
 
-    conn = None
-    try:
-        # Connect to the database
-        conn = get_db_connection()
-        cursor = conn.cursor()
+    # Update the auction record with the new data
+    cursor.execute(
+        "UPDATE Auctions SET base_price = ?, end_time = ? WHERE auction_id = ?",
+        (
+            base_price,
+            end_time,
+            auction_id,
+        ),
+    )
+    conn.commit()
+    conn.close()
+    check_auction_status()
+    if not cursor.rowcount:
+        return send_response({"error": "Failed to update auction"}, 400)
+    return send_response({"message": "Auction updated successfully"}, 200)
 
-        # Update the seller_id or buyer_id in the Auctions table
-        cursor.execute(
-            "UPDATE Auctions SET seller_id = -1 WHERE seller_id = ?",
-            (user_id,),
-        )
-        cursor.execute(
-            "UPDATE Auctions SET buyer_id = -1 WHERE buyer_id = ?",
-            (user_id,),
-        )
 
-        # Update the user_id in the Bids table
-        cursor.execute(
-            "UPDATE Bids SET user_id = -1 WHERE user_id = ?",
-            (user_id,),
-        )
+@app.route("/delete", methods=["DELETE"])
+@admin_required
+def delete_auction():
+    """
+    Delete an existing auction.
+    This endpoint deletes an existing auction from the database.
+    The auction_id parameter must be provided in the request JSON to identify the auction to delete.
+    The function connects to the database, deletes the auction record, and returns a success message.
+    Returns:
+        Response: A JSON response indicating that the auction was deleted successfully.
+    """
+    gacha_id = request.args.get("gacha_id") or None
+    if not gacha_id:
+        return send_response({"error": "Missing gacha_id parameter"}, 400)
 
-        conn.commit()
-        return send_response({"message": "User references updated successfully"}, 200)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Auctions WHERE gacha_id = ?", (gacha_id,))
+    auctions = cursor.fetchall()
 
-    except sqlite3.Error as e:
-        logging.error(f"Database error occurred: {e}")
-        return send_response({"error": "Database error occurred"}, 500)
+    if not auctions:
+        return send_response({"error": "Auction not found"}, 404)
 
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-        return send_response({"error": "An error occurred"}, 500)
+    for auction in auctions:
+        cursor.execute("DELETE FROM Auctions WHERE auction_id = ?", (auction["auction_id"],))
+        cursor.execute("DELETE FROM Bids WHERE auction_id = ?", (auction["auction_id"],))
 
-    finally:
-        if conn:
-            conn.close()
+    conn.commit()
+    conn.close()
+
+    if not cursor.rowcount:
+        return send_response({"error": "Failed to delete auction"}, 400)
+    return send_response({"message": "Auction deleted successfully"}, 200)

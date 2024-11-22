@@ -1,15 +1,15 @@
-import requests
-from flask import Flask, jsonify, request
+import base64
+
+from flask import Flask
+
+from shared.auth_middleware import *
 
 app = Flask(__name__)
 
-dbm_url = "http://db-manager:5000"
-auction_url = "http://auction:5000"
-gacha_url = "http://gacha:5000"
+print(SECRET_KEY)
+app.config['SECRET_KEY'] = SECRET_KEY
 
-# Make a function that takes JSON data and returns a response
-def send_response(message, status_code):
-    return jsonify(message), status_code
+dbm_url = "http://db-manager:5000"
 
 
 @app.route('/login', methods=['POST'])
@@ -24,69 +24,45 @@ def login():
     response = requests.post(url, json=data)
     return send_response(response.json(), response.status_code)
 
+
 @app.route('/register', methods=['POST'])
 def register():
-    username = request.json['username']
-    password = request.json['password']
-    email = request.json['email']
+    username = request.form.get('username')
+    password = request.form.get('password')
+    email = request.form.get('email')
+    image = request.files.get('image')
+    if image:
+        image = image.read()
     url = f"{dbm_url}/register/PLAYER"
     data = {
         "username": username,
         "password": password,
-        "email": email
+        "email": email,
+        "image": base64.b64encode(image).decode('utf-8') if image else None
     }
-    response = requests.post(url, json=data)
+    response = requests.post(url, data=data)
     return send_response(response.json(), response.status_code)
 
-@app.route('/logout', methods=['POST'])
+
+@app.route('/logout', methods=['DELETE'])
+@token_required_void
 def logout():
-    session_token = request.json['session_token']
-    url = f"{dbm_url}/logout/PLAYER"
-    data = {
-        "session_token": session_token
-    }
-    response = requests.post(url, json=data)
+    url = f"{dbm_url}/logout"
+    response = requests.delete(url, headers=request.headers)
     return send_response(response.json(), response.status_code)
+
 
 # delete my account
 @app.route('/delete', methods=['DELETE'])
+@token_required_void
 def delete():
-    #call to dbm for delete account infos
-    session_token = request.json['session_token']
-    url = f"{dbm_url}/delete/PLAYER/{session_token}"
-    response = requests.delete(url)
-    if response.status_code == 200:
-        #call to auction for delete all my auctions
-        url = f"{auction_url}/delete"
-        data = {
-            "user_id": response.json()['user_id']
-        }
-        response2 = requests.put(url, json=data)
-        
-        #call to auction for delete the inventory
-        url = f"{gacha_url}/delete"
-        data = {
-            "user_id": response.json()['user_id']
-        }
-        response3 = requests.put(url, json=data)
-        
-        return send_response(response3.json(), response3.status_code)
-
-#update my account pw, email, username
-@app.route('/update', methods=['PUT'])
-def update():
-    session_token = request.json['session_token']
-    username = request.json['username']
-    password = request.json['password']
-    email = request.json['email']
-    url = f"{dbm_url}/update/PLAYER"
+    url = f"{dbm_url}/delete/PLAYER"
+    logging.debug("Session token: " + request.headers["Authorization"].split(" ")[1])
     data = {
-        "session_token": session_token,
-        "username": username,
-        "password": password,
-        "email": email
+        "session_token": (request.headers["Authorization"].split(" ")[1])
     }
-    response = requests.post(url, json=data)
+    logging.debug(data)
+    response = requests.delete(url, json=data, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
 #TODO implementare parte in DBM
@@ -102,5 +78,5 @@ def reset_password():
     return send_response(response.json(), response.status_code)
 
 # Esempio di utilizzo
-if __name__ == '__main__': 
+if __name__ == '__main__':
     app.run()
