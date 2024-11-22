@@ -46,7 +46,7 @@ jobs:
       - name: Check if containers can reach each other
         run: |
           retries=30
-          while ! docker exec gcta_ase_2024-2025_gateway_user_1 curl -s http://127.0.0.1:8080"; do
+          while ! docker exec gcta_ase_2024-2025_gateway_user_1 curl -s http://127.0.0.1:8080; do
             echo "Waiting for containers to be able to reach each other..."
             sleep 10
             retries=$((retries - 1))
