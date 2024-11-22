@@ -96,15 +96,12 @@
 							]
 						},
 						"url": {
-							"raw": "http://127.0.0.1:8080/users/auth/register",
+							"raw": "http://gcta_ase_2024-2025_user_player_auth:5000/users/auth/register",
 							"protocol": "http",
 							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
+								"gcta_ase_2024-2025_user_player_auth"
 							],
-							"port": "8080",
+							"port": "5000",
 							"path": [
 								"users",
 								"auth",
@@ -184,15 +181,12 @@
 							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
 						},
 						"url": {
-							"raw": "http://127.0.0.1:8080/users/auth/login",
+							"raw": "http://gcta_ase_2024-2025_user_player_auth:5000/users/auth/login",
 							"protocol": "http",
 							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
+								"gcta_ase_2024-2025_user_player_auth"
 							],
-							"port": "8080",
+							"port": "5000",
 							"path": [
 								"users",
 								"auth",
