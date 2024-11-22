@@ -23,6 +23,11 @@ jobs:
       - name: Build and start Docker services
         run: docker-compose up --build -d
 
+      - name: Log running services and ports
+        run: |
+          echo "Listing running Docker services and their exposed ports:"
+          docker ps
+
       - name: Wait for services to be ready
         run: |
           retries=30
