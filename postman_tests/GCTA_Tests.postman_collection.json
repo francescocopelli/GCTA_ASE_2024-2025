@@ -184,11 +184,12 @@
 							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
 						},
 						"url": {
-							"raw": "http://gateway_user/users/auth/login",
+							"raw": "http://gateway_user:8080/users/auth/login",
 							"protocol": "http",
 							"host": [
 								"gateway_user"
 							],
+							"port": "8080",
 							"path": [
 								"users",
 								"auth",
