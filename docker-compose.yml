@@ -3,6 +3,11 @@ services:
     build: ./services/player_gateway
     ports:
       - 8080:80
+    depends_on:
+      - user_admin
+      - user_admin_auth
+      - user_player
+      - user_player_auth
     networks:
       - microservice-network
     volumes:
@@ -12,6 +17,11 @@ services:
     build: ./services/admin_gateway
     ports:
       - 8081:80
+    depends_on:
+      - user_admin
+      - user_admin_auth
+      - user_player
+      - user_player_auth
     networks:
       - microservice-network
     volumes:
@@ -19,6 +29,8 @@ services:
 
   user_admin:
     build: ./services/admin
+    depends_on:
+      - db-manager
     networks:
       - microservice-network
     volumes:
@@ -26,6 +38,8 @@ services:
 
   user_admin_auth:
     build: ./services/admin/auth
+    depends_on:
+      - db-manager
     networks:
       - microservice-network
     volumes:
@@ -33,6 +47,8 @@ services:
 
   user_player:
     build: ./services/player
+    depends_on:
+      - db-manager
     networks:
       - microservice-network
     volumes:
@@ -40,6 +56,8 @@ services:
 
   user_player_auth:
     build: ./services/player/auth
+    depends_on:
+      - db-manager
     networks:
       - microservice-network
     volumes:
@@ -47,6 +65,8 @@ services:
 
   transaction:
     build: ./services/transaction
+    depends_on:
+      - db-manager
     networks:
       - microservice-network
     volumes:
@@ -55,6 +75,8 @@ services:
 
   auction:
     build: ./services/auction
+    depends_on:
+      - db-manager
     networks:
       - microservice-network
     volumes:
@@ -63,6 +85,8 @@ services:
 
   gacha:
     build: ./services/gacha
+    depends_on:
+      - db-manager
     networks:
       - microservice-network
     volumes:
@@ -85,7 +109,3 @@ volumes:
 networks:
   microservice-network:
     driver: bridge
-
-
-#add an environmental variable to the docker-compose.yml file to specify the debug mode or not
-
