@@ -15,6 +15,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "d8b9ea0b-36d2-45ce-9013-a87822593b8d",
 								"exec": [
 									"// Generate random username, password, and email\r",
 									"const randomUsername = 'user_' + Math.random().toString(36).substring(2, 10); // Random username\r",
@@ -27,13 +28,13 @@
 									"pm.environment.set(\"email\", randomEmail);"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "d8b9ea0b-36d2-45ce-9013-a87822593b8d"
+								"packages": {}
 							}
 						},
 						{
 							"listen": "test",
 							"script": {
+								"id": "f26df958-8376-47b1-85c2-7eced333ce34",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -64,8 +65,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "f26df958-8376-47b1-85c2-7eced333ce34"
+								"packages": {}
 							}
 						}
 					],
@@ -102,10 +102,15 @@
 							]
 						},
 						"url": {
-							"raw": "{{base_url}}/users/auth/register",
+							"raw": "http://127.0.0.1:8080/users/auth/register",
+							"protocol": "http",
 							"host": [
-								"{{base_url}}"
+								"127",
+								"0",
+								"0",
+								"1"
 							],
+							"port": "8080",
 							"path": [
 								"users",
 								"auth",
@@ -121,6 +126,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "4234035f-0f65-47ea-bd79-795ef3952935",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -157,20 +163,19 @@
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "4234035f-0f65-47ea-bd79-795ef3952935"
+								"packages": {}
 							}
 						},
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "dbb836fb-8902-4e3f-b169-1c2233e242e7",
 								"exec": [
 									"\r",
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "dbb836fb-8902-4e3f-b169-1c2233e242e7"
+								"packages": {}
 							}
 						}
 					],
@@ -191,10 +196,15 @@
 							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/users/auth/login",
+							"raw": "http://127.0.0.1:8080/users/auth/login",
+							"protocol": "http",
 							"host": [
-								"{{base_url}}"
+								"127",
+								"0",
+								"0",
+								"1"
 							],
+							"port": "8080",
 							"path": [
 								"users",
 								"auth",
