@@ -17,6 +17,12 @@ tags:
     description: Handles the creation and management of auctions and bids
   - name: GACHA
     description: Handles gacha items and inventory management
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 paths:
   /users/auth/login:
     post:
@@ -39,16 +45,12 @@ paths:
       responses:
         '200':
           description: Successful login
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Login successful
         '401':
           description: Invalid credentials
+        '500':
+          description: Database error
+        '501':
+          description: Unexpected error
   /users/auth/register:
     post:
       tags:
@@ -57,7 +59,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
               properties:
@@ -70,48 +72,44 @@ paths:
                 email:
                   type: string
                   example: new_player@example.com
+                image:
+                  type: object
       responses:
-        '201':
+        '200':
           description: Player successfully registered
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Player registered successfully
         '400':
-          description: Invalid request
+          description: Missing required fields
+        '409':
+          description: Username or email already exists
+        '500':
+          description: Unexpected error
   /users/auth/logout:
-    post:
+    delete:
       tags:
         - PLAYER
       summary: Logout a player
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                session_token:
-                  type: string
-                  example: valid_session_token
       responses:
         '200':
           description: Successful logout
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Logout successful
         '401':
-          description: Invalid session token
-  /users/auth/update:
+          description: Invalid user type
+        '500':
+          description: Unexpected error        
+  /users/auth/delete:
+    delete:
+      tags:
+        - PLAYER
+      summary: Delete a user account
+      responses:
+        '200':
+          description: Account deleted successfully
+        '400':
+          description: Session token is required
+        '408':
+          description: Session token not found
+        '500':
+          description: Unexpected error
+  /users/player/update:
     put:
       tags:
         - PLAYER
@@ -119,13 +117,10 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
               properties:
-                session_token:
-                  type: string
-                  example: valid_session_token
                 username:
                   type: string
                   example: updated_username
@@ -135,114 +130,24 @@ paths:
                 email:
                   type: string
                   example: updated_email@example.com
+                image:
+                  type: object           
       responses:
         '200':
           description: Account successfully updated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Account updated successfully
-        '401':
-          description: Invalid session token
-          
-  /users/auth/delete/{session_token}:
-    delete:
-      tags:
-        - PLAYER
-      summary: Delete a user account
-      parameters:
-        - in: path
-          name: session_token
-          required: true
-          schema:
-            type: string
-          description: The session token of the user
-      responses:
-        '200':
-          description: Account deleted successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Account deleted successfully"
         '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Bad request"
-        '404':
-          description: Session token not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Session token not found"
+          description: Invalid user type
+        '408':
+          description: User not found
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Internal server error"
-  /users/auth/reset_pwd:
-    post:
-      tags:
-        - PLAYER
-      summary: Request a password reset for the player
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  example: player123@example.com
-      responses:
-        '200':
-          description: Password reset link sent to the player's email
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Password reset email sent
-        '404':
-          description: Player with the specified email not found
+          description: Unexpected error
+        
           
-  /users/player/my_gacha_list/{user_id}:
+  /users/player/my_gacha_list:
     get:
       tags:
         - PLAYER
       summary: Retrieve the list of gacha items for a user
-      parameters:
-        - in: path
-          name: user_id
-          required: true
-          schema:
-            type: string
-          example: "1"
       responses:
         '200':
           description: List of gacha items retrieved successfully
@@ -255,23 +160,29 @@ paths:
                   properties:
                     gacha_id:
                       type: string
-                      example: "gacha_001"
+                      example: "1"
                     name:
                       type: string
-                      example: "Dragon Sword"
+                      example: "Auto"
                     rarity:
                       type: string
-                      example: "Epic"
+                      example: "epic"
                     status:
                       type: string
                       example: "available"
                     description:
                       type: string
-                      example: "A powerful sword with dragon motifs"
+                      example: "Fast auto"
                     image:
                       type: string
                       format: base64
                       example: "iVBORw0KGgoAAAANSUhEUgAA..."
+                    locked:
+                      type: string
+                      example: "unlocked"
+                    acquired_date:
+                      type: string
+                      example: "2023-10-01T12:00:00Z"
         '404':
           description: No gacha items found for the user
           content:
@@ -300,7 +211,7 @@ paths:
           required: true
           schema:
             type: string
-          example: "gacha_001"
+          example: "1"
       responses:
         '200':
           description: Gacha item information retrieved successfully
@@ -311,33 +222,25 @@ paths:
                 properties:
                   gacha_id:
                     type: string
-                    example: "gacha_001"
+                    example: "1"
                   name:
                     type: string
-                    example: "Dragon Sword"
+                    example: "Auto"
                   rarity:
                     type: string
-                    example: "Epic"
+                    example: "epic"
                   status:
                     type: string
                     example: "available"
                   description:
                     type: string
-                    example: "A powerful sword with dragon motifs"
+                    example: "Fast auto"
                   image:
                     type: string
                     format: base64
                     example: "iVBORw0KGgoAAAANSUhEUgAA..."
         '404':
-          description: Gacha item not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Gacha item not found"
+          description: User not found or gacha item not found
 
   /users/player/real_money_transaction:
     post:
@@ -351,46 +254,20 @@ paths:
             schema:
               type: object
               properties:
-                user_id:
-                  type: string
-                  example: "1"
                 amount:
                   type: number
                   example: 100.0
       responses:
         '200':
-          description: Transaction added successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Transaction added successfully"
+          description: Account topped up successfully
         '400':
-          description: Failed to create transaction
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Failed to create transaction"
+          description: Missing amount for transaction or invalid amount
 
-  /users/player/get_user_balance/{user_id}:
+  /users/player/get_user_balance:
     get:
       tags:
         - PLAYER
       summary: Retrieve the balance of a user
-      parameters:
-        - in: path
-          name: user_id
-          required: true
-          schema:
-            type: string
-          example: "1"
       responses:
         '200':
           description: User balance retrieved successfully
@@ -402,60 +279,86 @@ paths:
                   currency_balance:
                     type: number
                     example: 1500.0
-        '404':
-          description: Failed to retrieve user balance
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Failed to retrieve user balance"
+        '400':
+          description: Invalid user type
+        '408':
+          description: User not found
+        '500':
+          description: Unexpected error
 
-  /users/player/get_user/{user_id}:
+  /users/player/get_user:
     get:
       tags:
         - PLAYER
-      summary: Retrieve user information
-      parameters:
-        - in: path
-          name: user_id
-          required: true
-          schema:
-            type: string
-          example: "1"
+      summary: Get user information
+      description: Retrieve information for the authenticated user. Only users with the 'PLAYER' type can access this endpoint.
+      security:
+        - bearerAuth: []
       responses:
         '200':
-          description: User information retrieved successfully
+          description: User information retrieved successfully.
           content:
             application/json:
               schema:
                 type: object
                 properties:
                   user_id:
-                    type: string
-                    example: "1"
+                    type: integer
                   username:
                     type: string
-                    example: "player1"
                   email:
                     type: string
-                    example: "player1@example.com"
                   currency_balance:
                     type: number
-                    example: 1500.0
+                  image:
+                    type: object
+                  session_token:
+                    type: string
         '404':
           description: User not found
+        '500':
+          description: Unexpected error
+  /users/player/get_user/{user_id}:
+    get:
+      tags:
+        - PLAYER
+      summary: Get user information by ID (Admin only)
+      description: >-
+        Retrieve user information by ID. This endpoint is restricted to admin users 
+        and is hidden from the API documentation.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: The ID of the user to retrieve.
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User information retrieved successfully.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  error:
+                  user_id:
+                    type: integer
+                  username:
                     type: string
-                    example: "User not found"
-
+                  email:
+                    type: string
+                  currency_balance:
+                    type: number
+                  image:
+                    type: object
+                  session_token:
+                    type: string
+        '404':
+          description: User not found
+        '500':
+          description: Unexpected error
   /users/player/update_balance/{user_type}:
     put:
       tags:
@@ -480,32 +383,21 @@ paths:
                   type: string
                   example: "1"
                 amount:
-                  type: number
-                  example: 100.0
+                  type: string
+                  example: "100"
                 type:
                   type: string
                   example: "credit"
       responses:
         '200':
           description: Balance updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Balance updated successfully"
         '400':
-          description: Failed to update balance
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Failed to update balance"
+          description: Missing data to update balance
+        '404':
+          description: User not found
+        '500':
+          description: Unexpected error
+
   /users/admin_auth/register:
     post:
       tags:
@@ -514,7 +406,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
               properties:
@@ -530,16 +422,12 @@ paths:
       responses:
         '201':
           description: Admin successfully registered
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Admin registered successfully
         '400':
-          description: Invalid request (e.g., missing fields or malformed data)
+          description: Missing required fields
+        '409':
+          description: Username or email already exists
+        '500':
+          description: Unexpected error
   /users/admin_auth/login:
     post:
       tags:
@@ -569,10 +457,21 @@ paths:
                   token:
                     type: string
                     example: jwt_token
+                  message:
+                    type: string
+                    example: Login successful
+                  user_id:
+                    type: string
+                    example: "1"
+        '400':
+          description: Invalid user type
         '401':
           description: Invalid credentials
+        '500':
+          description: Database error
+          
   /users/admin_auth/logout:
-    post:
+    delete:
       tags:
         - ADMIN
       summary: Logout the admin
@@ -580,102 +479,10 @@ paths:
         '200':
           description: Successful logout
         '401':
-          description: Unauthorized access (invalid or missing token)
-  /users/admin_auth/reset_pwd:
-    post:
-      tags:
-        - ADMIN
-      summary: Request a password reset for the admin
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  example: admin123@example.com
-      responses:
-        '200':
-          description: Password reset link sent to the admin's email
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Password reset email sent
-        '404':
-          description: Admin with the specified email not found
-  /users/player/profile:
-    get:
-      tags:
-        - PLAYER
-      summary: Retrieve the player's profile information
-      responses:
-        '200':
-          description: Returns the player's profile information
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  username:
-                    type: string
-                    example: player123
-                  email:
-                    type: string
-                    example: player123@example.com
-                  currency_balance:
-                    type: integer
-                    example: 150
-                  gacha_collection:
-                    type: array
-                    items:
-                      type: string
-                    example:
-                      - gacha_001
-                      - gacha_002
-        '401':
-          description: Unauthorized access (invalid or missing token)
-  /users/player/inventory:
-    get:
-      tags:
-        - PLAYER
-      summary: Retrieve the player's current inventory of gacha items
-      responses:
-        '200':
-          description: Returns the list of gacha items the player owns
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  inventory:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        item_id:
-                          type: string
-                          example: gacha_001
-                        name:
-                          type: string
-                          example: Dragon Sword
-                        rarity:
-                          type: string
-                          example: Epic
-                    example:
-                      - item_id: gacha_001
-                        name: Dragon Sword
-                        rarity: Epic
-                      - item_id: gacha_002
-                        name: Mystic Shield
-                        rarity: Rare
-        '401':
-          description: Unauthorized access (invalid or missing token)
+          description: Invalid user type
+        '500':  
+          description: Unexpected error
+
   /transaction/add_transaction:
     post:
       tags:
@@ -700,24 +507,8 @@ paths:
       responses:
         '200':
           description: Transaction added successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Transaction added successfully"
-        '400':
+        '500':
           description: Failed to add transaction
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Failed to add transaction"
 
   /transaction/get_user_transactions/{user_id}:
     get:
@@ -757,24 +548,52 @@ paths:
                       type: string
                       format: date-time
                       example: "2023-10-01T12:00:00Z"
+        '400':
+          description: User_id not found
         '404':
-          description: No transactions found for the user
+          description: No transactions found
+  /transaction/get_user_transactions:
+    get:
+      tags:
+        - TRANSACTION
+      summary: Retrieve all transactions for current user
+      responses:
+        '200':
+          description: Transactions retrieved successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  error:
+                  transaction_id:
                     type: string
-                    example: "No transactions found for the user"
-
-  /transaction/get_transaction/{transaction_id}:
+                    example: "txn_001"
+                  user_id:
+                    type: string
+                    example: "1"
+                  amount:
+                    type: number
+                    example: 100.0
+                  type:
+                    type: string
+                    example: "credit"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2023-10-01T12:00:00Z"
+        '400':
+          description: User_id not found
+        '403':
+          description: Admin can not get their own transactions
+        '404':
+          description: No transactions found
+  /transaction/get_transaction:
     get:
       tags:
         - TRANSACTION
       summary: Retrieve a specific transaction
       parameters:
-        - in: path
+        - in: query
           name: transaction_id
           required: true
           schema:
@@ -806,20 +625,19 @@ paths:
                     example: "2023-10-01T12:00:00Z"
         '404':
           description: Transaction not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Transaction not found"
   /transaction/all:
     get:
       tags:
         - TRANSACTION
       summary: Retrieve all transactions
       description: Retrieve all transactions from the database.
+      parameters:
+        - in: query
+          name: user_id
+          required: false
+          schema:
+            type: string
+          example: "1"
       responses:
         '200':
           description: A JSON array of all transactions
@@ -838,322 +656,15 @@ paths:
                       example: 123
                     amount:
                       type: number
-                      format: float
-                      example: 100.50
+                      format: integer
+                      example: 100
                     date:
                       type: string
                       format: date-time
-                      example: 2023-10-01T12:34:56Z
+                      example: "2023-10-01T12:00:00Z"
         '404':
           description: No transactions found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: No transactions found
                     
-  /auctions/is_gacha_unlocked/{user_id}/{gacha_id}:
-    get:
-      tags:
-        - AUCTIONS
-      summary: Check if the gacha is unlocked
-      parameters:
-        - in: path
-          name: user_id
-          required: true
-          schema:
-            type: string
-          description: The ID of the user
-        - in: path
-          name: gacha_id
-          required: true
-          schema:
-            type: string
-          description: The ID of the gacha item
-      responses:
-        '200':
-          description: Gacha item is unlocked
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  unlocked:
-                    type: boolean
-                    example: true
-        '404':
-          description: Gacha item not found or locked
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Gacha item not found or locked"
-
-  /auctions/update_gacha_status:
-    put:
-      tags:
-        - AUCTIONS
-      summary: Update the status of a gacha item
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                user_id:
-                  type: string
-                  example: "1"
-                gacha_id:
-                  type: string
-                  example: "gacha_001"
-                status:
-                  type: string
-                  example: "locked"
-      responses:
-        '200':
-          description: Gacha status updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Gacha status updated successfully"
-        '408':
-          description: Failed to update gacha status
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Failed to update gacha status"
-        '500':
-          description: An error occurred
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "An error occurred"
-
-  /auctions/update_gacha_owner:
-    put:
-      tags:
-        - AUCTIONS
-      summary: Update the owner of a gacha item
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                buyer_id:
-                  type: string
-                  example: "2"
-                seller_id:
-                  type: string
-                  example: "1"
-                gacha_id:
-                  type: string
-                  example: "gacha_001"
-                status:
-                  type: string
-                  example: "unlocked"
-      responses:
-        '200':
-          description: Gacha owner updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Gacha owner updated successfully"
-        '408':
-          description: Failed to update gacha owner
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Failed to update gacha owner"
-        '500':
-          description: An error occurred
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "An error occurred"
-
-  /auctions/add_transaction:
-    post:
-      tags:
-        - AUCTIONS
-      summary: Add a new transaction
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                user_id:
-                  type: string
-                  example: "1"
-                amount:
-                  type: number
-                  example: 100.0
-                type:
-                  type: string
-                  example: "credit"
-      responses:
-        '200':
-          description: Transaction added successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Transaction added successfully"
-        '408':
-          description: Failed to create transaction
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Failed to create transaction"
-        '500':
-          description: An error occurred
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "An error occurred"
-
-  /auctions/update_user_balance:
-    put:
-      tags:
-        - AUCTIONS
-      summary: Update the balance of a user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                user_id:
-                  type: string
-                  example: "1"
-                amount:
-                  type: number
-                  example: 100.0
-                type:
-                  type: string
-                  example: "credit"
-      responses:
-        '200':
-          description: User balance updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "User balance updated successfully"
-        '408':
-          description: Failed to update user balance
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Failed to update user balance"
-        '500':
-          description: An error occurred
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "An error occurred"
-
-  /auctions/get_user_balance/{user_id}:
-    get:
-      tags:
-        - AUCTIONS
-      summary: Retrieve the balance of a user
-      parameters:
-        - in: path
-          name: user_id
-          required: true
-          schema:
-            type: string
-          description: The ID of the user
-      responses:
-        '200':
-          description: User balance retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  currency_balance:
-                    type: number
-                    example: 1500.0
-        '408':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "User not found"
-        '500':
-          description: An error occurred
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "An error occurred"
-
   /auctions/add:
     post:
       tags:
@@ -1168,9 +679,6 @@ paths:
               properties:
                 gacha_id:
                   type: string
-                  example: "gacha_001"
-                seller_id:
-                  type: string
                   example: "1"
                 base_price:
                   type: number
@@ -1178,37 +686,14 @@ paths:
       responses:
         '201':
           description: Auction created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Auction created successfully"
-                  auction_id:
-                    type: string
-                    example: "auction_001"
         '400':
-          description: Failed to create auction
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Failed to create auction"
+          description: Missing data to create auction
+        '403':
+          description: Unauthorized access
+        '404':
+          description: Gacha is locked or not exist
         '500':
-          description: An error occurred
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "An error occurred"
+          description: Unexpected error
 
   /auctions/check_auction_status:
     get:
@@ -1249,7 +734,7 @@ paths:
           name: status
           schema:
             type: string
-            enum: [active, expired]
+            enum: [active, expired, completed]
           description: The status of the auctions to filter by. Can be "active" or "expired".
       responses:
         '200':
@@ -1265,14 +750,27 @@ paths:
                       type: object
                       additionalProperties: true
         '500':
-          description: Database error occurred
+          description: Unexpected error occurred
+  /auctions/all_active:
+    get:
+      tags:
+        - AUCTIONS
+      summary: Retrieve all auctions or filter by auction status
+      responses:
+        '200':
+          description: A JSON response containing a list of auctions.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  error:
-                    type: string
+                  auctions:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+        '500':
+          description: Unexpected error occurred
   /auctions/get_gacha_auctions:
     get:
       tags:
@@ -1299,31 +797,10 @@ paths:
                   additionalProperties: true
         '400':
           description: Missing gacha_id parameter
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
         '404':
           description: No auctions found for the gacha
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
         '500':
           description: Database error occurred
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
   /auctions/bid:
     post:
       tags:
@@ -1340,8 +817,6 @@ paths:
               properties:
                 auction_id:
                   type: string
-                user_id:
-                  type: string
                 bid_amount:
                   type: number
       responses:
@@ -1355,41 +830,15 @@ paths:
                   message:
                     type: string
         '400':
-          description: Missing data for bid or bid amount must be higher than current highest bid
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+          description: Missing data for bid
         '403':
-          description: Insufficient funds
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+          description: You can't place a bid as an admin
         '408':
           description: Auction not found or already ended
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+        '409':
+          description: Failed to place bid
         '500':
           description: Database error occurred
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
   /auctions/bids:
     get:
       tags:
@@ -1419,22 +868,134 @@ paths:
                       additionalProperties: true
         '400':
           description: Missing auction_id parameter
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
         '500':
           description: Database error occurred
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string                  
+  /auctions/my:
+    get:
+      summary: Retrieve all auctions for the authenticated user
+      description: >-
+        Retrieves auctions associated with the authenticated user. Only non-admin users can access this endpoint.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved user's auctions.
+        '403':
+          description: Admins cannot access this endpoint.
+        '500':
+          description: Internal server error.
+      tags:
+        - Auctions
+
+  /auctions/get_auction:
+    get:
+      summary: Retrieve auction details
+      description: Retrieve details for a specific auction using either auction_id or user_id. 
+      parameters:
+        - name: auction_id
+          in: query
+          required: false
+          description: The ID of the auction.
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          required: false
+          description: The ID of the user.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved auction details.
+        '400':
+          description: Missing or conflicting parameters.
+        '404':
+          description: Auction not found.
+        '500':
+          description: Database or internal error.
+      tags:
+        - Auctions
+
+  /auctions/highest_bid:
+    get:
+      summary: Retrieve the highest bid for a specific auction
+      description: Retrieve the highest bid amount for a specific auction using the gacha_id parameter.
+      parameters:
+        - name: gacha_id
+          in: query
+          required: true
+          description: The Gacha ID of the auction.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved the highest bid.
+        '400':
+          description: Missing gacha_id parameter.
+        '404':
+          description: Auction not found.
+        '500':
+          description: Database or internal error.
+      tags:
+        - Auctions
+
+  /auctions/update:
+    put:
+      summary: Update an auction
+      description: Update an existing auction using the provided data. The auction must belong to the user.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auction_id:
+                  type: string
+                  description: The ID of the auction to update.
+                base_price:
+                  type: number
+                end_time:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: Successfully updated the auction.
+        '400':
+          description: Missing or invalid parameters.
+        '403':
+          description: Unauthorized access to the auction.
+        '404':
+          description: Auction not found.
+        '500':
+          description: Database or internal error.
+      tags:
+        - Auctions
+
+  /auctions/delete:
+    delete:
+      summary: Delete an auction
+      description: Delete an existing auction using the gacha_id parameter.
+      parameters:
+        - name: gacha_id
+          in: query
+          required: true
+          description: The Gacha ID of the auction to delete.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully deleted the auction.
+        '400':
+          description: Missing or invalid gacha_id parameter.
+        '404':
+          description: Auction not found.
+        '500':
+          description: Database or internal error.
+      tags:
+        - Auctions
   /gacha/add:
     post:
       tags:
@@ -1470,38 +1031,14 @@ paths:
                     type: string
         '400':
           description: Missing data to add gacha item
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
         '500':
           description: Database error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+
   /gacha/roll:
     post:
       tags:
         - GACHA
       summary: Perform a gacha roll for a random item
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                user_id:
-                  type: string
-                roll_cost:
-                  type: integer
       responses:
         '200':
           description: Gacha roll successful
@@ -1519,41 +1056,12 @@ paths:
                   rarity:
                     type: string
         '400':
-          description: Missing data for gacha roll or invalid roll cost
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+          description: Missing data for gacha roll
         '403':
           description: Insufficient funds for gacha roll
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-        '408':
-          description: User not found or no available gacha items
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
         '500':
-          description: Failed to update user balance or add transaction
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+          description: Failed to add gacha item to user inventory
+
   /gacha/inventory/{user_id}:
     get:
       tags:
@@ -1596,13 +1104,6 @@ paths:
                           type: string
         '404':
           description: No gacha items found for user
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
   /gacha/inventory/add:
     post:
       tags:
@@ -1615,8 +1116,6 @@ paths:
             schema:
               type: object
               properties:
-                user_id:
-                  type: string
                 gacha_id:
                   type: string
       responses:
@@ -1631,27 +1130,19 @@ paths:
                     type: string
         '400':
           description: Missing data to add gacha to inventory
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
         '404':
-          description: User not found or gacha item not found or not available
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+          description: User or gacha item not found
   /gacha/all:
     get:
       tags:
         - GACHA
       summary: Retrieve all gacha items
+      parameters:
+        - in: query
+          name: offset
+          schema:
+            type: integer
+          description: The number of items to skip
       responses:
         '200':
           description: Gacha items retrieved successfully
@@ -1679,13 +1170,6 @@ paths:
                           type: string
         '404':
           description: No gacha items found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
   /gacha/update:
     put:
       tags:
@@ -1723,31 +1207,11 @@ paths:
                     type: string
         '400':
           description: Missing data to update gacha item
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+
         '404':
           description: Gacha item not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
         '500':
           description: Failed to update gacha item
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
   /gacha/get/{gacha_id}:
     get:
       tags:
@@ -1781,13 +1245,7 @@ paths:
                     type: string
         '404':
           description: Gacha item not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+
   /gacha/get/{user_id}/{gacha_id}:
     get:
       tags:
@@ -1830,13 +1288,7 @@ paths:
                     type: string
         '404':
           description: User not found or gacha item not found in user inventory
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+        
   /gacha/is_gacha_unlocked/{user_id}/{gacha_id}:
     get:
       tags:
@@ -1865,22 +1317,8 @@ paths:
                     type: string
         '403':
           description: Gacha item is locked
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
         '400':
           description: Missing data to check gacha item
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
   /gacha/update_gacha_status:
     put:
       tags:
@@ -1911,40 +1349,12 @@ paths:
                     type: string
         '400':
           description: Missing data to update gacha status
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
         '409':
           description: User not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
         '408':
           description: Gacha item not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
         '500':
           description: Failed to update gacha status
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
   /gacha/update_gacha_owner:
     put:
       tags:
@@ -1977,99 +1387,14 @@ paths:
                     type: string
         '400':
           description: Missing data to update gacha owner
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
         '404':
           description: Buyer not found or gacha item not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
         '500':
           description: Failed to update gacha owner
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
- 
- 
-  /gacha/admin/add:
-    post:
-      summary: Add a new gacha item to the system (admin only)
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                gacha_id:
-                  type: string
-                  example: gacha_001
-                name:
-                  type: string
-                  example: Jeep '98
-                rarity:
-                  type: string
-                  example: Epic
-                description:
-                  type: string
-                  example: A rare jeep with old style model.
-      responses:
-        '201':
-          description: New gacha successfully added
-        '400':
-          description: Invalid input or duplicate gacha ID
-        '401':
-          description: Unauthorized (token missing or invalid)
-  /gacha/admin/update/{gacha_id}:
-    put:
-      summary: Update an existing gacha item (admin only)
-      parameters:
-        - name: gacha_id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: Jeep '98
-                rarity:
-                  type: string
-                  example: Epic
-                description:
-                  type: string
-                  example: A rare jeep with old style model.
-                status:
-                  type: string
-                  example: available
-      responses:
-        '200':
-          description: Gacha item successfully updated
-        '401':
-          description: Unauthorized (token missing or invalid)
-        '404':
-          description: Gacha not found
-  /gacha/admin/delete/{gacha_id}:
+  /gacha/delete/{gacha_id}:
     delete:
+      tags:
+      - GACHA
       summary: Delete a gacha item from the system (admin only)
       parameters:
         - name: gacha_id
@@ -2080,7 +1405,7 @@ paths:
       responses:
         '200':
           description: Gacha item successfully deleted
-        '401':
-          description: Unauthorized (token missing or invalid)
         '404':
           description: Gacha not found
+        '500':
+          description: Failed to delete gacha item
