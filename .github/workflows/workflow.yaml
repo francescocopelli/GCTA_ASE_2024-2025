@@ -46,16 +46,17 @@ jobs:
       - name: Check if containers can reach each other
         run: |
           retries=30
-          while ! docker exec gcta_ase_2024-2025_gateway_user_1 ping -c 1 gcta_ase_2024-2025_transaction_1; do
+          while ! docker exec gcta_ase_2024-2025_gateway_user_1 curl -s http://gcta_ase_2024-2025_transaction_1:5000; do
             echo "Waiting for containers to be able to reach each other..."
             sleep 10
             retries=$((retries - 1))
-          if [ $retries -le 0 ]; then
-            echo "Containers cannot reach each other."
-            exit 1
-          fi
-            done
-            echo "Containers can reach each other!"
+            if [ $retries -le 0 ]; then
+              echo "Containers cannot reach each other."
+              exit 1
+            fi
+          done
+          echo "Containers can reach each other!"
+
 
       - name: Install newman
         run: npm install -g newman
