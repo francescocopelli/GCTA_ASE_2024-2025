@@ -96,12 +96,15 @@
 							]
 						},
 						"url": {
-							"raw": "http://user_player_auth:5000/users/auth/register",
+							"raw": "http://0.0.0.0:8080/users/auth/register",
 							"protocol": "http",
 							"host": [
-								"user_player_auth"
+								"0",
+								"0",
+								"0",
+								"0"
 							],
-							"port": "5000",
+							"port": "8080",
 							"path": [
 								"users",
 								"auth",
