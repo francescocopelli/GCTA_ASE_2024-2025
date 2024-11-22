@@ -2,7 +2,6 @@ import sqlite3
 import uuid
 from urllib import request
 
-import requests
 from flask import Flask
 
 from shared.auth_middleware import *
@@ -30,6 +29,71 @@ def get_db_connection():
     except sqlite3.Error as e:
         logging.error(f"Database connection error: {e}")
         return None
+
+
+@app.route("/all", methods=["GET"])
+@admin_required
+# Endpoint to retrieve all auction
+def get_all_auctions():
+    check_auction_status()
+    status = request.args.get("status") or "all"
+    """
+    Retrieve all auctions or filter by auction status.
+    This endpoint retrieves all auctions from the database. Optionally, it can filter
+    the auctions based on their status (active or expired) using a query parameter.
+    Query Parameters:
+        status (str, optional): The status of the auctions to filter by. Can be "active" or "expired".
+    Returns:
+        Response: A JSON response containing a list of auctions. Each auction is represented
+        as a dictionary. The response status code is 200.
+    Example:
+        GET /all
+        GET /all?status=active
+        GET /all?status=expired
+    """
+    # Optional query parameter to filter by auction status (active or expired)
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # If status filter is provided, retrieve only the matching auctions
+        if ("active" in status) or ("expired" in status) or ("completed" in status):
+            cursor.execute("SELECT * FROM Auctions WHERE status = ?", (status,))
+        else:
+            # If no status filter is provided, return all auctions
+            cursor.execute("SELECT * FROM Auctions")
+
+        auctions = cursor.fetchall()
+        conn.close()
+
+        # Format the auctions for JSON response
+        result = [dict(auction) for auction in auctions]
+
+        # replace all end_time with human readable date
+        for auction in result:
+            auction['end_time'] = datetime.fromtimestamp(float(auction['end_time'])).strftime('%Y-%m-%d %H:%M:%S')
+
+        return send_response({"auctions": result}, 200)
+
+    except sqlite3.Error as e:
+        logging.error(f"Database error occurred: {e}")
+        return send_response({"error": "Database error occurred"}, 500)
+
+    except Exception as e:
+        logging.error(f"Error occurred: {e}")
+        return send_response({"error": "An error occurred"}, 500)
+
+    finally:
+        if conn:
+            conn.close()
+
+
+@app.route("/all_active", methods=["GET"])
+@login_required_void
+def get_all_auctions_restricted():
+    req = requests.get("http://localhost:5000/all?status=active", headers=generate_session_token_system())
+    return send_response(req.json(), req.status_code)
 
 
 # Function to check if the gacha is unlocked
@@ -120,7 +184,7 @@ def get_user_balance(user_id):
         response = requests.get(f"{admin_url}/get_user_balance/{user_id}", headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from user service: {response.json()}")
-        return send_response(response.json().get("currency_balance"), 200)
+        return send_response(response.json(), 200)
     except requests.exceptions.HTTPError as http_err:
         logging.error(f"HTTP error occurred: {http_err}")
         return send_response({"error": "User not found"}, 408)
@@ -131,13 +195,19 @@ def get_user_balance(user_id):
 
 # Endpoint to add a new auction
 @app.route("/add", methods=["POST"])
+@login_required_void
 def add_auction():
-    conn = get_db_connection()
+
+    user = jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])
+    if user['user_type'] != "PLAYER":
+        return send_response({"error": "Only players can create auctions"}, 403)
+    if check_header() is True and user["user_type"] == "PLAYER":
+        return send_response({"error": "Unauthorized access"}, 403)
     try:
         # Extract auction details from the request JSON
         data = request.get_json()
         gacha_id = data.get("gacha_id")
-        seller_id = data.get("seller_id")
+        seller_id = user["user_id"]
         base_price = data.get("base_price")
 
         # Check if all required fields are provided
@@ -146,6 +216,7 @@ def add_auction():
             return send_response({"error": "Missing data for new auction"}, 400)
 
         # Connect to the database
+        conn = get_db_connection()
         cursor = conn.cursor()
 
         # VERIFY IF THE GACHA EXIST AND IF ITS NOT LOCKED
@@ -259,73 +330,9 @@ def check_auction_status():
             conn.close()
 
 
-@app.route("/all_active", methods=["GET"])
-@login_required_void
-def get_all_auctions_restricted():
-    req = requests.get("http://localhost:5000/all?status=active", headers=generate_session_token_system())
-    return send_response(req.json(), req.status_code)
-
-
-@app.route("/all", methods=["GET"])
-@admin_required
-# Endpoint to retrieve all auction
-def get_all_auctions():
-    check_auction_status()
-    status = request.args.get("status") or "all"
-    """
-    Retrieve all auctions or filter by auction status.
-    This endpoint retrieves all auctions from the database. Optionally, it can filter
-    the auctions based on their status (active or expired) using a query parameter.
-    Query Parameters:
-        status (str, optional): The status of the auctions to filter by. Can be "active" or "expired".
-    Returns:
-        Response: A JSON response containing a list of auctions. Each auction is represented
-        as a dictionary. The response status code is 200.
-    Example:
-        GET /all
-        GET /all?status=active
-        GET /all?status=expired
-    """
-    # Optional query parameter to filter by auction status (active or expired)
-
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        # If status filter is provided, retrieve only the matching auctions
-        if ("active" in status) or ("expired" in status) or ("completed" in status):
-            cursor.execute("SELECT * FROM Auctions WHERE status = ?", (status,))
-        else:
-            # If no status filter is provided, return all auctions
-            cursor.execute("SELECT * FROM Auctions")
-
-        auctions = cursor.fetchall()
-        conn.close()
-
-        # Format the auctions for JSON response
-        result = [dict(auction) for auction in auctions]
-
-        # replace all end_time with human readable date
-        for auction in result:
-            auction['end_time'] = datetime.fromtimestamp(float(auction['end_time'])).strftime('%Y-%m-%d %H:%M:%S')
-
-        return send_response({"auctions": result}, 200)
-
-    except sqlite3.Error as e:
-        logging.error(f"Database error occurred: {e}")
-        return send_response({"error": "Database error occurred"}, 500)
-
-    except Exception as e:
-        logging.error(f"Error occurred: {e}")
-        return send_response({"error": "An error occurred"}, 500)
-
-    finally:
-        if conn:
-            conn.close()
-
-
 # Endpoint to retrieve all auctions for a specific gacha
 @app.route('/get_gacha_auctions', methods=['GET'])
+@login_required_void
 def get_gacha_auctions():
     """
     Endpoint to retrieve gacha auctions based on gacha_id.
@@ -355,7 +362,10 @@ def get_gacha_auctions():
 
     if auctions:
         logging.debug(f"Found {len(auctions)} auctions for gacha_id {gacha_id}")
-        return send_response([dict(auction) for auction in auctions], 200)
+        res = [dict(auction) for auction in auctions]
+        for auction in res:
+            auction['end_time'] = datetime.fromtimestamp(float(auction['end_time'])).strftime('%Y-%m-%d %H:%M:%S')
+        return send_response(res, 200)
     else:
         logging.debug(f"No auctions found for gacha_id {gacha_id}")
         return send_response({'error': 'No auctions found for the gacha'}, 404)
@@ -364,12 +374,13 @@ def get_gacha_auctions():
 # Functions for Bidding
 # Endpoint to place a bid on an auction
 @app.route("/bid", methods=["POST"])
-def place_bid():
+@login_required_ret
+def place_bid(user):
     check_auction_status()
     # Extract bid details from the request JSON
     data = request.get_json()
     auction_id = data.get("auction_id")
-    user_id = data.get("user_id")
+    user_id = user["user_id"]
     bid_amount = data.get("bid_amount")
 
     # Check if all required fields are provided
@@ -377,6 +388,8 @@ def place_bid():
         return send_response({"error": "Missing data for bid"}, 400)
 
     conn = None
+    if jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])['user_type'] == "ADMIN":
+        return send_response({"error": "You cannot place a bid as an admin"}, 403)
     try:
         # Connect to the database
         conn = get_db_connection()
@@ -397,7 +410,7 @@ def place_bid():
             return send_response({"error": "Bid amount must be higher than current highest bid"}, 400)
 
         # Check if the user has enough funds for the bid
-        user_balance = get_user_balance(user_id)
+        user_balance = str(get_user_balance(user_id)[0].get_json().get("currency_balance"))
         if int(user_balance) < int(bid_amount):
             return send_response({"error": "Insufficient funds"}, 403)
 
@@ -480,14 +493,18 @@ def get_bids():
     logging.debug(f"Retrieved {len(result)} bids for auction_id {auction_id}")
     return send_response({"bids": result}, 200)
 
+
 @app.get("/my")
 @login_required_ret
 def all_my_auction(user):
     user_id = user["user_id"]
-    req = requests.get("http://localhost:5000/get_auction?user_id="+str(user_id), headers=generate_session_token_system())
+    if jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])['user_type'] == "ADMIN":
+        return send_response({"error": "Admins don't have auctions"}, 403)
+    req = requests.get("http://localhost:5000/get_auction?user_id=" + str(user_id),
+                       headers=generate_session_token_system())
     return send_response(req.json(), req.status_code)
 
-# TODO: Get information for a specific auction
+
 @app.route("/get_auction", methods=["GET"])
 @admin_required
 def get_auction():
@@ -533,7 +550,11 @@ def get_auction():
             return send_response({"error": "No auction found"}, 404)
 
         logging.debug(f"Retrieved auction information for auction_id {auction_id}")
-        return send_response(dict(auction), 200)
+        res = dict(auction)
+        for a in res.keys():
+            if a == "end_time":
+                res[a] = datetime.fromtimestamp(float(res[a])).strftime('%Y-%m-%d %H:%M:%S')
+        return send_response(res, 200)
     elif user_id:
         try:
             conn = get_db_connection()
@@ -551,6 +572,8 @@ def get_auction():
                 conn.close()
 
         result = [dict(auction) for auction in auctions]
+        for auction in result:
+            auction['end_time'] = datetime.fromtimestamp(float(auction['end_time'])).strftime('%Y-%m-%d %H:%M:%S')
         logging.debug(f"Retrieved {len(result)} auctions for user_id {user_id}")
         return send_response({"auctions": result}, 200)
     else:
@@ -582,6 +605,7 @@ def get_highest_bid():
             200)
     else:
         return send_response({"error": "Auction not found"}, 404)
+
 
 @app.route("/update", methods=["PUT"])
 @login_required_ret
@@ -617,8 +641,7 @@ def update_auction(user):
     end_time = auction["end_time"]
 
     if data.get("end_time"):
-        end_time = (datetime.strptime(data.get("end_time"), "%Y-%m-%d %H:%M:%S")+timedelta(hours=1)).timestamp()
-
+        end_time = (datetime.strptime(data.get("end_time"), "%Y-%m-%d %H:%M:%S") + timedelta(hours=1)).timestamp()
 
     # Update the auction record with the new data
     cursor.execute(
