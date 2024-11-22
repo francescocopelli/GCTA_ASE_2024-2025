@@ -74,9 +74,9 @@ jobs:
       - name: Debug failing service
         run: |
           echo "Checking dbm logs:"
-          docker logs gcta_ase_2024-2025-db-manager-1
-           echo "Checking dbm logs version 2:"
           docker logs gcta_ase_2024-2025_db-manager_1
+          docker logs gcta_ase_2024-2025_user_player_1
+          docker logs gcta_ase_2024-2025_user_player_auth_1
 
       - name: Install newman
         run: npm install -g newman
