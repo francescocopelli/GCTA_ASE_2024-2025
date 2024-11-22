@@ -1,0 +1,84 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+      - name: Build and start Docker services
+        run: docker-compose up --build -d
+
+      - name: Log running services and ports
+        run: |
+          echo "Listing running Docker services and their exposed ports:"
+          docker ps
+
+      - name: Wait for services to be ready
+        run: |
+          retries=30
+          while ! nc -z localhost 8080; do
+            echo "Waiting for service on port 8080..."
+            sleep 10
+            retries=$((retries - 1))
+            if [ $retries -le 0 ]; then
+              echo "Service did not start in time."
+              exit 1
+            fi
+          done
+          echo "Service is ready!"
+
+
+      - name: Run Docker logs 
+        run: |
+          echo "Checking dbm logs:" 
+          docker logs gcta_ase_2024-2025_db-manager_1 > db_manager_logs.txt 
+          docker logs gcta_ase_2024-2025_user_player_1 > user_player_logs.txt 
+          docker logs gcta_ase_2024-2025_user_player_auth_1 > user_player_auth_logs.txt 
+
+      - name: Upload log files 
+        uses: actions/upload-artifact@v4
+        with: 
+          name: docker-logs 
+          path: |
+            db_manager_logs.txt
+            user_player_logs.txt
+            user_player_auth_logs.txt
+
+      # - name: Install newman
+      #   run: npm install -g newman
+
+      # - name: Automated API tests using Postman CLI
+      #     - uses: actions/checkout@v4
+      - name: Install Postman CLI
+        run: |
+          curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+      - name: Login to Postman CLI
+        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+      - name: Run API tests
+        run: |
+          postman collection run "${{ github.workspace }}/postman/collections/GCTA-Tests.json" -e "39570797-6ed4f213-c7dd-4d9d-ad28-a5089e5c7de4"
+
+      - name: Upload Newman Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: newman-report
+          path: reports/newman-report.html
+
+      - name: Stop Docker services
+        if: always()
+        run: docker-compose down
