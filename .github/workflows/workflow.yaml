@@ -43,19 +43,33 @@ jobs:
           echo "Service is ready!"
 
         
-      - name: Check if containers can reach each other
+      # - name: Check if containers can reach each other
+      #   run: |
+      #     retries=30
+      #     while ! docker exec gcta_ase_2024-2025_gateway_user_1 curl -s http://127.0.0.1:8080; do
+      #       echo "Waiting for containers to be able to reach each other..."
+      #       sleep 10
+      #       retries=$((retries - 1))
+      #       if [ $retries -le 0 ]; then
+      #         echo "Containers cannot reach each other."
+      #         exit 1
+      #       fi
+      #     done
+      #     echo "Containers can reach each other!"
+
+      - name: Check if localhost is accessible
         run: |
           retries=30
-          while ! docker exec gcta_ase_2024-2025_gateway_user_1 curl -s http://127.0.0.1:8080; do
-            echo "Waiting for containers to be able to reach each other..."
-            sleep 10
+          while ! curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 | grep -q 200; do
+            echo "Waiting for localhost to be accessible..."
+            sleep 5
             retries=$((retries - 1))
             if [ $retries -le 0 ]; then
-              echo "Containers cannot reach each other."
+              echo "Localhost is not accessible. Exiting."
               exit 1
             fi
           done
-          echo "Containers can reach each other!"
+          echo "Localhost is accessible!"
 
 
       - name: Install newman
