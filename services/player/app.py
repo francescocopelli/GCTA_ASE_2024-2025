@@ -107,6 +107,15 @@ def get_user(user):
     response = requests.get(url, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
+# Hidden endpoint from the API documentation
+@app.get("/get_user/<user_id>")
+@admin_required
+def get_user_by_id(user_id):
+    url = f"{dbm_url}/get_user/" + str(user_id)
+    response = requests.get(url, headers=request.headers)
+    return send_response(response.json(), response.status_code)
+
+
 
 @app.route("/update_balance/<user_type>", methods=['PUT'])
 @admin_required
@@ -137,7 +146,7 @@ def update_balance(user_type):
     }
     logging.debug("Sending data: %s", data)
     # takes the request headers and add a new key called X-Gateway-Port with the value 8081
-    response = requests.put(url, json=data)
+    response = requests.put(url, json=data, headers=request.headers)
     logging.debug("Received response: %s", response)
     return send_response(response.json(), response.status_code)
 

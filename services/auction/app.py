@@ -635,3 +635,38 @@ def update_auction(user):
     if not cursor.rowcount:
         return send_response({"error": "Failed to update auction"}, 400)
     return send_response({"message": "Auction updated successfully"}, 200)
+
+
+@app.route("/delete", methods=["DELETE"])
+@admin_required
+def delete_auction():
+    """
+    Delete an existing auction.
+    This endpoint deletes an existing auction from the database.
+    The auction_id parameter must be provided in the request JSON to identify the auction to delete.
+    The function connects to the database, deletes the auction record, and returns a success message.
+    Returns:
+        Response: A JSON response indicating that the auction was deleted successfully.
+    """
+    gacha_id = request.args.get("gacha_id") or None
+    if not gacha_id:
+        return send_response({"error": "Missing gacha_id parameter"}, 400)
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Auctions WHERE gacha_id = ?", (gacha_id,))
+    auctions = cursor.fetchall()
+
+    if not auctions:
+        return send_response({"error": "Auction not found"}, 404)
+
+    for auction in auctions:
+        cursor.execute("DELETE FROM Auctions WHERE auction_id = ?", (auction["auction_id"],))
+        cursor.execute("DELETE FROM Bids WHERE auction_id = ?", (auction["auction_id"],))
+
+    conn.commit()
+    conn.close()
+
+    if not cursor.rowcount:
+        return send_response({"error": "Failed to delete auction"}, 400)
+    return send_response({"message": "Auction deleted successfully"}, 200)
