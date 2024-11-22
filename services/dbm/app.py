@@ -16,7 +16,6 @@ print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 
 DATABASE = './users.db/user.db'
-transaction_url = "http://transaction:5000"
 
 
 # Funzione di connessione al database
@@ -174,6 +173,7 @@ def logout(user):
 
 # Endpoint per visualizzare il saldo della valuta di gioco
 @app.route("/balance/<user_type>", methods=["GET"])
+@login_required_void
 def get_balance(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")
@@ -344,6 +344,7 @@ def update(user_type):
 
 # Create a function that updates user balance of a given user_id with a given amount
 @app.route('/update_balance/<user_type>', methods=['PUT'])
+@login_required_void
 def update_balance_user(user_type):
     if user_type not in ['PLAYER', 'ADMIN']:
         logging.error(f"Invalid user type: {user_type}")
@@ -397,11 +398,15 @@ def update_balance_user(user_type):
 
 
 @app.route("/get_user/<user_id>", methods=["GET"])
+@login_required_void
 def get_users(user_id):
-    return get_user("PLAYER", user_id)
+    url = f"http://db-manager:5000/get_user/PLAYER/" + user_id
+    response = requests.get(url, headers=generate_session_token_system())
+    return send_response(response.json(), response.status_code)
 
 
 @app.route("/get_user/<user_type>/<user_id>", methods=["GET"])
+@admin_required
 def get_user(user_type, user_id):
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")

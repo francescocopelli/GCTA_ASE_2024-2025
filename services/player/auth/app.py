@@ -54,13 +54,15 @@ def logout():
 
 # delete my account
 @app.route('/delete', methods=['DELETE'])
+@token_required_void
 def delete():
-    session_token = request.json['session_token']
     url = f"{dbm_url}/delete/PLAYER"
+    logging.debug("Session token: " + request.headers["Authorization"].split(" ")[1])
     data = {
-        "session_token": session_token
+        "session_token": (request.headers["Authorization"].split(" ")[1])
     }
-    response = requests.post(url, json=data)
+    logging.debug(data)
+    response = requests.delete(url, json=data, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
 

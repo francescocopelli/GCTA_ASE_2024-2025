@@ -7,17 +7,6 @@ app = Flask(__name__)
 print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 
-
-# @app.route('/logout', methods=['POST'])
-# def logout():
-#     session_token = request.json['session_token']
-#     url = f"http://db-manager:5000/logout/ADMIN"
-#     data = {
-#         "session_token": session_token
-#     }
-#     response = requests.post(url, json=data)
-#     return send_response(response.json(), response.status_code)
-
 @app.route('/logout', methods=['DELETE'])
 @admin_required
 def logout():

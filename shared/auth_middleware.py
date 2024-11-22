@@ -8,7 +8,14 @@ import requests
 from flask import request, abort, jsonify, current_app
 
 SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
+logging.basicConfig(level=logging.DEBUG)
 
+transaction_url = "http://transaction:5000"
+user_url = "http://user_player:5000"
+gacha_url = "http://gacha:5000"
+dbm_url = "http://db-manager:5000"
+admin_url = "http://user_admin:5000"
+# mancano admin e player authentication
 
 # make a function that take json data and return a response
 def send_response(message, status_code):
@@ -67,7 +74,7 @@ def _f(require_return, f, *args, **kwargs):
         if not (token_is_valid(data["expiration"])):
             abort(401, "Token expired!")
 
-        rst = requests.get(f"http://db-manager:5000/get_user/{data['user_type']}/{data['user_id']}",
+        rst = requests.get(f"{dbm_url}/get_user/{data['user_type']}/{data['user_id']}",
                            headers=generate_session_token_system())
         current_user = rst.json()
 
@@ -145,7 +152,7 @@ def admin_required(f):
             # user_id = int(data["user_id"]) if not type(data["user_id"]) == int else data["user_id"]
             user_id = data["user_id"]
             logging.info(f"User id: {user_id}")
-            rst = requests.get(f"http://db-manager:5000/get_user/ADMIN/{user_id}",
+            rst = requests.get(f"{dbm_url}/get_user/ADMIN/{user_id}",
                                headers=generate_session_token_system())
 
             current_user = rst.json()

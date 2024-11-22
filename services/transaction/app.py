@@ -1,3 +1,4 @@
+import logging
 import sqlite3
 import uuid
 
@@ -14,7 +15,6 @@ print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 
 DATABASE = "./transactions.db/transactions.db"
-user_url = "http://user_player:5000"
 
 
 def get_db_connection():
@@ -30,6 +30,7 @@ def get_db_connection():
 
 
 @app.route("/add_transaction", methods=["POST"])
+@token_required_void
 def add_transaction():
     """
     Add a new transaction to the database.
@@ -60,6 +61,7 @@ def add_transaction():
     """
     data = request.get_json()
     transaction_id = str(uuid.uuid4())
+    logging.debug(f"Adding transaction: {data}")
 
     transaction_type = "unknown"
     if "roll_purchase" in data['type']:
@@ -75,7 +77,7 @@ def add_transaction():
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO TRANSACTIONS (transaction_id, user_id, transaction_type, amount) VALUES (?, ?, ?, ?)",
-        (transaction_id, int(data["user_id"]), transaction_type, data["amount"]),
+        (transaction_id, str(data["user_id"]), transaction_type, data["amount"]),
     )
 
     # Log the derived transaction type

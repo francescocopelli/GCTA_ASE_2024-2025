@@ -1,6 +1,5 @@
 # create an hello world endpoint
 import base64
-import logging
 
 from flask import Flask
 
@@ -11,29 +10,25 @@ app = Flask(__name__)
 print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 
-gacha_url = "http://gacha:5000"
-user_url = "http://user_player:5000"
-dbm_url = "http://db-manager:5000"
-transaction_url = "http://transaction:5000"
-
+logging.basicConfig(level=logging.DEBUG)
 
 # A function that adds a transaction to the transaction service
 def create_transaction(user_id, amount, transaction_type):
-    response = requests.post(f"{transaction_url}/add_transaction/",
+    response = requests.post(f"{transaction_url}/add_transaction", headers=generate_session_token_system(),
                              json={"user_id": user_id, "amount": amount, "type": transaction_type})
     return response
 
 
 # make a function that ask to the service gacha the list of all my gacha inside the db of gacha user invetory
 
-@app.route("/my_gacha_list/<user_id>")
+@app.route("/my_gacha_list")
 @token_required_void
-def my_gacha_list(user_id):
-    response = requests.get(f"{gacha_url}/inventory", params={"user_id": user_id})
-    if response.status_code == 200:
-        return send_response(response.json(), 200)
-    else:
-        return send_response("Failed to retrieve gacha list", response.status_code)
+def my_gacha_list():
+    user_id = str(
+        jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])[
+            "user_id"])
+    response = requests.get(f"{gacha_url}/inventory/" + user_id, headers=request.headers)
+    return send_response(response.json(), response.status_code)
 
 
 # DA CONTROLLARE
@@ -41,26 +36,22 @@ def my_gacha_list(user_id):
 @app.route("/gacha/<user_id>/<gacha_id>")
 @token_required_void
 def gacha_info(user_id, gacha_id):
-    response = requests.get(
-        f"{gacha_url}/my_gacha", params={"user_id": user_id, "gacha_id": gacha_id}
-    )
-    if response.status_code == 200:
-        return send_response(response.json(), 200)
-    else:
-        return send_response("Failed to retrieve gacha list", response.status_code)
+    response = requests.get(f"{gacha_url}/get/" + str(user_id) + "/" + str(gacha_id),
+                            headers=generate_session_token_system())
+    return send_response(response.json(), response.status_code)
 
 
 def update_user_balance(user_id, amount, type):
     response = requests.put(
-        f"{dbm_url}/update_balance/PLAYER",
+        f"{dbm_url}/update_balance/PLAYER", headers=request.headers,
         json={"user_id": user_id, "amount": amount, "type": type},
     )
     return response
 
 
 @app.route("/real_money_transaction", methods=["POST"])
-@token_required_void
-def real_money_transaction():
+@token_required_ret
+def real_money_transaction(user):
     """
     Handle real money transactions.
     This endpoint processes a real money transaction by updating the user's balance
@@ -76,44 +67,43 @@ def real_money_transaction():
         - 400: Failed to update user balance.
     """
     data = request.get_json()
-    user_id = data.get("user_id")
+    user_id = str(user['user_id'])
     amount = data.get("amount")
 
     if not user_id or amount is None:
         return send_response({"error": "Missing user_id or amount in request"}, 400)
-
+    if amount <= 0:
+        return send_response({"error": "Invalid amount"}, 400)
     # Update the user's balance
-    if update_user_balance(user_id, amount, "auction_credit").status_code != 200:
+    if update_user_balance(user_id, amount, "credit").status_code != 200:
         return send_response({"error": "Failed to update user balance"}, 400)
 
-    if create_transaction(user_id, amount, "real_money").status_code != 200:
+    if create_transaction(user_id, amount, "top_up").status_code != 200:
         return send_response({"error": "Failed to create transaction"}, 400)
 
-    return send_response({"message": "Transaction added successfully"}, 200)
+    return send_response({"message": "Account topped up successfully"}, 200)
 
 
 # function to get the user balance information
-@app.route("/get_user_balance/<user_id>")
-@token_required_void
-def get_user_balance(user_id):
-    response = requests.get(f"{dbm_url}/balance/PLAYER", params={"user_id": user_id})
-    if response.status_code == 200:
-        return send_response(response.json(), 200)
-    else:
-        return send_response({"error": "Failed to retrieve user balance"}, response.status_code)
-
+@app.route("/get_user_balance")
+@token_required_ret
+def get_user_balance(current_user):
+    if current_user['user_type'] != 'PLAYER':
+        return send_response({"error": "Only players can view their balance"}, 403)
+    user_id = current_user['user_id']
+    response = requests.get(f"{dbm_url}/balance/PLAYER", params={"user_id": user_id}, headers=request.headers)
+    return send_response(response.json(), response.status_code)
 
 if __name__ == "__main__":
     app.run()
 
 
-@app.get("/get_user/<user_id>")
-@token_required_void
-def get_user(user_id):
-    jwt_dec = jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])
-    if str(jwt_dec["user_id"]) != str(user_id) and jwt_dec['user_type'] != 'ADMIN':
-        return send_response({"error": "Cannot view other user information"}, 403)
-    url = f"{dbm_url}/get_user/" + user_id
+@app.get("/get_user")
+@token_required_ret
+def get_user(user):
+    if jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])['user_type'] != 'PLAYER':
+        return send_response({"error": "Only players can view their information"}, 403)
+    url = f"{dbm_url}/get_user/" + str(user['user_id'])
     response = requests.get(url, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
@@ -151,6 +141,7 @@ def update_balance(user_type):
     logging.debug("Received response: %s", response)
     return send_response(response.json(), response.status_code)
 
+
 @app.route("/update", methods=['PUT'])
 @login_required_ret
 def update(user):
@@ -178,4 +169,3 @@ def update(user):
     }
     response = requests.put(url, json=data, headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
-
