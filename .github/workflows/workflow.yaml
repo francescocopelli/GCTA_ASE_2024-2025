@@ -71,7 +71,7 @@ jobs:
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
       - name: Run API tests
         run: |
-          postman collection run "${{ github.workspace }}/postman/collections/GCTA Tests.json" -e "39570797-6ed4f213-c7dd-4d9d-ad28-a5089e5c7de4"
+          postman collection run "${{ github.workspace }}/postman/collections/GCTA-Tests.json" -e "39570797-6ed4f213-c7dd-4d9d-ad28-a5089e5c7de4"
 
       - name: Upload Newman Report
         uses: actions/upload-artifact@v3
