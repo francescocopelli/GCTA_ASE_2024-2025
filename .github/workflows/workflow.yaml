@@ -47,8 +47,8 @@ jobs:
 
       - name: Run Postman Tests
         run: |
-          mkdir -p reports
-          newman run postman_tests/GCTA_Tests.postman_collection.json -e postman_tests/gcta_env.postman_environment.json --reporters cli,html --reporter-html-export reports/newman-report.html
+          newman run postman_tests/GCTA_Tests.postman_collection.json --global-var "base_url=http://127.0.0.1:8080"
+
 
       - name: Upload Newman Report
         uses: actions/upload-artifact@v3
