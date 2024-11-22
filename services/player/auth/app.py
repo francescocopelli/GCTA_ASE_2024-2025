@@ -58,11 +58,8 @@ def logout():
 def delete():
     url = f"{dbm_url}/delete/PLAYER"
     logging.debug("Session token: " + request.headers["Authorization"].split(" ")[1])
-    data = {
-        "session_token": (request.headers["Authorization"].split(" ")[1])
-    }
-    logging.debug(data)
-    response = requests.delete(url, json=data, headers=request.headers)
+    session_token= (request.headers["Authorization"].split(" ")[1])
+    response = requests.delete(url+f"{session_token}")
     return send_response(response.json(), response.status_code)
 
 # Esempio di utilizzo
