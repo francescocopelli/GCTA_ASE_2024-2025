@@ -21,7 +21,7 @@ def create_transaction(user_id, amount, transaction_type):
 
 # make a function that ask to the service gacha the list of all my gacha inside the db of gacha user invetory
 
-@app.route("/my_gacha_list")
+@app.get("/my_gacha_list")
 @token_required_void
 def my_gacha_list():
     user_id = str(
@@ -32,7 +32,7 @@ def my_gacha_list():
 
 
 # function to ask for the information of a specific gacha for that user
-@app.route("/gacha/<user_id>/<gacha_id>")
+@app.get("/gacha/<user_id>/<gacha_id>")
 @token_required_void
 def gacha_info(user_id, gacha_id):
     response = requests.get(f"{gacha_url}/get/" + str(user_id) + "/" + str(gacha_id),
@@ -71,7 +71,7 @@ def real_money_transaction(user):
 
     if not user_id or amount is None:
         logging.error("Missing user_id or amount in request")
-        return send_response({"error": "Missing user_id or amount in request"}, 400)
+        return send_response({"error": "Missing amount in request"}, 400)
     if amount <= 0:
         return send_response({"error": "Invalid amount"}, 400)
     # Update the user's balance
@@ -85,7 +85,7 @@ def real_money_transaction(user):
 
 
 # function to get the user balance information
-@app.route("/get_user_balance")
+@app.get("/get_user_balance")
 @token_required_ret
 def get_user_balance(current_user):
     if current_user['user_type'] != 'PLAYER':
@@ -93,10 +93,6 @@ def get_user_balance(current_user):
     user_id = current_user['user_id']
     response = requests.get(f"{dbm_url}/balance/PLAYER", params={"user_id": user_id}, headers=request.headers)
     return send_response(response.json(), response.status_code)
-
-if __name__ == "__main__":
-    app.run()
-
 
 @app.get("/get_user")
 @token_required_ret

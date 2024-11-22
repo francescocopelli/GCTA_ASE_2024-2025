@@ -242,7 +242,7 @@ def add_auction():
                 return send_response({"error": "Failed to lock gacha"}, 400)
         else:
             logging.error("Gacha is locked or does not exist")
-            return send_response({"error": "Gacha is locked or does not exist"}, 400)
+            return send_response({"error": "Gacha is locked or does not exist"}, 404)
     except Exception as e:
         logging.error(f"Error occurred while adding auction: {e}")
         return send_response({"error": "An error occurred while adding auction"}, 500)
@@ -436,7 +436,7 @@ def place_bid(user):
         conn.commit()
 
         if cursor.rowcount == 0:
-            return send_response({"error": "Failed to place bid"}, 500)
+            return send_response({"error": "Failed to place bid"}, 409)
 
         return send_response({"message": "Bid placed successfully"}, 200)
 
