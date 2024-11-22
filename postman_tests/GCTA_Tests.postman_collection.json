@@ -96,15 +96,12 @@
 							]
 						},
 						"url": {
-							"raw": "http://0.0.0.0:8080/users/auth/register",
+							"raw": "http://gateway_user:80/users/auth/register",
 							"protocol": "http",
 							"host": [
-								"0",
-								"0",
-								"0",
-								"0"
+								"gateway_user"
 							],
-							"port": "8080",
+							"port": "80",
 							"path": [
 								"users",
 								"auth",
@@ -184,12 +181,12 @@
 							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
 						},
 						"url": {
-							"raw": "http://gateway_user:8080/users/auth/login",
+							"raw": "http://gateway_user:80/users/auth/login",
 							"protocol": "http",
 							"host": [
 								"gateway_user"
 							],
-							"port": "8080",
+							"port": "80",
 							"path": [
 								"users",
 								"auth",
