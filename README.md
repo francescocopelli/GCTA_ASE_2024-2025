@@ -6,15 +6,6 @@
 ## Description
 This repository contains the code for GCTA ASE 2024-2025.
 
-## Repository Information
-- **Owner**: [francescocopelli](https://github.com/francescocopelli)
-- **Language**: Python (99.9%), Shell (0.1%)
-- **Homepage**: [Drive Folder](https://drive.google.com/drive/folders/15VNNAk3y8N87xXnDNMtyynOIHi-FY1sH)
-- **Open Issues**: 44
-- **Forks**: 0
-- **Stargazers**: 2
-- **Watchers**: 2
-
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
