@@ -30,7 +30,7 @@ jobs:
     needs: checkout_and_setup
     steps:
       - name: Build and start Docker services
-        run: docker-compose up --build -d
+        run: docker-compose up --build
 
       - name: Log running services and ports
         run: |
