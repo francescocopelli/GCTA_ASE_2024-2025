@@ -1,4 +1,14 @@
-# GCTA_ASE_2024-2025
+# GCTA ASE 2024-2025
+
+[![CI Pipeline](https://github.com/francescocopelli/GCTA_ASE_2024-2025/actions/workflows/workflow.yaml/badge.svg?branch=main)](https://github.com/francescocopelli/GCTA_ASE_2024-2025/actions/workflows/workflow.yaml)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Language](https://img.shields.io/github/languages/top/francescocopelli/GCTA_ASE_2024-2025)
+## Description
+This repository contains the code for GCTA ASE 2024-2025.
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 
 ## Get Started
 
@@ -33,6 +43,8 @@ In order to start using the GCTA game, you have to:
 
 6. **Additional Information**
     - For more details, refer to the [README.md](README.md) and [TODO.md](TODO.md) files.
+
+
 
 ## Running on Windows
 
