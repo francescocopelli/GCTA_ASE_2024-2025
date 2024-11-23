@@ -1,6 +1,6 @@
 # GCTA ASE 2024-2025
 
-[![GitHub Actions](https://github.com/francescocopelli/GCTA_ASE_2024-2025/actions/workflows/main.yml/badge.svg)](https://github.com/francescocopelli/GCTA_ASE_2024-2025/actions)
+[![CI Pipeline](https://github.com/francescocopelli/GCTA_ASE_2024-2025/actions/workflows/workflow.yaml/badge.svg?branch=main)](https://github.com/francescocopelli/GCTA_ASE_2024-2025/actions/workflows/workflow.yaml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## Description
