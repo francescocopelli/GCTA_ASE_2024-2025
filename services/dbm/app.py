@@ -24,69 +24,85 @@ import time
 from threading import Lock
 from functools import wraps
 
-# Circuit breaker variables
-DB_ERROR_THRESHOLD = 5  # Maximum number of errors before tripping the circuit
-COOLDOWN_PERIOD = 30    # Time in seconds before attempting to recover
+# Constants
+DB_ERROR_THRESHOLD = 5
+COOLDOWN_PERIOD = 20 # In seconds
 
-# Circuit breaker state
-circuit_breaker_state = {
-    "failure_count": 0,
-    "last_failure_time": None,
-    "is_open": False,
-    "lock": Lock()
-}
+class CircuitBreaker:
+    def __init__(self, error_threshold, cooldown_period):
+        self.error_threshold = error_threshold
+        self.cooldown_period = cooldown_period
+        self.failure_count = 0
+        self.last_failure_time = None
+        self.is_open = False
+        self.lock2 = 0 
+        self.lock = Lock()
+
+    def reset(self):
+        """Reset the circuit breaker state."""
+        self.failure_count = 0
+        self.is_open = False
+        self.last_failure_time = None
+
+    def trip(self):
+        """Trip the circuit breaker."""
+        self.is_open = True
+        self.last_failure_time = time.time()
+
+    def check_state(self):
+        """Check if the circuit breaker should be reset based on cooldown."""
+        if self.is_open:
+            elapsed_time = time.time() - self.last_failure_time
+            if elapsed_time > self.cooldown_period:
+                self.reset()
+
+# Instantiate the circuit breaker
+circuit_breaker = CircuitBreaker(DB_ERROR_THRESHOLD, COOLDOWN_PERIOD)
 
 # Circuit breaker decorator
-def circuit_breaker(func):
+def circuit_breaker_decorator(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        with circuit_breaker_state["lock"]:
-            # Check if the circuit is open
-            if circuit_breaker_state["is_open"]:
-                elapsed_time = time.time() - circuit_breaker_state["last_failure_time"]
-                if elapsed_time > COOLDOWN_PERIOD:
-                    # Reset the circuit breaker after cooldown
-                    circuit_breaker_state["failure_count"] = 0
-                    circuit_breaker_state["is_open"] = False
-                else:
-                    # Circuit is still open
-                    logging.error("Circuit breaker is open. Rejecting the request.")
-                    return jsonify({"error": "Database is temporarily unavailable"}), 503
+        circuit_breaker.lock2 = 0
+        with circuit_breaker.lock:
+            circuit_breaker.check_state()
+            if circuit_breaker.is_open:
+                logging.error("Circuit breaker is open. Rejecting the request.")
+                return jsonify({"error": "Database is temporarily unavailable"}), 503
 
-        # Try executing the function
+        # Execute the function
         try:
             result = func(*args, **kwargs)
-            logging.info(f"result: {result}")
-            if circuit_breaker_state["failure_count"] > 0:
-                # Reset failure count if the request is successful
-                with circuit_breaker_state["lock"]:
-                    circuit_breaker_state["failure_count"] = 0
-                    logging.info(f"counter: {circuit_breaker_state['failure_count']}")
-                return result
+            try:
+                if result[1] >= 200:
+                    circuit_breaker.reset()
+            except:
+                None
+            return result
+        
         except sqlite3.Error as e:
-            with circuit_breaker_state["lock"]:
-                # Increment failure count and check threshold
-                circuit_breaker_state["failure_count"] += 1
+            circuit_breaker.lock2 = 1
+            with circuit_breaker.lock:
+                circuit_breaker.failure_count += 1
                 logging.error(f"Database error: {e}")
-                if circuit_breaker_state["failure_count"] >= DB_ERROR_THRESHOLD:
-                    circuit_breaker_state["is_open"] = True
-                    circuit_breaker_state["last_failure_time"] = time.time()
+                if circuit_breaker.failure_count >= circuit_breaker.error_threshold:
+                    circuit_breaker.trip()
                     logging.critical("Circuit breaker tripped due to repeated database failures.")
-            return jsonify({"error": f'Database error11111111111111111111111111111111 {circuit_breaker_state["failure_count"]}'}), 500
-        except Exception as e:
-            logging.error(f"Unexpected error: {e}")
-            circuit_breaker_state["failure_count"] +=1
-            if circuit_breaker_state["failure_count"] >= DB_ERROR_THRESHOLD:
-                    circuit_breaker_state["is_open"] = True
-                    circuit_breaker_state["last_failure_time"] = time.time()
-                    logging.critical("Circuit breaker tripped due to repeated errors.")
-            return jsonify({"error": f'Database error00000000000000000000000000000000000 {circuit_breaker_state["failure_count"]}'}), 500
+            return jsonify({"error": "Database error occurred"}), 500
 
+        except Exception as e:
+            circuit_breaker.lock2 = 1
+            with circuit_breaker.lock:
+                circuit_breaker.failure_count += 1
+                logging.error(f"Unexpected error: {e}")
+                if circuit_breaker.failure_count >= circuit_breaker.error_threshold:
+                    circuit_breaker.trip()
+                    logging.critical("Circuit breaker tripped due to repeated errors.")
+            return jsonify({"error": "An unexpected error occurred"}), 500
     return wrapper
 
-
 # Funzione di connessione al database
-@circuit_breaker
+@circuit_breaker_decorator
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
@@ -108,7 +124,7 @@ def generate_session_token(user_id, user_type):
 
 # Endpoint di registrazione per USER e ADMIN
 @app.route("/register/<user_type>", methods=["POST"])
-@circuit_breaker
+@circuit_breaker_decorator
 def register(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         return send_response({"error": "Invalid user type"}, 401)
@@ -130,20 +146,20 @@ def register(user_type):
         conn.commit()
         return send_response({"message": f"{user_type} registered successfully"}, 200)
     except sqlite3.IntegrityError:
-        return send_response({"error": "Username or email already exists"}, 409)
+        raise
     except sqlite3.Error as e:
         logging.error(f"Database error: {e}")
-        return send_response({"error": "Database error"}, 500)
+        raise
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
-        return send_response({"error": "Unexpected error"}, 500)
+        raise
     finally:
         conn.close()
 
 
 # Endpoint di login per USER e ADMIN
 @app.route("/login/<user_type>", methods=["POST"])
-@circuit_breaker
+@circuit_breaker_decorator
 def login(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")
@@ -176,17 +192,17 @@ def login(user_type):
             return send_response({"error": "Invalid credentials"}, 401)
     except sqlite3.Error as e:
         logging.error(f"Database error: {e}")
-        raise e
+        raise
         #return send_response({"error": "Database error"}, 500)
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
-        raise e
+        raise
         #return send_response({"error": "Unexpected error"}, 500)
 
 
 # Endpoint per il logout
 @app.route("/logout/<user_type>", methods=["POST"])
-@circuit_breaker
+@circuit_breaker_decorator
 @login_required_ret
 def logout(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
@@ -222,7 +238,6 @@ def logout(user_type):
 
 # Endpoint per visualizzare il saldo della valuta di gioco
 @app.route("/balance/<user_type>", methods=["GET"])
-@circuit_breaker
 def get_balance(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")
@@ -265,7 +280,6 @@ def get_balance(user_type):
 
 # Delete profile
 @app.route("/delete/<user_type>", methods=["DELETE"])
-@circuit_breaker
 def delete(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")
@@ -314,7 +328,6 @@ def delete(user_type):
 
 # create a function to update the player profile
 @app.route("/update/<user_type>", methods=["PUT"])
-@circuit_breaker
 # @token_required_void
 def update(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
@@ -385,7 +398,6 @@ def update(user_type):
 
 # Create a function that updates user balance of a given user_id with a given amount
 @app.route('/update_balance/<user_type>', methods=['PUT'])
-@circuit_breaker
 def update_balance_user(user_type):
     if user_type not in ['PLAYER', 'ADMIN']:
         logging.error(f"Invalid user type: {user_type}")
@@ -443,7 +455,6 @@ def get_users(user_id):
     return get_user("PLAYER", user_id)
     
 @app.route("/get_user/<user_type>/<user_id>", methods=["GET"])
-@circuit_breaker
 def get_user(user_type, user_id):
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")
@@ -478,7 +489,6 @@ def get_user(user_type, user_id):
 
 
 @app.route("/update_balance/<user_type>", methods=["PUT"])
-@circuit_breaker
 def update_balance(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")
@@ -518,7 +528,6 @@ def update_balance(user_type):
             logging.error(f"Error closing connection: {e}")
 
 @app.route("/get_all/<user_type>", methods=["GET"])
-@circuit_breaker
 @admin_required
 def get_all(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
