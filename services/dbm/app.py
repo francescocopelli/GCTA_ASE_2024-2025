@@ -34,8 +34,7 @@ class CircuitBreaker:
         self.cooldown_period = cooldown_period
         self.failure_count = 0
         self.last_failure_time = None
-        self.is_open = False
-        self.lock2 = 0 
+        self.is_open = False 
         self.lock = Lock()
 
     def reset(self):
@@ -63,7 +62,6 @@ circuit_breaker = CircuitBreaker(DB_ERROR_THRESHOLD, COOLDOWN_PERIOD)
 def circuit_breaker_decorator(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        circuit_breaker.lock2 = 0
         with circuit_breaker.lock:
             circuit_breaker.check_state()
             if circuit_breaker.is_open:
@@ -81,7 +79,6 @@ def circuit_breaker_decorator(func):
             return result
         
         except sqlite3.Error as e:
-            circuit_breaker.lock2 = 1
             with circuit_breaker.lock:
                 circuit_breaker.failure_count += 1
                 logging.error(f"Database error: {e}")
@@ -91,7 +88,6 @@ def circuit_breaker_decorator(func):
             return jsonify({"error": "Database error occurred"}), 500
 
         except Exception as e:
-            circuit_breaker.lock2 = 1
             with circuit_breaker.lock:
                 circuit_breaker.failure_count += 1
                 logging.error(f"Unexpected error: {e}")
