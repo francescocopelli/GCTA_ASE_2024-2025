@@ -108,7 +108,8 @@ def get_user(user):
 @admin_required
 def get_user_by_id(user_id):
     url = f"{dbm_url}/get_user/" + str(user_id)
-    response = requests.get(url, headers=request.headers)
+    response = requests.get(url, headers=generate_session_token_system())
+    logging.debug("User_player response: %s", response)
     return send_response(response.json(), response.status_code)
 
 

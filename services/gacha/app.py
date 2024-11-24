@@ -332,7 +332,14 @@ def get_gacha_item(gacha_id):
 @app.get('/get/<user_id>/<gacha_id>')
 @token_required_void
 def get_user_gacha_item(user_id, gacha_id):
-    res = requests.get('http://user_player:5000/get_user/' + str(user_id), headers=request.headers)
+    logging.debug("User ID: %s", user_id)
+    logging.debug("JWT Dec User ID: %s", jwt.decode(request.headers.get("Authorization").split(" ")[1], app.config['SECRET_KEY'],
+                                                    algorithms=["HS256"])['user_id'])
+    if jwt.decode(request.headers.get("Authorization").split(" ")[1], app.config['SECRET_KEY'],
+                  algorithms=["HS256"])['user_type'] == 'PLAYER' and str(jwt.decode(
+        request.headers.get("Authorization").split(" ")[1], app.config['SECRET_KEY'], algorithms=["HS256"])['user_id']) != str(user_id):
+        return send_response({'error': 'You are not authorized to view this page'}, 403)
+    res = requests.get('http://user_player:5000/get_user/' + str(user_id), headers=generate_session_token_system())
     if res.status_code != 200:
         logging.debug("User not found: user_id=%s", user_id)
         return send_response({'error': 'User not found'}, 404)
