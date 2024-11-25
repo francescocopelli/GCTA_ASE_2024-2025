@@ -2028,6 +2028,53 @@
 								"type": "text/javascript",
 								"packages": {}
 							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "dee3f865-0f2d-4ce6-8613-ecaf90beb634",
+								"exec": [
+									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"\r",
+									"// Recupera le credenziali dalle variabili di ambiente\r",
+									"const username = pm.environment.get(\"username\");\r",
+									"const password = pm.environment.get(\"password\");\r",
+									"\r",
+									"const payload = {\r",
+									"    username: username,\r",
+									"    password: password\r",
+									"};\r",
+									"\r",
+									"const requestOptions = {\r",
+									"    url: loginUrl,\r",
+									"    method: \"POST\",\r",
+									"    header: {\r",
+									"        \"Content-Type\": \"application/json\"\r",
+									"    },\r",
+									"    body: JSON.stringify(payload)\r",
+									"};\r",
+									"\r",
+									"// Esegui la richiesta di login\r",
+									"pm.sendRequest(requestOptions, function (err, res) {\r",
+									"    if (err) {\r",
+									"        console.error(\"Errore durante il login:\", err);\r",
+									"        return;\r",
+									"    }\r",
+									"\r",
+									"    // Salva il token nelle variabili di ambiente se esiste\r",
+									"    const responseJson = res.json();\r",
+									"    if (responseJson.session_token) {\r",
+									"        pm.environment.set(\"session_token\", responseJson.session_token);\r",
+									"        console.log(\"Token salvato:\", responseJson.session_token);\r",
+									"    } else {\r",
+									"        console.warn(\"Login fallito: Nessun token trovato nella risposta.\");\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						}
 					],
 					"id": "24e938fe-30cf-4e1b-98ea-2804797a423b",
@@ -2317,14 +2364,61 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "bb61dc65-f4fa-4825-9252-110b4670b8e2",
 								"exec": [
 									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
 									"  pm.expect(pm.response.text()).to.include(\"401 Unauthorized\");\r",
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "bb61dc65-f4fa-4825-9252-110b4670b8e2"
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "f7a2c895-da21-46bf-ab55-a1cb8ddc58c4",
+								"exec": [
+									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"\r",
+									"// Recupera le credenziali dalle variabili di ambiente\r",
+									"const username = pm.environment.get(\"username\");\r",
+									"const password = pm.environment.get(\"password\");\r",
+									"\r",
+									"const payload = {\r",
+									"    username: username,\r",
+									"    password: password\r",
+									"};\r",
+									"\r",
+									"const requestOptions = {\r",
+									"    url: loginUrl,\r",
+									"    method: \"POST\",\r",
+									"    header: {\r",
+									"        \"Content-Type\": \"application/json\"\r",
+									"    },\r",
+									"    body: JSON.stringify(payload)\r",
+									"};\r",
+									"\r",
+									"// Esegui la richiesta di login\r",
+									"pm.sendRequest(requestOptions, function (err, res) {\r",
+									"    if (err) {\r",
+									"        console.error(\"Errore durante il login:\", err);\r",
+									"        return;\r",
+									"    }\r",
+									"\r",
+									"    // Salva il token nelle variabili di ambiente se esiste\r",
+									"    const responseJson = res.json();\r",
+									"    if (responseJson.session_token) {\r",
+									"        pm.environment.set(\"session_token\", responseJson.session_token);\r",
+									"        console.log(\"Token salvato:\", responseJson.session_token);\r",
+									"    } else {\r",
+									"        console.warn(\"Login fallito: Nessun token trovato nella risposta.\");\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
