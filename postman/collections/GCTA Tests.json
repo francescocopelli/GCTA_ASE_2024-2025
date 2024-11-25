@@ -2480,7 +2480,7 @@
 									"    // Salva il token (se esiste) nelle variabili di ambiente/globale\r",
 									"    const responseJson = res.json();\r",
 									"    if (responseJson.token) {\r",
-									"      pm.environment.set(\"auth_token\", responseJson.token);\r",
+									"      pm.environment.set(\"session_token\", responseJson.token);\r",
 									"    } else {\r",
 									"      console.warn(\"Nessun token trovato nella risposta.\");\r",
 									"    }\r",
