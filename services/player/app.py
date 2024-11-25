@@ -88,7 +88,9 @@ def real_money_transaction(user):
 @app.get("/get_user_balance")
 @token_required_ret
 def get_user_balance(current_user):
-    if current_user['user_type'] != 'PLAYER':
+    user_type=jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])['user_type']
+    logging.debug("Current user: %s", current_user)
+    if user_type != 'PLAYER':
         return send_response({"error": "Only players can view their balance"}, 403)
     user_id = current_user['user_id']
     response = requests.get(f"{dbm_url}/balance/PLAYER", params={"user_id": user_id}, headers=request.headers)
