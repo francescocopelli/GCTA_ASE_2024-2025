@@ -50,7 +50,7 @@ def add():
         conn.commit()
         if cursor.lastrowid:
             logging.debug("Gacha item added successfully with id=%s", cursor.lastrowid)
-            return send_response({'message': 'Gacha item added successfully'}, 201)
+            return send_response({'message': 'Gacha item added successfully', 'gacha_id': cursor.lastrowid}, 201)
         else:
             logging.error("Failed to add gacha item: lastrowid is None")
             return send_response({'error': 'Failed to add gacha item'}, 500)
