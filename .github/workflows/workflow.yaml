@@ -3,7 +3,7 @@ name: CI Pipeline
 on:
   push:
     branches:
-      - ci-testing-postman
+      - main
 
 jobs:
   build_and_test:
