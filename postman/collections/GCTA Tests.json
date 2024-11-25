@@ -2718,6 +2718,38 @@
 							"script": {
 								"id": "9e24b1d5-61a1-4cbd-b235-804d2a5a8d96",
 								"exec": [
+									"// Generate random values for the gacha request\r",
+									"const randomName = 'gacha_' + Math.random().toString(36).substring(2, 8); // Random name\r",
+									"const rarities = [\"common\", \"rare\", \"epic\", \"legendary\"]; // Example rarities\r",
+									"const randomRarity = rarities[Math.floor(Math.random() * rarities.length)]; // Random rarity\r",
+									"const statuses = [\"available\", \"unavailable\"]; // Example statuses\r",
+									"const randomStatus = statuses[Math.floor(Math.random() * statuses.length)]; // Random status\r",
+									"const randomDescription = \"Description_\" + Math.random().toString(36).substring(2, 15); // Random description\r",
+									"\r",
+									"// Set them as environment variables\r",
+									"pm.environment.set(\"gacha_name\", randomName);\r",
+									"pm.environment.set(\"gacha_rarity\", randomRarity);\r",
+									"pm.environment.set(\"gacha_status\", randomStatus);\r",
+									"pm.environment.set(\"gacha_description\", randomDescription);\r",
+									"\r",
+									"// Log for debugging\r",
+									"console.log(\"Generated Gacha Data:\", {\r",
+									"    name: randomName,\r",
+									"    rarity: randomRarity,\r",
+									"    status: randomStatus,\r",
+									"    description: randomDescription\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "833ef9f1-ba10-434e-9fac-0cffda703042",
+								"exec": [
 									"// Parse the response\r",
 									"const response = pm.response.json();\r",
 									"\r",
@@ -2774,12 +2806,12 @@
 								},
 								{
 									"key": "rarity",
-									"value": "rare",
+									"value": "{{gacha_rarity}}",
 									"type": "text"
 								},
 								{
 									"key": "status",
-									"value": "available",
+									"value": "{{gacha_status}}",
 									"type": "text"
 								},
 								{
