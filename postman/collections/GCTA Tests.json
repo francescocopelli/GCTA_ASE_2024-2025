@@ -2018,6 +2018,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "1dd74aea-8bf2-442a-8427-c500e224f49e",
 								"exec": [
 									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
 									"    const response = pm.response.json();\r",
@@ -2025,8 +2026,7 @@
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "1dd74aea-8bf2-442a-8427-c500e224f49e"
+								"packages": {}
 							}
 						}
 					],
@@ -2035,6 +2035,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"body": {
