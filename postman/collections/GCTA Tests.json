@@ -102,7 +102,7 @@
 							]
 						},
 						"url": {
-							"raw": "https://127.0.0.1:8080/users/auth/register",
+							"raw": "http://127.0.0.1:8080/users/auth/register",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -196,7 +196,7 @@
 							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
 						},
 						"url": {
-							"raw": "https://127.0.0.1:8080/users/auth/login",
+							"raw": "http://127.0.0.1:8080/users/auth/login",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -1765,6 +1765,98 @@
 					"response": []
 				},
 				{
+					"name": "Update Account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response body should have the correct schema\", function () {\r",
+									"  const responseData = pm.response.text();\r",
+									"  pm.expect(responseData).to.include('Internal Server Error');\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"id": "364628e4-3f73-41eb-be33-1220191eeebc"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Retrieve the original email from the environment\r",
+									"const originalEmail = pm.environment.get(\"email\");\r",
+									"\r",
+									"if (originalEmail) {\r",
+									"    // Add \"updated\" in front of the original email\r",
+									"    const updatedEmail = `updated_${originalEmail}`;\r",
+									"    \r",
+									"    // Save the updated email back to the environment\r",
+									"    pm.environment.set(\"email\", updatedEmail);\r",
+									"    console.log(\"Updated email saved:\", updatedEmail);\r",
+									"} else {\r",
+									"    console.log(\"Original email not found in the environment.\");\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"id": "a26fefc2-5ad6-4d68-8b77-527d4baa242a"
+							}
+						}
+					],
+					"id": "a984710d-a81b-4db7-ae50-e76877b39487",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\",\n  \"email\": \"{{email@email.com}}\",\n  \"image\": \"\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/auth/update",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"auth",
+								"update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Real Money Transaction",
 					"event": [
 						{
@@ -1880,6 +1972,47 @@
 					"response": []
 				},
 				{
+					"name": "Get All Transactions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
+									"    const response = pm.response.json();\r",
+									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token expired!\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"id": "d343415e-274a-459a-bd9a-caa5a2183c7e"
+							}
+						}
+					],
+					"id": "c32ac790-6c1d-4bb7-bd53-aac3ff7bc651",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/transaction/all",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"transaction",
+								"all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Transaction",
 					"event": [
 						{
@@ -1901,7 +2034,7 @@
 							"script": {
 								"id": "dee3f865-0f2d-4ce6-8613-ecaf90beb634",
 								"exec": [
-									"const loginUrl = \"https://127.0.0.1:8080/users/auth/login\";\r",
+									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
 									"\r",
 									"// Recupera le credenziali dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",
@@ -2039,6 +2172,47 @@
 								"gacha",
 								"get",
 								"9999999999"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Gachas",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
+									"    const response = pm.response.json();\r",
+									"    pm.expect(response.error).to.include(\"Gacha item not found\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"id": "0dfb4653-d4d6-40f2-8617-307a3f45573e"
+							}
+						}
+					],
+					"id": "11f68627-f347-4491-9a9a-e9c0b8028c2c",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/gacha/all",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"gacha",
+								"all"
 							]
 						}
 					},
@@ -2205,7 +2379,7 @@
 							"script": {
 								"id": "f7a2c895-da21-46bf-ab55-a1cb8ddc58c4",
 								"exec": [
-									"const loginUrl = \"https://127.0.0.1:8080/users/auth/login\";\r",
+									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
 									"\r",
 									"// Recupera le credenziali dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",
@@ -2292,7 +2466,7 @@
 							"script": {
 								"id": "9f9db7a8-402d-4272-b57e-73048b2e9660",
 								"exec": [
-									"const loginUrl = \"https://127.0.0.1:8080/users/auth/login\";\r",
+									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
 									"\r",
 									"// Recupera le credenziali dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",
@@ -2392,41 +2566,45 @@
 							"script": {
 								"id": "a8cb8fc7-ecea-4a7b-bfe0-723918c7b5a8",
 								"exec": [
-									"const loginUrl = \"https://127.0.0.1:8080/users/auth/login\";\r",
+									"// URL dell'endpoint\r",
+									"const url = \"http://127.0.0.1:8080/users/auth/login\";\r",
 									"\r",
-									"// Recupera le credenziali dalle variabili di ambiente\r",
+									"// Recupera username e password dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",
 									"const password = pm.environment.get(\"password\");\r",
 									"\r",
+									"// Corpo della richiesta\r",
 									"const payload = {\r",
-									"    username: username,\r",
-									"    password: password\r",
+									"  username: username,\r",
+									"  password: password\r",
 									"};\r",
 									"\r",
+									"// Opzioni per la richiesta\r",
 									"const requestOptions = {\r",
-									"    url: loginUrl,\r",
-									"    method: \"POST\",\r",
-									"    header: {\r",
-									"        \"Content-Type\": \"application/json\"\r",
-									"    },\r",
-									"    body: JSON.stringify(payload)\r",
+									"  url: url,\r",
+									"  method: \"POST\",\r",
+									"  header: {\r",
+									"    \"Content-Type\": \"application/json\"\r",
+									"  },\r",
+									"  body: JSON.stringify(payload)\r",
 									"};\r",
 									"\r",
-									"// Esegui la richiesta di login\r",
+									"// Esegui la richiesta\r",
 									"pm.sendRequest(requestOptions, function (err, res) {\r",
-									"    if (err) {\r",
-									"        console.error(\"Errore durante il login:\", err);\r",
-									"        return;\r",
-									"    }\r",
+									"  if (err) {\r",
+									"    console.error(\"Errore durante il login:\", err);\r",
+									"  } else {\r",
+									"    // Stampa la risposta per il debug\r",
+									"    console.log(\"Risposta:\", res.json());\r",
 									"\r",
-									"    // Salva il token nelle variabili di ambiente se esiste\r",
+									"    // Salva il token (se esiste) nelle variabili di ambiente/globale\r",
 									"    const responseJson = res.json();\r",
-									"    if (responseJson.session_token) {\r",
-									"        pm.environment.set(\"session_token\", responseJson.session_token);\r",
-									"        console.log(\"Token salvato:\", responseJson.session_token);\r",
+									"    if (responseJson.token) {\r",
+									"      pm.environment.set(\"auth_token\", responseJson.token);\r",
 									"    } else {\r",
-									"        console.warn(\"Login fallito: Nessun token trovato nella risposta.\");\r",
+									"      console.warn(\"Nessun token trovato nella risposta.\");\r",
 									"    }\r",
+									"  }\r",
 									"});\r",
 									""
 								],
