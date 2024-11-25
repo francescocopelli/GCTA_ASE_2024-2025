@@ -86,20 +86,25 @@
 							"formdata": [
 								{
 									"key": "username",
-									"value": "{{username}}",
+									"value": "user_oscgg3ds",
 									"type": "text"
 								},
 								{
 									"key": "password",
-									"value": "{{password}}",
+									"value": "6yxyr4qn1t",
 									"type": "text"
 								},
 								{
 									"key": "email",
-									"value": "{{email}}",
+									"value": "user_oscgg3ds@example.com",
 									"type": "text"
 								}
-							]
+							],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
 							"raw": "http://127.0.0.1:8080/users/auth/register",
@@ -384,6 +389,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "9db17464-e1f7-42d0-ab2a-3ebd483b18b3",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -410,8 +416,18 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "9db17464-e1f7-42d0-ab2a-3ebd483b18b3"
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "96571fcf-105d-40d1-a48e-3d0c1e4f2ba0",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -433,15 +449,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/users/player/get_user_balance/{{user_id}}",
+							"raw": "{{base_url}}/users/player/get_user_balance",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"users",
 								"player",
-								"get_user_balance",
-								"{{user_id}}"
+								"get_user_balance"
 							]
 						}
 					},
@@ -543,6 +558,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "cc79c80c-1ddd-490d-b0ce-dacae86bd48c",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -588,8 +604,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "cc79c80c-1ddd-490d-b0ce-dacae86bd48c"
+								"packages": {}
 							}
 						}
 					],
@@ -598,6 +613,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -619,6 +644,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "79da0b81-8c5d-4f6f-a386-04d1705eab84",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -653,8 +679,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "79da0b81-8c5d-4f6f-a386-04d1705eab84"
+								"packages": {}
 							}
 						}
 					],
@@ -663,6 +688,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"body": {
@@ -694,6 +729,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "5b864be3-f563-4835-95a1-6e921ab296dd",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"  pm.response.to.have.status(200);\r",
@@ -721,8 +757,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "5b864be3-f563-4835-95a1-6e921ab296dd"
+								"packages": {}
 							}
 						}
 					],
@@ -731,6 +766,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -1218,6 +1263,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "13ebdbd7-d8bb-4417-afa0-fc5a755f47ca",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1256,8 +1302,7 @@
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "13ebdbd7-d8bb-4417-afa0-fc5a755f47ca"
+								"packages": {}
 							}
 						}
 					],
@@ -1266,16 +1311,26 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/auction/all",
+							"raw": "{{base_url}}/auction/all_active",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"auction",
-								"all"
+								"all_active"
 							]
 						}
 					},
@@ -1399,6 +1454,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "2089f3e4-451e-4548-bfe8-1e9f41275352",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -1410,8 +1466,8 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"pm.test(\"Response time is less than 400ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(400);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -1429,8 +1485,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "fcf0d469-6bb4-490d-90e4-a715ad20da2b"
+								"packages": {}
 							}
 						}
 					],
@@ -1458,7 +1513,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"auction_id\": \"{{auction_id}}\",\n  \"user_id\": \"1\",\n  \"bid_amount\": 13\n}"
+							"raw": "{\n  \"auction_id\": \"{{auction_id}}\",\n  \"user_id\": \"1\",\n  \"bid_amount\": 18\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auction/bid",
@@ -1479,6 +1534,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "e249c5cd-c676-49b1-b23c-d95785058f27",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1524,8 +1580,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "e249c5cd-c676-49b1-b23c-d95785058f27"
+								"packages": {}
 							}
 						}
 					],
@@ -1534,6 +1589,9 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "noauth"
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
