@@ -3,8 +3,7 @@
 		"_postman_id": "186c68b1-d2d9-48aa-a3e9-685316267382",
 		"name": "GCTA Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "39671610",
-		"_collection_link": "https://gcta11.postman.co/workspace/GCTA~e4883204-fa99-45fc-8245-f67cc6533c3b/collection/39671610-186c68b1-d2d9-48aa-a3e9-685316267382?action=share&source=collection_link&creator=39671610"
+		"_uid": "39570797-186c68b1-d2d9-48aa-a3e9-685316267382"
 	},
 	"item": [
 		{
@@ -68,6 +67,10 @@
 							}
 						}
 					],
+					"id": "810277f0-773c-4a47-825b-71e53015de79",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "POST",
 						"header": [
@@ -172,6 +175,10 @@
 							}
 						}
 					],
+					"id": "d0115844-1433-417a-927e-e548e0f55ec0",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "POST",
 						"header": [
@@ -234,6 +241,10 @@
 							}
 						}
 					],
+					"id": "f4a94886-ea14-4c2d-82fc-5e3a1ae7dfdb",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -306,6 +317,10 @@
 							}
 						}
 					],
+					"id": "b1314c81-45a5-442b-9ab3-fb3940343c93",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -383,6 +398,10 @@
 							}
 						}
 					],
+					"id": "3910dcff-b39b-423b-b6f5-9f7499dfe983",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -480,6 +499,10 @@
 							}
 						}
 					],
+					"id": "6dc69d3b-6d72-4dbd-ab2e-ba5ea7a4b72e",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -550,6 +573,7 @@
 							}
 						}
 					],
+					"id": "a543059d-378e-41bc-8f2a-0d2e357dc885",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -626,6 +650,10 @@
 							}
 						}
 					],
+					"id": "18ad9ad1-74e5-41b9-bc01-5016cfe941be",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -740,6 +768,10 @@
 							}
 						}
 					],
+					"id": "efe1814d-68ea-4b5c-ab20-6928b0e95d45",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -826,6 +858,10 @@
 							}
 						}
 					],
+					"id": "0deefef0-db03-4788-b275-c2423d3e32a8",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -896,6 +932,10 @@
 							}
 						}
 					],
+					"id": "55e5b132-d73a-4ca0-8550-8d5d57d608da",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -997,6 +1037,10 @@
 							}
 						}
 					],
+					"id": "6884a391-5aa9-4637-82fd-3c9fca47cf52",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1053,6 +1097,10 @@
 							}
 						}
 					],
+					"id": "798fccd4-b29b-4b2b-a1a2-0767e2d978f5",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1136,6 +1184,10 @@
 							}
 						}
 					],
+					"id": "b8f3ab97-c77f-44da-bd22-71e358594e50",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1249,6 +1301,10 @@
 							}
 						}
 					],
+					"id": "7f901a54-9c04-4670-a494-62ee7a4cdf32",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1332,6 +1388,10 @@
 							}
 						}
 					],
+					"id": "dd4c0f6b-509f-4689-951f-d70f8232296f",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1422,6 +1482,10 @@
 							}
 						}
 					],
+					"id": "5d6418b1-3c9b-4de3-b3e0-bef7afed3040",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -1486,6 +1550,10 @@
 							}
 						}
 					],
+					"id": "9b613d26-8d90-4833-a151-c795ada826c6",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1522,7 +1590,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"id": "8ed69411-e513-41bd-9f68-d8ee7da79800"
 		},
 		{
 			"name": "GCTA Negative Tests",
@@ -1560,6 +1629,10 @@
 							}
 						}
 					],
+					"id": "a6a0dafb-0fbd-4855-9318-546c8bc546bd",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "POST",
 						"header": [
@@ -1635,6 +1708,10 @@
 							}
 						}
 					],
+					"id": "d8d67473-f91f-48f2-b4c2-73d57ba03a82",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "POST",
 						"header": [
@@ -1678,6 +1755,10 @@
 							}
 						}
 					],
+					"id": "2a177f5d-18f1-46df-8a22-e89c8d3bb976",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1731,6 +1812,10 @@
 							}
 						}
 					],
+					"id": "bc7a1774-404b-41e1-9ba0-d1f70cb383d6",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1829,6 +1914,7 @@
 							}
 						}
 					],
+					"id": "e3acc30c-27ce-4ba4-bb7a-9c04332ebb92",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -1895,6 +1981,10 @@
 							}
 						}
 					],
+					"id": "b35d09ba-433f-4439-ab8e-a0ef5735a053",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1939,6 +2029,10 @@
 							}
 						}
 					],
+					"id": "6b661028-809b-4bae-bc0d-964fd7ede4a3",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "noauth"
@@ -1976,6 +2070,10 @@
 							}
 						}
 					],
+					"id": "7cdfe3ba-a65a-448e-8b88-1d6772d0ffd6",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "noauth"
@@ -2012,6 +2110,10 @@
 							}
 						}
 					],
+					"id": "414e5da3-8f37-48d4-bf37-ac950bc1bf9a",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -2109,6 +2211,10 @@
 							}
 						}
 					],
+					"id": "fdf89027-9211-4ce1-bb23-136a5df88171",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "noauth"
@@ -2190,6 +2296,10 @@
 							}
 						}
 					],
+					"id": "3dc29356-aede-4024-ac2c-15a832a994ec",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -2284,6 +2394,10 @@
 							}
 						}
 					],
+					"id": "8477e9a5-c74d-4777-a736-20f0882e6795",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -2335,6 +2449,10 @@
 							}
 						}
 					],
+					"id": "780350cb-3f8b-4feb-9dc1-32e689238c97",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -2373,6 +2491,10 @@
 							}
 						}
 					],
+					"id": "81a7147e-270f-4ecb-963d-c9d21d7fac96",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "noauth"
@@ -2402,56 +2524,508 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"id": "139e6399-b97b-4465-9e04-628a01268f28"
 		},
 		{
 			"name": "GCTA Admin Tests",
 			"item": [
 				{
 					"name": "Register",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "424d8d13-1998-4c37-9a93-72a8ad439f4a",
+								"exec": [
+									"// Generate random username, password, and email\r",
+									"const uniqueSuffix = Date.now(); // Add a timestamp for uniqueness\r",
+									"const randomUsername = 'user_' + Math.random().toString(36).substring(2, 10) + '_' + uniqueSuffix; // Unique random username\r",
+									"const randomPassword = Math.random().toString(36).substring(2, 12); // Random password\r",
+									"const randomEmail = randomUsername + '@example.com'; // Random email based on the username\r",
+									"\r",
+									"// Set them as environment variables for use in the request\r",
+									"pm.environment.set(\"a_username\", randomUsername);\r",
+									"pm.environment.set(\"a_password\", randomPassword);\r",
+									"pm.environment.set(\"a_email\", randomEmail);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "8e04692b-3304-4af8-8500-04fd958b28a4",
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required field - message\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.exist;\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Message is a non-empty string\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(300);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"id": "f58875cd-2152-4cc5-bf0e-6f0bd830d377",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "POST",
-						"header": []
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "username",
+									"value": "{{a_username}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{a_password}}",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "{{a_email}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{a_base_url}}/users/admin_auth/register",
+							"host": [
+								"{{a_base_url}}"
+							],
+							"path": [
+								"users",
+								"admin_auth",
+								"register"
+							]
+						}
 					},
 					"response": []
 				},
 				{
 					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "fb92ab7e-6f21-48a9-b99e-305f284e533a",
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response has the required fields - message and session_token\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.have.property('message');\r",
+									"    pm.expect(responseData).to.have.property('session_token');\r",
+									"\r",
+									"});\r",
+									"\r",
+									"// Extract and save the session token\r",
+									"const response = pm.response.json();\r",
+									"if (response.session_token) {\r",
+									"    pm.environment.set(\"a_session_token\", response.session_token);\r",
+									"    console.log(\"Session token saved:\", response.session_token);\r",
+									"} else {\r",
+									"    console.log(\"Session token not found in the response.\");\r",
+									"}\r",
+									"pm.test(\"User_id is extracted and saved to an environment variable\", function () {\r",
+									"    const response = pm.response.json();\r",
+									"    pm.expect(response).to.have.property('user_id');\r",
+									"    pm.environment.set(\"a_user_id\", response.user_id);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"id": "bd12dbbf-036c-44f9-840c-7ec6aac4bfb4",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "POST",
-						"header": []
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"{{a_username}}\",\r\n    \"password\": \"{{a_password}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{a_base_url}}/users/admin_auth/login",
+							"host": [
+								"{{a_base_url}}"
+							],
+							"path": [
+								"users",
+								"admin_auth",
+								"login"
+							]
+						}
 					},
 					"response": []
 				},
 				{
 					"name": "Add Gacha",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9e24b1d5-61a1-4cbd-b235-804d2a5a8d96",
+								"exec": [
+									"// Parse the response\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"// Tests to validate the response\r",
+									"pm.test(\"Status code is 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response has a valid ID\", function () {\r",
+									"    pm.expect(response).to.have.property(\"gacha_id\");\r",
+									"\r",
+									"});\r",
+									"\r",
+									"// Log the response for debugging\r",
+									"console.log(\"Response Data:\", pm.response.json().gacha_id);\r",
+									"// Stores the gacha_id in an environment or global variable\r",
+									"var gachaId = pm.response.json().gacha_id;\r",
+									"pm.environment.set(\"new_gacha_id\", pm.response.json().gacha_id);\r",
+									"\r",
+									"pm.test(\"Message contains 'Gacha item added successfully'\", function () {\r",
+									"    const response = pm.response.json();\r",
+									"    pm.expect(response.message).to.include(\"Gacha item added successfully\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"id": "1e784784-f5ce-4ccd-8ebe-78ad6f116d82",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{a_session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
-						"header": []
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "name",
+									"value": "{{gacha_name}}",
+									"type": "text"
+								},
+								{
+									"key": "rarity",
+									"value": "rare",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "available",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "{{gacha_description}}",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{a_base_url}}/gacha/add",
+							"host": [
+								"{{a_base_url}}"
+							],
+							"path": [
+								"gacha",
+								"add"
+							]
+						}
 					},
 					"response": []
 				},
 				{
 					"name": "Update Gacha",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4c67d098-958a-4d5c-a841-159293f8aaec",
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.message).to.contain(\"Gacha item updated successfully\")\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"id": "f134f0b0-fab1-409c-a07d-0944bbe54c9b",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{a_session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "PUT",
-						"header": []
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "gacha_id",
+									"value": "{{new_gacha_id}}",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "{{gacha_name}}",
+									"type": "text"
+								},
+								{
+									"key": "rarity",
+									"value": "common",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "available",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "updated gacha to common",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{a_base_url}}/gacha/update",
+							"host": [
+								"{{a_base_url}}"
+							],
+							"path": [
+								"gacha",
+								"update"
+							]
+						}
 					},
 					"response": []
 				},
 				{
 					"name": "Delete Gacha",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "789a20ec-7fec-4633-bff3-c51b7b6b5c36",
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required field 'message'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData).to.have.property('message');\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Message field must be a non-empty string\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.message).to.contain(\"Gacha item deleted successfully\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"id": "f81f49e8-5863-4ef3-8271-0cc084417b99",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{a_session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "DELETE",
-						"header": []
+						"header": [],
+						"url": {
+							"raw": "{{a_base_url}}/gacha/delete/{{new_gacha_id}}",
+							"host": [
+								"{{a_base_url}}"
+							],
+							"path": [
+								"gacha",
+								"delete",
+								"{{new_gacha_id}}"
+							]
+						}
 					},
 					"response": []
 				},
 				{
 					"name": "roll Gacha",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "dd076d9f-a954-4e8d-84a1-249e434e9521",
+								"exec": [
+									"pm.test(\"Error message indicates admins cannot roll gacha\", function () {\r",
+									"  pm.expect(pm.response.text()).to.include(\"Admins cannot roll gacha\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"id": "a53463e2-4583-44cd-a62d-8a5b57c06d34",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{a_session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
-						"header": []
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"user_id\": \"{{a_user_id}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/gacha/roll",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"gacha",
+								"roll"
+							]
+						}
 					},
 					"response": []
 				},
@@ -2461,6 +3035,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "5965b606-9c86-4d38-9397-b0ba62ac8dc0",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"  pm.response.to.have.status(200);\r",
@@ -2499,14 +3074,6 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"User ID is a non-negative integer\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    \r",
-									"    pm.expect(responseData.users).to.be.an('array');\r",
-									"    responseData.users.forEach(function(user) {\r",
-									"        pm.expect(user.user_id).to.be.a('number').and.to.be.at.least(0);\r",
-									"    });\r",
-									"});\r",
 									""
 								],
 								"type": "text/javascript",
@@ -2514,10 +3081,21 @@
 							}
 						}
 					],
+					"id": "2ca3b5eb-c35c-460e-8a5e-a1bcdc5f2ac4",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{a_session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"body": {
@@ -2547,11 +3125,111 @@
 				},
 				{
 					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "73614840-c4a0-40aa-8f1f-8d00125ef0e8",
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.message).to.exist;\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Message is a non-empty string\", function () {\r",
+									"  const responseData = pm.response.json();\r",
+									"  \r",
+									"  pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"id": "635325d3-eea3-4118-9f79-432f32392481",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{a_session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "DELETE",
-						"header": []
+						"header": [],
+						"url": {
+							"raw": "{{a_base_url}}/users/admin_auth/logout",
+							"host": [
+								"{{a_base_url}}"
+							],
+							"path": [
+								"users",
+								"admin_auth",
+								"logout"
+							]
+						}
 					},
 					"response": []
+				}
+			],
+			"id": "9cba68e2-4932-4575-9580-f192f7392842",
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{a_session_token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "42972794-f915-49f8-a7e7-1d6f683bf96b",
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "e1c1329f-85aa-42bb-91ab-5ee5a91ecb21",
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
 				}
 			]
 		}
