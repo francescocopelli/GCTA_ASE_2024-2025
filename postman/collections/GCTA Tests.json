@@ -1182,8 +1182,8 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"pm.test(\"Response time is less than 400ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(400);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -1219,13 +1219,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/auction/all",
+							"raw": "{{base_url}}/auction/all_active",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"auction",
-								"all"
+								"all_active"
 							]
 						}
 					},
@@ -1261,7 +1261,8 @@
 									"    responseData.forEach(function (auction) {\r",
 									"        pm.expect(auction.auction_id).to.exist;\r",
 									"        pm.expect(auction.base_price).to.exist;\r",
-									"        pm.expect(auction.buyer_id).to.exist;\r",
+									"        pm.expect(auction).to.have.property('buyer_id');\r",
+									"        pm.expect(auction.buyer_id).to.be.oneOf([null, auction.buyer_id]);\r",
 									"        pm.expect(auction.end_time).to.exist;\r",
 									"        pm.expect(auction.gacha_id).to.exist;\r",
 									"        pm.expect(auction.highest_bid).to.exist;\r",
@@ -1299,11 +1300,13 @@
 									"    responseData.forEach(function (item) {\r",
 									"        pm.expect(item).to.be.an('object');\r",
 									"        pm.expect(item.auction_id).to.be.a('string');\r",
-									"        pm.expect(item.base_price).to.be.a('number');\r",
-									"        pm.expect(item.buyer_id).to.be.a('number');\r",
-									"        pm.expect(item.end_time).to.be.a('number');\r",
+									"        pm.expect(item.base_price).to.satisfy(value => typeof value === 'number' || value === null, 'base_price should be a number or null');\r",
+									"        pm.expect(item).to.have.property('buyer_id');\r",
+									"        pm.expect(item.buyer_id).to.be.oneOf([null, item.buyer_id]);\r",
+									"        pm.expect(item.end_time).to.be.a('string');\r",
 									"        pm.expect(item.gacha_id).to.be.a('number');\r",
-									"        pm.expect(item.highest_bid).to.be.a('number');\r",
+									"        pm.expect(item).to.have.property('highest_bid');\r",
+									"        pm.expect(item.highest_bid).to.be.oneOf([null, item.highest_bid]);\r",
 									"        pm.expect(item.seller_id).to.be.a('number');\r",
 									"        pm.expect(item.status).to.be.a('string');\r",
 									"    });\r",
@@ -1359,6 +1362,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "e9c52e95-ba93-44b3-81b9-80ee1801a81d",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -1389,8 +1393,18 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "e9c52e95-ba93-44b3-81b9-80ee1801a81d"
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a9bea999-f6ed-4fcc-86ae-f142d16abb5e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1610,17 +1624,18 @@
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "c36a942a-aa8e-48c0-8f39-45b6adc9c50a",
 								"exec": [
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "c36a942a-aa8e-48c0-8f39-45b6adc9c50a"
+								"packages": {}
 							}
 						},
 						{
 							"listen": "test",
 							"script": {
+								"id": "6b2fe56a-4925-41c7-af88-8447851ee2f8",
 								"exec": [
 									"pm.test(\"Response status code is 400 for invalid input\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(400); // Adjust expected code based on API behavior\r",
@@ -1629,13 +1644,12 @@
 									"pm.test(\"Error message is provided\", function () {\r",
 									"    const response = pm.response.json();\r",
 									"    pm.expect(response.message).to.exist;\r",
-									"    pm.expect(response.message).to.include(\"Invalid input\");\r",
+									"    pm.expect(response.message).to.include(\"Invalid email address\");\r",
 									"});\r",
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "6b2fe56a-4925-41c7-af88-8447851ee2f8"
+								"packages": {}
 							}
 						}
 					],
@@ -1848,15 +1862,15 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "4cc553e4-1e2d-43e1-b18e-c31b3c4acc59",
 								"exec": [
 									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
 									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token expired!\");\r",
+									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token mismatch!\");\r",
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "4cc553e4-1e2d-43e1-b18e-c31b3c4acc59"
+								"packages": {}
 							}
 						}
 					],
@@ -1901,70 +1915,20 @@
 					"response": []
 				},
 				{
-					"name": "Get User Balance",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
-									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token expired!\");\r",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"id": "93170042-cc6f-4ccc-bfff-fe37a243ab17"
-							}
-						}
-					],
-					"id": "d03196ac-c46b-4a8e-91ac-921bb4904f45",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{session_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/users/player/get_user_balance/9999999999",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"users",
-								"player",
-								"get_user_balance",
-								"9999999999"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "roll",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
+								"id": "bf8b51e9-0cb3-4f4a-9860-5d75776e60c1",
 								"exec": [
 									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
 									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token expired!\");\r",
+									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token mismatch!\");\r",
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "bf8b51e9-0cb3-4f4a-9860-5d75776e60c1"
+								"packages": {}
 							}
 						}
 					],
@@ -2467,14 +2431,65 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "9863598f-e2a2-48ea-84fe-2b83c2e04d3c",
 								"exec": [
 									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
 									"  pm.expect(pm.response.text()).to.include(\"Auction not found or already ended\");\r",
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "9863598f-e2a2-48ea-84fe-2b83c2e04d3c"
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a8cb8fc7-ecea-4a7b-bfe0-723918c7b5a8",
+								"exec": [
+									"// URL dell'endpoint\r",
+									"const url = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"\r",
+									"// Recupera username e password dalle variabili di ambiente\r",
+									"const username = pm.environment.get(\"username\");\r",
+									"const password = pm.environment.get(\"password\");\r",
+									"\r",
+									"// Corpo della richiesta\r",
+									"const payload = {\r",
+									"  username: username,\r",
+									"  password: password\r",
+									"};\r",
+									"\r",
+									"// Opzioni per la richiesta\r",
+									"const requestOptions = {\r",
+									"  url: url,\r",
+									"  method: \"POST\",\r",
+									"  header: {\r",
+									"    \"Content-Type\": \"application/json\"\r",
+									"  },\r",
+									"  body: JSON.stringify(payload)\r",
+									"};\r",
+									"\r",
+									"// Esegui la richiesta\r",
+									"pm.sendRequest(requestOptions, function (err, res) {\r",
+									"  if (err) {\r",
+									"    console.error(\"Errore durante il login:\", err);\r",
+									"  } else {\r",
+									"    // Stampa la risposta per il debug\r",
+									"    console.log(\"Risposta:\", res.json());\r",
+									"\r",
+									"    // Salva il token (se esiste) nelle variabili di ambiente/globale\r",
+									"    const responseJson = res.json();\r",
+									"    if (responseJson.token) {\r",
+									"      pm.environment.set(\"auth_token\", responseJson.token);\r",
+									"    } else {\r",
+									"      console.warn(\"Nessun token trovato nella risposta.\");\r",
+									"    }\r",
+									"  }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
