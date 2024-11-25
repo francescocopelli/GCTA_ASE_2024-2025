@@ -220,6 +220,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "5b76a689-79a9-4809-8b3c-12dc646fb219",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -228,7 +229,7 @@
 									"pm.test(\"Response has the required fields\", function () {\r",
 									"  const responseData = pm.response.json();\r",
 									"  console.log(responseData.message)\r",
-									"  pm.expect(responseData.message).to.equal(\"Transaction added successfully\");\r",
+									"  pm.expect(responseData.message).to.equal(\"Account topped up successfully\");\r",
 									"});\r",
 									"\r",
 									"pm.test(\"Response time is within an acceptable range\", function () {\r",
@@ -241,8 +242,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "5b76a689-79a9-4809-8b3c-12dc646fb219"
+								"packages": {}
 							}
 						}
 					],
@@ -292,6 +292,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "6915f0a3-2c26-4354-9f40-46fe11c16a57",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -318,8 +319,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "6915f0a3-2c26-4354-9f40-46fe11c16a57"
+								"packages": {}
 							}
 						}
 					],
@@ -341,15 +341,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/users/player/get_user_balance/{{user_id}}",
+							"raw": "{{base_url}}/users/player/get_user_balance",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"users",
 								"player",
-								"get_user_balance",
-								"{{user_id}}"
+								"get_user_balance"
 							]
 						}
 					},
@@ -451,6 +450,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "b77e36e2-4a6d-4639-b57b-50ac5bbf789a",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -496,8 +496,14 @@
 									""
 								],
 								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
 								"packages": {},
-								"id": "b77e36e2-4a6d-4639-b57b-50ac5bbf789a"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -506,6 +512,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -527,6 +543,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "5634f00d-c991-4c87-9c39-2bcb3b25bcca",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -561,8 +578,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "5634f00d-c991-4c87-9c39-2bcb3b25bcca"
+								"packages": {}
 							}
 						}
 					],
@@ -571,6 +587,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"body": {
@@ -602,6 +628,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "5b03ad72-aed6-4204-90fb-015484f96fdc",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"  pm.response.to.have.status(200);\r",
@@ -629,8 +656,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "5b03ad72-aed6-4204-90fb-015484f96fdc"
+								"packages": {}
 							}
 						}
 					],
@@ -639,6 +665,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -1053,9 +1089,10 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "a031c641-8ab8-410c-9682-d416aef304c3",
 								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"  pm.response.to.have.status(200);\r",
+									"pm.test(\"Response status code is 201\", function () {\r",
+									"  pm.response.to.have.status(201);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -1066,18 +1103,13 @@
 									"\r",
 									"pm.test(\"Response schema matches the expected schema\", function () {\r",
 									"    const responseData = pm.response.json();\r",
-									"    \r",
-									"    pm.expect(responseData).to.have.property('id');\r",
-									"    pm.expect(responseData).to.have.property('name');\r",
-									"    pm.expect(responseData).to.have.property('email');\r",
-									"    pm.expect(responseData).to.have.property('address');\r",
-									"    pm.expect(responseData).to.have.property('phone');\r",
+									"    pm.expect(responseData).to.have.property('auction_id');\r",
+									"\r",
 									"});\r",
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "a031c641-8ab8-410c-9682-d416aef304c3"
+								"packages": {}
 							}
 						}
 					],
@@ -1126,6 +1158,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "42390b81-c632-4d9d-bc4c-bf32e1bc8c5d",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1164,8 +1197,7 @@
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "42390b81-c632-4d9d-bc4c-bf32e1bc8c5d"
+								"packages": {}
 							}
 						}
 					],
@@ -1174,6 +1206,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -1195,6 +1237,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "16106d10-8d94-4db0-be94-2b20a9a35be3",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1269,8 +1312,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "16106d10-8d94-4db0-be94-2b20a9a35be3"
+								"packages": {}
 							}
 						}
 					],
@@ -1279,6 +1321,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -1470,6 +1522,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "ba08d5b4-3bd3-46e4-98c7-e168d9127de9",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -1501,8 +1554,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "ba08d5b4-3bd3-46e4-98c7-e168d9127de9"
+								"packages": {}
 							}
 						}
 					],
@@ -1511,7 +1563,17 @@
 						"disableBodyPruning": true
 					},
 					"request": {
-						"method": "POST",
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
 						"header": [
 							{
 								"key": "Content-Type",
