@@ -1765,98 +1765,6 @@
 					"response": []
 				},
 				{
-					"name": "Update Account",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"    pm.expect(pm.response.code).to.equal(200);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Response time is less than 500ms\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response body should have the correct schema\", function () {\r",
-									"  const responseData = pm.response.text();\r",
-									"  pm.expect(responseData).to.include('Internal Server Error');\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"id": "364628e4-3f73-41eb-be33-1220191eeebc"
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"// Retrieve the original email from the environment\r",
-									"const originalEmail = pm.environment.get(\"email\");\r",
-									"\r",
-									"if (originalEmail) {\r",
-									"    // Add \"updated\" in front of the original email\r",
-									"    const updatedEmail = `updated_${originalEmail}`;\r",
-									"    \r",
-									"    // Save the updated email back to the environment\r",
-									"    pm.environment.set(\"email\", updatedEmail);\r",
-									"    console.log(\"Updated email saved:\", updatedEmail);\r",
-									"} else {\r",
-									"    console.log(\"Original email not found in the environment.\");\r",
-									"}\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"id": "a26fefc2-5ad6-4d68-8b77-527d4baa242a"
-							}
-						}
-					],
-					"id": "a984710d-a81b-4db7-ae50-e76877b39487",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{session_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\",\n  \"email\": \"{{email@email.com}}\",\n  \"image\": \"\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/users/auth/update",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"users",
-								"auth",
-								"update"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Real Money Transaction",
 					"event": [
 						{
@@ -1972,52 +1880,12 @@
 					"response": []
 				},
 				{
-					"name": "Get All Transactions",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
-									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token expired!\");\r",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"id": "d343415e-274a-459a-bd9a-caa5a2183c7e"
-							}
-						}
-					],
-					"id": "c32ac790-6c1d-4bb7-bd53-aac3ff7bc651",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/transaction/all",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"transaction",
-								"all"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Get Transaction",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
+								"id": "1dd74aea-8bf2-442a-8427-c500e224f49e",
 								"exec": [
 									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
 									"    const response = pm.response.json();\r",
@@ -2025,8 +1893,54 @@
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "1dd74aea-8bf2-442a-8427-c500e224f49e"
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "dee3f865-0f2d-4ce6-8613-ecaf90beb634",
+								"exec": [
+									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"\r",
+									"// Recupera le credenziali dalle variabili di ambiente\r",
+									"const username = pm.environment.get(\"username\");\r",
+									"const password = pm.environment.get(\"password\");\r",
+									"\r",
+									"const payload = {\r",
+									"    username: username,\r",
+									"    password: password\r",
+									"};\r",
+									"\r",
+									"const requestOptions = {\r",
+									"    url: loginUrl,\r",
+									"    method: \"POST\",\r",
+									"    header: {\r",
+									"        \"Content-Type\": \"application/json\"\r",
+									"    },\r",
+									"    body: JSON.stringify(payload)\r",
+									"};\r",
+									"\r",
+									"// Esegui la richiesta di login\r",
+									"pm.sendRequest(requestOptions, function (err, res) {\r",
+									"    if (err) {\r",
+									"        console.error(\"Errore durante il login:\", err);\r",
+									"        return;\r",
+									"    }\r",
+									"\r",
+									"    // Salva il token nelle variabili di ambiente se esiste\r",
+									"    const responseJson = res.json();\r",
+									"    if (responseJson.session_token) {\r",
+									"        pm.environment.set(\"session_token\", responseJson.session_token);\r",
+									"        console.log(\"Token salvato:\", responseJson.session_token);\r",
+									"    } else {\r",
+									"        console.warn(\"Login fallito: Nessun token trovato nella risposta.\");\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -2035,6 +1949,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"body": {
@@ -2053,53 +1977,6 @@
 							"query": [
 								{
 									"key": "transaction_id",
-									"value": "9999999999"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get User Transactions",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
-									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"No transactions found for the user\");\r",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"id": "e9fa07a7-d802-467b-a6a4-046f4a2b0f2e"
-							}
-						}
-					],
-					"id": "ecf437b3-eb74-4800-a8a0-75d2d7330304",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/transaction/get_user_transactions?user_id=9999999999",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"transaction",
-								"get_user_transactions"
-							],
-							"query": [
-								{
-									"key": "user_id",
 									"value": "9999999999"
 								}
 							]
@@ -2162,47 +2039,6 @@
 								"gacha",
 								"get",
 								"9999999999"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get All Gachas",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
-									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"Gacha item not found\");\r",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"id": "0dfb4653-d4d6-40f2-8617-307a3f45573e"
-							}
-						}
-					],
-					"id": "11f68627-f347-4491-9a9a-e9c0b8028c2c",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/gacha/all",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"gacha",
-								"all"
 							]
 						}
 					},
@@ -2298,14 +2134,14 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "e3b5300d-fd96-476d-8634-1bb74d2dc09b",
 								"exec": [
 									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
 									"  pm.expect(pm.response.text()).to.include(\"Gacha is locked or does not exist\");\r",
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "e3b5300d-fd96-476d-8634-1bb74d2dc09b"
+								"packages": {}
 							}
 						}
 					],
@@ -2315,7 +2151,14 @@
 					},
 					"request": {
 						"auth": {
-							"type": "noauth"
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
 						},
 						"method": "POST",
 						"header": [
@@ -2347,14 +2190,61 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "bb61dc65-f4fa-4825-9252-110b4670b8e2",
 								"exec": [
 									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
 									"  pm.expect(pm.response.text()).to.include(\"401 Unauthorized\");\r",
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "bb61dc65-f4fa-4825-9252-110b4670b8e2"
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "f7a2c895-da21-46bf-ab55-a1cb8ddc58c4",
+								"exec": [
+									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"\r",
+									"// Recupera le credenziali dalle variabili di ambiente\r",
+									"const username = pm.environment.get(\"username\");\r",
+									"const password = pm.environment.get(\"password\");\r",
+									"\r",
+									"const payload = {\r",
+									"    username: username,\r",
+									"    password: password\r",
+									"};\r",
+									"\r",
+									"const requestOptions = {\r",
+									"    url: loginUrl,\r",
+									"    method: \"POST\",\r",
+									"    header: {\r",
+									"        \"Content-Type\": \"application/json\"\r",
+									"    },\r",
+									"    body: JSON.stringify(payload)\r",
+									"};\r",
+									"\r",
+									"// Esegui la richiesta di login\r",
+									"pm.sendRequest(requestOptions, function (err, res) {\r",
+									"    if (err) {\r",
+									"        console.error(\"Errore durante il login:\", err);\r",
+									"        return;\r",
+									"    }\r",
+									"\r",
+									"    // Salva il token nelle variabili di ambiente se esiste\r",
+									"    const responseJson = res.json();\r",
+									"    if (responseJson.session_token) {\r",
+									"        pm.environment.set(\"session_token\", responseJson.session_token);\r",
+									"        console.log(\"Token salvato:\", responseJson.session_token);\r",
+									"    } else {\r",
+									"        console.warn(\"Login fallito: Nessun token trovato nella risposta.\");\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -2387,14 +2277,61 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "10376825-5f59-4e08-a612-b70018c2fcf5",
 								"exec": [
 									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
 									"  pm.expect(pm.response.text()).to.include(\"No auctions found for the gacha\");\r",
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "10376825-5f59-4e08-a612-b70018c2fcf5"
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9f9db7a8-402d-4272-b57e-73048b2e9660",
+								"exec": [
+									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"\r",
+									"// Recupera le credenziali dalle variabili di ambiente\r",
+									"const username = pm.environment.get(\"username\");\r",
+									"const password = pm.environment.get(\"password\");\r",
+									"\r",
+									"const payload = {\r",
+									"    username: username,\r",
+									"    password: password\r",
+									"};\r",
+									"\r",
+									"const requestOptions = {\r",
+									"    url: loginUrl,\r",
+									"    method: \"POST\",\r",
+									"    header: {\r",
+									"        \"Content-Type\": \"application/json\"\r",
+									"    },\r",
+									"    body: JSON.stringify(payload)\r",
+									"};\r",
+									"\r",
+									"// Esegui la richiesta di login\r",
+									"pm.sendRequest(requestOptions, function (err, res) {\r",
+									"    if (err) {\r",
+									"        console.error(\"Errore durante il login:\", err);\r",
+									"        return;\r",
+									"    }\r",
+									"\r",
+									"    // Salva il token nelle variabili di ambiente se esiste\r",
+									"    const responseJson = res.json();\r",
+									"    if (responseJson.session_token) {\r",
+									"        pm.environment.set(\"session_token\", responseJson.session_token);\r",
+									"        console.log(\"Token salvato:\", responseJson.session_token);\r",
+									"    } else {\r",
+									"        console.warn(\"Login fallito: Nessun token trovato nella risposta.\");\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -2403,22 +2340,31 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/auction//get_gacha_auctions?gacha_id=999999999",
+							"raw": "{{base_url}}/auction/get_gacha_auctions?gacha_id=99999",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"auction",
-								"",
 								"get_gacha_auctions"
 							],
 							"query": [
 								{
 									"key": "gacha_id",
-									"value": "999999999"
+									"value": "99999"
 								}
 							]
 						}
@@ -2446,45 +2392,41 @@
 							"script": {
 								"id": "a8cb8fc7-ecea-4a7b-bfe0-723918c7b5a8",
 								"exec": [
-									"// URL dell'endpoint\r",
-									"const url = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
 									"\r",
-									"// Recupera username e password dalle variabili di ambiente\r",
+									"// Recupera le credenziali dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",
 									"const password = pm.environment.get(\"password\");\r",
 									"\r",
-									"// Corpo della richiesta\r",
 									"const payload = {\r",
-									"  username: username,\r",
-									"  password: password\r",
+									"    username: username,\r",
+									"    password: password\r",
 									"};\r",
 									"\r",
-									"// Opzioni per la richiesta\r",
 									"const requestOptions = {\r",
-									"  url: url,\r",
-									"  method: \"POST\",\r",
-									"  header: {\r",
-									"    \"Content-Type\": \"application/json\"\r",
-									"  },\r",
-									"  body: JSON.stringify(payload)\r",
+									"    url: loginUrl,\r",
+									"    method: \"POST\",\r",
+									"    header: {\r",
+									"        \"Content-Type\": \"application/json\"\r",
+									"    },\r",
+									"    body: JSON.stringify(payload)\r",
 									"};\r",
 									"\r",
-									"// Esegui la richiesta\r",
+									"// Esegui la richiesta di login\r",
 									"pm.sendRequest(requestOptions, function (err, res) {\r",
-									"  if (err) {\r",
-									"    console.error(\"Errore durante il login:\", err);\r",
-									"  } else {\r",
-									"    // Stampa la risposta per il debug\r",
-									"    console.log(\"Risposta:\", res.json());\r",
-									"\r",
-									"    // Salva il token (se esiste) nelle variabili di ambiente/globale\r",
-									"    const responseJson = res.json();\r",
-									"    if (responseJson.token) {\r",
-									"      pm.environment.set(\"auth_token\", responseJson.token);\r",
-									"    } else {\r",
-									"      console.warn(\"Nessun token trovato nella risposta.\");\r",
+									"    if (err) {\r",
+									"        console.error(\"Errore durante il login:\", err);\r",
+									"        return;\r",
 									"    }\r",
-									"  }\r",
+									"\r",
+									"    // Salva il token nelle variabili di ambiente se esiste\r",
+									"    const responseJson = res.json();\r",
+									"    if (responseJson.session_token) {\r",
+									"        pm.environment.set(\"session_token\", responseJson.session_token);\r",
+									"        console.log(\"Token salvato:\", responseJson.session_token);\r",
+									"    } else {\r",
+									"        console.warn(\"Login fallito: Nessun token trovato nella risposta.\");\r",
+									"    }\r",
 									"});\r",
 									""
 								],
