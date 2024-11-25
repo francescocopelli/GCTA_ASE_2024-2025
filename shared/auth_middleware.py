@@ -10,11 +10,11 @@ from flask import request, abort, jsonify, current_app
 SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
 logging.basicConfig(level=logging.DEBUG)
 
-transaction_url = "http://transaction:5000"
-user_url = "http://user_player:5000"
-gacha_url = "http://gacha:5000"
-dbm_url = "http://db-manager:5000"
-admin_url = "http://user_admin:5000"
+transaction_url = "https://transaction:5000"
+user_url = "https://user_player:5000"
+gacha_url = "https://gacha:5000"
+dbm_url = "https://db-manager:5000"
+admin_url = "https://user_admin:5000"
 # mancano admin e player authentication
 
 import time
@@ -72,7 +72,7 @@ def circuit_breaker_decorator(func):
         try:
             result = func(*args, **kwargs)
             try:
-                if result[1] >= 200:
+                if result[1] < 500:
                     circuit_breaker.reset()
             except:
                 None

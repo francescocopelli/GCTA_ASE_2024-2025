@@ -102,7 +102,7 @@
 							]
 						},
 						"url": {
-							"raw": "http://127.0.0.1:8080/users/auth/register",
+							"raw": "https://127.0.0.1:8080/users/auth/register",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -196,7 +196,7 @@
 							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
 						},
 						"url": {
-							"raw": "http://127.0.0.1:8080/users/auth/login",
+							"raw": "https://127.0.0.1:8080/users/auth/login",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -1901,7 +1901,7 @@
 							"script": {
 								"id": "dee3f865-0f2d-4ce6-8613-ecaf90beb634",
 								"exec": [
-									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"const loginUrl = \"https://127.0.0.1:8080/users/auth/login\";\r",
 									"\r",
 									"// Recupera le credenziali dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",
@@ -2205,7 +2205,7 @@
 							"script": {
 								"id": "f7a2c895-da21-46bf-ab55-a1cb8ddc58c4",
 								"exec": [
-									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"const loginUrl = \"https://127.0.0.1:8080/users/auth/login\";\r",
 									"\r",
 									"// Recupera le credenziali dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",
@@ -2292,7 +2292,7 @@
 							"script": {
 								"id": "9f9db7a8-402d-4272-b57e-73048b2e9660",
 								"exec": [
-									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"const loginUrl = \"https://127.0.0.1:8080/users/auth/login\";\r",
 									"\r",
 									"// Recupera le credenziali dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",
@@ -2392,7 +2392,7 @@
 							"script": {
 								"id": "a8cb8fc7-ecea-4a7b-bfe0-723918c7b5a8",
 								"exec": [
-									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"const loginUrl = \"https://127.0.0.1:8080/users/auth/login\";\r",
 									"\r",
 									"// Recupera le credenziali dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",

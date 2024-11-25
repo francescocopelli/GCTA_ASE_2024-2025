@@ -36,7 +36,7 @@ In order to start using the GCTA game, you have to:
     ```
 
 4. **Access the application**
-    - The application should now be running. You can access it via `http://localhost:8080` for the user services and via `http://localhost:8081` for the admin related operations.
+    - The application should now be running. You can access it via `https://localhost:8080` for the user services and via `https://localhost:8081` for the admin related operations.
 
 5. **API Documentation**
     - The API documentation can be found in the [doc/openapi.yaml](doc/openapi.yaml) file.

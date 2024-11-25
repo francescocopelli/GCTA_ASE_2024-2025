@@ -102,7 +102,7 @@
 							]
 						},
 						"url": {
-							"raw": "http://127.0.0.1:8080/users/auth/register",
+							"raw": "https://127.0.0.1:8080/users/auth/register",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -196,7 +196,7 @@
 							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
 						},
 						"url": {
-							"raw": "http://127.0.0.1:8080/users/auth/login",
+							"raw": "https://127.0.0.1:8080/users/auth/login",
 							"protocol": "http",
 							"host": [
 								"127",
