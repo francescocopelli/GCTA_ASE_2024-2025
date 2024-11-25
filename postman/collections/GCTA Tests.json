@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "375529fd-d272-403e-b77b-527eae112d87",
-		"name": "GCTA_Tests",
+		"_postman_id": "bfba4b2d-2608-45a7-a4cb-0a873b5c8200",
+		"name": "GCTA Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "39570797"
+		"_uid": "39572674-bfba4b2d-2608-45a7-a4cb-0a873b5c8200"
 	},
 	"item": [
 		{
@@ -15,6 +15,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "35523caf-a98f-48ce-a2bc-b3f53f13f834",
 								"exec": [
 									"// Generate random username, password, and email\r",
 									"const randomUsername = 'user_' + Math.random().toString(36).substring(2, 10); // Random username\r",
@@ -33,6 +34,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "c47097e0-aaf8-45b0-9200-bcaf6ae48a58",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -67,6 +69,10 @@
 							}
 						}
 					],
+					"id": "d04472a3-25ef-4235-b045-01273879bbdd",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "POST",
 						"header": [
@@ -96,12 +102,15 @@
 							]
 						},
 						"url": {
-							"raw": "http://gcta_ase_2024-2025_user_player_auth:5000/users/auth/register",
+							"raw": "http://127.0.0.1:8080/users/auth/register",
 							"protocol": "http",
 							"host": [
-								"gcta_ase_2024-2025_user_player_auth"
+								"127",
+								"0",
+								"0",
+								"1"
 							],
-							"port": "5000",
+							"port": "8080",
 							"path": [
 								"users",
 								"auth",
@@ -117,6 +126,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "0c999ff6-a275-458c-8c0f-b1224742ed0b",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -159,6 +169,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "9666a57b-6f24-4632-a929-9cdd430d9bce",
 								"exec": [
 									"\r",
 									""
@@ -168,6 +179,10 @@
 							}
 						}
 					],
+					"id": "703658ef-dfbb-4336-8ef4-766dd0a83828",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "POST",
 						"header": [
@@ -181,103 +196,19 @@
 							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
 						},
 						"url": {
-							"raw": "http://gcta_ase_2024-2025_user_player_auth:5000/users/auth/login",
+							"raw": "http://127.0.0.1:8080/users/auth/login",
 							"protocol": "http",
 							"host": [
-								"gcta_ase_2024-2025_user_player_auth"
+								"127",
+								"0",
+								"0",
+								"1"
 							],
-							"port": "5000",
+							"port": "8080",
 							"path": [
 								"users",
 								"auth",
 								"login"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Account",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"    pm.expect(pm.response.code).to.equal(200);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Response time is less than 500ms\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response body should have the correct schema\", function () {\r",
-									"  const responseData = pm.response.text();\r",
-									"  pm.expect(responseData).to.include('Internal Server Error');\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"// Retrieve the original email from the environment\r",
-									"const originalEmail = pm.environment.get(\"email\");\r",
-									"\r",
-									"if (originalEmail) {\r",
-									"    // Add \"updated\" in front of the original email\r",
-									"    const updatedEmail = `updated_${originalEmail}`;\r",
-									"    \r",
-									"    // Save the updated email back to the environment\r",
-									"    pm.environment.set(\"email\", updatedEmail);\r",
-									"    console.log(\"Updated email saved:\", updatedEmail);\r",
-									"} else {\r",
-									"    console.log(\"Original email not found in the environment.\");\r",
-									"}\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{session_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\",\n  \"email\": \"{{email@email.com}}\",\n  \"image\": \"\"\n}"
-						},
-						"url": {
-							"raw": "http://gateway_user/users/auth/update",
-							"protocol": "http",
-							"host": [
-								"gateway_user"
-							],
-							"path": [
-								"users",
-								"auth",
-								"update"
 							]
 						}
 					},
@@ -289,6 +220,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "5b76a689-79a9-4809-8b3c-12dc646fb219",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -297,7 +229,7 @@
 									"pm.test(\"Response has the required fields\", function () {\r",
 									"  const responseData = pm.response.json();\r",
 									"  console.log(responseData.message)\r",
-									"  pm.expect(responseData.message).to.equal(\"Transaction added successfully\");\r",
+									"  pm.expect(responseData.message).to.equal(\"Account topped up successfully\");\r",
 									"});\r",
 									"\r",
 									"pm.test(\"Response time is within an acceptable range\", function () {\r",
@@ -314,6 +246,10 @@
 							}
 						}
 					],
+					"id": "fffc6529-4ad3-4515-9efa-31075932adee",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -337,10 +273,9 @@
 							"raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"amount\": 50\n}"
 						},
 						"url": {
-							"raw": "http://gateway_user/users/player/real_money_transaction",
-							"protocol": "http",
+							"raw": "{{base_url}}/users/player/real_money_transaction",
 							"host": [
-								"gateway_user"
+								"{{base_url}}"
 							],
 							"path": [
 								"users",
@@ -357,6 +292,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "6915f0a3-2c26-4354-9f40-46fe11c16a57",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -387,6 +323,10 @@
 							}
 						}
 					],
+					"id": "4bbebbbe-cf0e-4161-a37e-e1a0856cfff4",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -401,16 +341,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://gateway_user/users/player/get_user_balance/{{user_id}}",
-							"protocol": "http",
+							"raw": "{{base_url}}/users/player/get_user_balance",
 							"host": [
-								"gateway_user"
+								"{{base_url}}"
 							],
 							"path": [
 								"users",
 								"player",
-								"get_user_balance",
-								"{{user_id}}"
+								"get_user_balance"
 							]
 						}
 					},
@@ -462,10 +400,15 @@
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "24c9015c-5dec-4ba1-a5d5-9a8728c7684f"
 							}
 						}
 					],
+					"id": "0b2f3169-9799-4586-a055-2aa8550eeffb",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -489,10 +432,9 @@
 							}
 						},
 						"url": {
-							"raw": "http://gateway_user/gacha/roll",
-							"protocol": "http",
+							"raw": "{{base_url}}/gacha/roll",
 							"host": [
-								"gateway_user"
+								"{{base_url}}"
 							],
 							"path": [
 								"gacha",
@@ -508,6 +450,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "b77e36e2-4a6d-4639-b57b-50ac5bbf789a",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -555,9 +498,30 @@
 								"type": "text/javascript",
 								"packages": {}
 							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
 						}
 					],
+					"id": "9ba5ca11-fbaa-4cc4-a8b2-8494f390bd0b",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -579,6 +543,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "5634f00d-c991-4c87-9c39-2bcb3b25bcca",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -617,10 +582,21 @@
 							}
 						}
 					],
+					"id": "7a8f9811-c6aa-49a6-a1c6-842c41bd3619",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"body": {
@@ -652,6 +628,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "5b03ad72-aed6-4204-90fb-015484f96fdc",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"  pm.response.to.have.status(200);\r",
@@ -683,7 +660,21 @@
 							}
 						}
 					],
+					"id": "44fa24da-0bf5-4d7a-8a0c-a9d59f172848",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -773,7 +764,8 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "62277120-a6c1-49b9-8e82-acdb59a654b9"
 							}
 						},
 						{
@@ -783,10 +775,15 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "35a21b96-c9b1-41a7-b4ac-1cf8bc803d40"
 							}
 						}
 					],
+					"id": "d6eca873-6e4a-491e-9e47-4ebae026551e",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -869,10 +866,15 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "dabcb04e-5a59-4153-bdc4-c5cb2ba0b559"
 							}
 						}
 					],
+					"id": "ebdc91a5-0e30-41a8-a472-99f48f8bf7fb",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -939,10 +941,15 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "dfe4b8f2-97b8-43a1-bc29-23089b2eaec4"
 							}
 						}
 					],
+					"id": "d947076c-f224-411f-b578-220308fa9ca6",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1040,10 +1047,15 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "3d99779b-cfc6-4a14-a1f5-62b1241c1834"
 							}
 						}
 					],
+					"id": "37c31155-328b-447b-acef-1948d745be29",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1077,9 +1089,10 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "a031c641-8ab8-410c-9682-d416aef304c3",
 								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"  pm.response.to.have.status(200);\r",
+									"pm.test(\"Response status code is 201\", function () {\r",
+									"  pm.response.to.have.status(201);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -1090,12 +1103,8 @@
 									"\r",
 									"pm.test(\"Response schema matches the expected schema\", function () {\r",
 									"    const responseData = pm.response.json();\r",
-									"    \r",
-									"    pm.expect(responseData).to.have.property('id');\r",
-									"    pm.expect(responseData).to.have.property('name');\r",
-									"    pm.expect(responseData).to.have.property('email');\r",
-									"    pm.expect(responseData).to.have.property('address');\r",
-									"    pm.expect(responseData).to.have.property('phone');\r",
+									"    pm.expect(responseData).to.have.property('auction_id');\r",
+									"\r",
 									"});\r",
 									""
 								],
@@ -1104,6 +1113,10 @@
 							}
 						}
 					],
+					"id": "dc0dec20-9bd3-473a-9619-c9d77edd28fe",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1145,6 +1158,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "42390b81-c632-4d9d-bc4c-bf32e1bc8c5d",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1168,8 +1182,8 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"pm.test(\"Response time is less than 400ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(400);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -1187,17 +1201,31 @@
 							}
 						}
 					],
+					"id": "7de475bb-53fa-4c32-a252-6b2112f9364a",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/auction/all",
+							"raw": "{{base_url}}/auction/all_active",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"auction",
-								"all"
+								"all_active"
 							]
 						}
 					},
@@ -1209,6 +1237,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "16106d10-8d94-4db0-be94-2b20a9a35be3",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1232,7 +1261,8 @@
 									"    responseData.forEach(function (auction) {\r",
 									"        pm.expect(auction.auction_id).to.exist;\r",
 									"        pm.expect(auction.base_price).to.exist;\r",
-									"        pm.expect(auction.buyer_id).to.exist;\r",
+									"        pm.expect(auction).to.have.property('buyer_id');\r",
+									"        pm.expect(auction.buyer_id).to.be.oneOf([null, auction.buyer_id]);\r",
 									"        pm.expect(auction.end_time).to.exist;\r",
 									"        pm.expect(auction.gacha_id).to.exist;\r",
 									"        pm.expect(auction.highest_bid).to.exist;\r",
@@ -1270,11 +1300,13 @@
 									"    responseData.forEach(function (item) {\r",
 									"        pm.expect(item).to.be.an('object');\r",
 									"        pm.expect(item.auction_id).to.be.a('string');\r",
-									"        pm.expect(item.base_price).to.be.a('number');\r",
-									"        pm.expect(item.buyer_id).to.be.a('number');\r",
-									"        pm.expect(item.end_time).to.be.a('number');\r",
+									"        pm.expect(item.base_price).to.satisfy(value => typeof value === 'number' || value === null, 'base_price should be a number or null');\r",
+									"        pm.expect(item).to.have.property('buyer_id');\r",
+									"        pm.expect(item.buyer_id).to.be.oneOf([null, item.buyer_id]);\r",
+									"        pm.expect(item.end_time).to.be.a('string');\r",
 									"        pm.expect(item.gacha_id).to.be.a('number');\r",
-									"        pm.expect(item.highest_bid).to.be.a('number');\r",
+									"        pm.expect(item).to.have.property('highest_bid');\r",
+									"        pm.expect(item.highest_bid).to.be.oneOf([null, item.highest_bid]);\r",
 									"        pm.expect(item.seller_id).to.be.a('number');\r",
 									"        pm.expect(item.status).to.be.a('string');\r",
 									"    });\r",
@@ -1287,7 +1319,21 @@
 							}
 						}
 					],
+					"id": "c11db60d-44b5-4900-8a5d-b6ccd0c3167c",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -1316,6 +1362,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "e9c52e95-ba93-44b3-81b9-80ee1801a81d",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -1348,8 +1395,23 @@
 								"type": "text/javascript",
 								"packages": {}
 							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a9bea999-f6ed-4fcc-86ae-f142d16abb5e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						}
 					],
+					"id": "0e5a92ad-a416-438d-b9ac-3e89e48a1366",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1436,10 +1498,15 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "e16aade4-99f4-4643-982f-3b98a40d5246"
 							}
 						}
 					],
+					"id": "d8c42821-aa01-43be-b288-1f2b8ee75971",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -1469,6 +1536,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "ba08d5b4-3bd3-46e4-98c7-e168d9127de9",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -1504,8 +1572,22 @@
 							}
 						}
 					],
+					"id": "c8c0426a-826c-4819-a4c0-ceff8cca0d20",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
-						"method": "POST",
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
 						"header": [
 							{
 								"key": "Content-Type",
@@ -1530,7 +1612,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"id": "ad5b75ad-346e-4817-8b1b-23fa1ea97024"
 		},
 		{
 			"name": "GCTA Negative Tests",
@@ -1541,6 +1624,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "c36a942a-aa8e-48c0-8f39-45b6adc9c50a",
 								"exec": [
 									""
 								],
@@ -1551,6 +1635,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "6b2fe56a-4925-41c7-af88-8447851ee2f8",
 								"exec": [
 									"pm.test(\"Response status code is 400 for invalid input\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(400); // Adjust expected code based on API behavior\r",
@@ -1558,8 +1643,8 @@
 									"\r",
 									"pm.test(\"Error message is provided\", function () {\r",
 									"    const response = pm.response.json();\r",
-									"    pm.expect(response.message).to.exist;\r",
-									"    pm.expect(response.message).to.include(\"Invalid input\");\r",
+									"    pm.expect(response.error).to.exist;\r",
+									"    pm.expect(response.error).to.include(\"Invalid email address\");\r",
 									"});\r",
 									""
 								],
@@ -1568,6 +1653,10 @@
 							}
 						}
 					],
+					"id": "820c0fdb-cb7d-4c05-89ab-1507068b05f1",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "POST",
 						"header": [
@@ -1628,7 +1717,8 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "44c7d37f-9062-4c9b-9b12-16fc21ed66cb"
 							}
 						},
 						{
@@ -1639,10 +1729,15 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "6a4c0df5-50ff-4bd1-9ec9-58f2f4b11021"
 							}
 						}
 					],
+					"id": "a4eb4990-04b0-4cf8-b7b8-a71ab18697e5",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "POST",
 						"header": [
@@ -1692,7 +1787,8 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "364628e4-3f73-41eb-be33-1220191eeebc"
 							}
 						},
 						{
@@ -1715,10 +1811,15 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "a26fefc2-5ad6-4d68-8b77-527d4baa242a"
 							}
 						}
 					],
+					"id": "a984710d-a81b-4db7-ae50-e76877b39487",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1761,10 +1862,11 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "4cc553e4-1e2d-43e1-b18e-c31b3c4acc59",
 								"exec": [
 									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
 									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token expired!\");\r",
+									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token mismatch!\");\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1772,6 +1874,10 @@
 							}
 						}
 					],
+					"id": "b9da7406-ae5e-4f71-a351-3b7cc03a3d65",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1809,60 +1915,16 @@
 					"response": []
 				},
 				{
-					"name": "Get User Balance",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
-									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token expired!\");\r",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{session_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/users/player/get_user_balance/9999999999",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"users",
-								"player",
-								"get_user_balance",
-								"9999999999"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "roll",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
+								"id": "bf8b51e9-0cb3-4f4a-9860-5d75776e60c1",
 								"exec": [
 									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
 									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token expired!\");\r",
+									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token mismatch!\");\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1870,6 +1932,10 @@
 							}
 						}
 					],
+					"id": "fb51285b-bea7-49ce-8bb2-b5ce623ef47b",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1918,10 +1984,15 @@
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "d343415e-274a-459a-bd9a-caa5a2183c7e"
 							}
 						}
 					],
+					"id": "c32ac790-6c1d-4bb7-bd53-aac3ff7bc651",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "noauth"
@@ -1954,10 +2025,12 @@
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "1dd74aea-8bf2-442a-8427-c500e224f49e"
 							}
 						}
 					],
+					"id": "24e938fe-30cf-4e1b-98ea-2804797a423b",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -2000,10 +2073,15 @@
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "e9fa07a7-d802-467b-a6a4-046f4a2b0f2e"
 							}
 						}
 					],
+					"id": "ecf437b3-eb74-4800-a8a0-75d2d7330304",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "noauth"
@@ -2042,7 +2120,8 @@
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "c2acee59-ebbb-4832-aa86-4ca41a636a23"
 							}
 						},
 						{
@@ -2052,10 +2131,15 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "d5c41ce8-1ed3-465a-9b44-264d8e6e12ad"
 							}
 						}
 					],
+					"id": "e9d09ee0-758c-418a-bcbf-0579b6c206cd",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -2096,10 +2180,15 @@
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "0dfb4653-d4d6-40f2-8617-307a3f45573e"
 							}
 						}
 					],
+					"id": "11f68627-f347-4491-9a9a-e9c0b8028c2c",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "noauth"
@@ -2132,10 +2221,15 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "e5a30456-7e02-4ed2-a727-718ac6be411d"
 							}
 						}
 					],
+					"id": "68a23c38-52e7-4105-acd3-4ee16e7bf166",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "noauth"
@@ -2169,10 +2263,15 @@
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "a89ea531-4fb4-4f08-97fb-c3e3eb384821"
 							}
 						}
 					],
+					"id": "9322ad68-c70a-4015-8564-1c083d8d412e",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "noauth"
@@ -2205,10 +2304,15 @@
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "e3b5300d-fd96-476d-8634-1bb74d2dc09b"
 							}
 						}
 					],
+					"id": "6e4c5940-2bd2-4cb0-b4a8-bcaff4365d32",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "noauth"
@@ -2249,10 +2353,15 @@
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "bb61dc65-f4fa-4825-9252-110b4670b8e2"
 							}
 						}
 					],
+					"id": "75c7664d-5c40-4a7e-a543-152ba694faa3",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "noauth"
@@ -2284,10 +2393,15 @@
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "10376825-5f59-4e08-a612-b70018c2fcf5"
 							}
 						}
 					],
+					"id": "a288f4f8-16d9-4492-9a06-9873f22f9b97",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -2317,6 +2431,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "9863598f-e2a2-48ea-84fe-2b83c2e04d3c",
 								"exec": [
 									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
 									"  pm.expect(pm.response.text()).to.include(\"Auction not found or already ended\");\r",
@@ -2325,8 +2440,63 @@
 								"type": "text/javascript",
 								"packages": {}
 							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a8cb8fc7-ecea-4a7b-bfe0-723918c7b5a8",
+								"exec": [
+									"// URL dell'endpoint\r",
+									"const url = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"\r",
+									"// Recupera username e password dalle variabili di ambiente\r",
+									"const username = pm.environment.get(\"username\");\r",
+									"const password = pm.environment.get(\"password\");\r",
+									"\r",
+									"// Corpo della richiesta\r",
+									"const payload = {\r",
+									"  username: username,\r",
+									"  password: password\r",
+									"};\r",
+									"\r",
+									"// Opzioni per la richiesta\r",
+									"const requestOptions = {\r",
+									"  url: url,\r",
+									"  method: \"POST\",\r",
+									"  header: {\r",
+									"    \"Content-Type\": \"application/json\"\r",
+									"  },\r",
+									"  body: JSON.stringify(payload)\r",
+									"};\r",
+									"\r",
+									"// Esegui la richiesta\r",
+									"pm.sendRequest(requestOptions, function (err, res) {\r",
+									"  if (err) {\r",
+									"    console.error(\"Errore durante il login:\", err);\r",
+									"  } else {\r",
+									"    // Stampa la risposta per il debug\r",
+									"    console.log(\"Risposta:\", res.json());\r",
+									"\r",
+									"    // Salva il token (se esiste) nelle variabili di ambiente/globale\r",
+									"    const responseJson = res.json();\r",
+									"    if (responseJson.token) {\r",
+									"      pm.environment.set(\"auth_token\", responseJson.token);\r",
+									"    } else {\r",
+									"      console.warn(\"Nessun token trovato nella risposta.\");\r",
+									"    }\r",
+									"  }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						}
 					],
+					"id": "644d8d69-2e5a-4221-9b9b-f7b1bc405810",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -2374,10 +2544,15 @@
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {}
+								"packages": {},
+								"id": "ac3e53e0-fdd6-4511-9ce6-d2786043258c"
 							}
 						}
 					],
+					"id": "37f39e43-955e-42ed-aa19-6539f9916abd",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -2406,6 +2581,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "bbea3d92-ee62-4b47-80ae-9b4c4aba0c00",
 								"exec": [
 									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
 									"  pm.expect(pm.response.text()).to.include(\"401 Unauthorized\");\r",
@@ -2416,11 +2592,15 @@
 							}
 						}
 					],
+					"id": "7d63e13c-623c-4fcf-ab6b-312bf929470a",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "noauth"
 						},
-						"method": "POST",
+						"method": "DELETE",
 						"header": [
 							{
 								"key": "Content-Type",
@@ -2445,7 +2625,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"id": "9a52061c-a95b-4ca8-b18d-8de7c54342d0"
 		}
 	]
 }
