@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 # A function that adds a transaction to the transaction service
 def create_transaction(user_id, amount, transaction_type):
-    response = requests.post(f"{transaction_url}/add_transaction", headers=generate_session_token_system(),verify=False, timeout=3, 
+    response = requests.post(f"{transaction_url}/add_transaction", headers=generate_session_token_system(), timeout=3, 
                              json={"user_id": user_id, "amount": amount, "type": transaction_type})
     return response
 
@@ -27,7 +27,7 @@ def my_gacha_list():
     user_id = str(
         jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])[
             "user_id"])
-    response = requests.get(f"{gacha_url}/inventory/" + user_id, verify=False, timeout=3, headers=request.headers)
+    response = requests.get(f"{gacha_url}/inventory/" + user_id,  timeout=3, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
 
@@ -35,14 +35,14 @@ def my_gacha_list():
 @app.get("/gacha/<user_id>/<gacha_id>")
 @token_required_void
 def gacha_info(user_id, gacha_id):
-    response = requests.get(f"{gacha_url}/get/" + str(user_id) + "/" + str(gacha_id),verify=False, timeout=3, 
+    response = requests.get(f"{gacha_url}/get/" + str(user_id) + "/" + str(gacha_id), timeout=3, 
                             headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
 
 
 def update_user_balance(user_id, amount, type):
     response = requests.put(
-        f"{dbm_url}/update_balance/PLAYER", headers=request.headers,verify=False, timeout=3, 
+        f"{dbm_url}/update_balance/PLAYER", headers=request.headers, timeout=3, 
         json={"user_id": user_id, "amount": amount, "type": type},
     )
     return response
@@ -93,7 +93,7 @@ def get_user_balance(current_user):
     if user_type != 'PLAYER':
         return send_response({"error": "Only players can view their balance"}, 403)
     user_id = current_user['user_id']
-    response = requests.get(f"{dbm_url}/balance/PLAYER", params={"user_id": user_id}, verify=False, timeout=3, headers=request.headers)
+    response = requests.get(f"{dbm_url}/balance/PLAYER", params={"user_id": user_id},  timeout=3, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
 @app.get("/get_user")
@@ -102,7 +102,7 @@ def get_user(user):
     if jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])['user_type'] != 'PLAYER':
         return send_response({"error": "Only players can view their information"}, 403)
     url = f"{dbm_url}/get_user/" + str(user['user_id'])
-    response = requests.get(url, verify=False, timeout=3, headers=request.headers)
+    response = requests.get(url,  timeout=3, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
 # Hidden endpoint from the API documentation
@@ -110,7 +110,7 @@ def get_user(user):
 @admin_required
 def get_user_by_id(user_id):
     url = f"{dbm_url}/get_user/" + str(user_id)
-    response = requests.get(url, verify=False, timeout=3, headers=generate_session_token_system())
+    response = requests.get(url,  timeout=3, headers=generate_session_token_system())
     logging.debug("User_player response: %s", response)
     return send_response(response.json(), response.status_code)
 
@@ -131,7 +131,7 @@ def update_balance(user_type):
     }
     logging.debug("Sending data: %s", data)
     # takes the request headers and add a new key called X-Gateway-Port with the value 8081
-    response = requests.put(url, verify=False, timeout=3, json=data, headers=request.headers)
+    response = requests.put(url,  timeout=3, json=data, headers=request.headers)
     logging.debug("Received response: %s", response)
     return send_response(response.json(), response.status_code)
 
@@ -161,7 +161,7 @@ def update(user):
         "image": image,
         "password": password
     }
-    response = requests.put(url, verify=False, timeout=3, json=data, headers=generate_session_token_system())
+    response = requests.put(url,  timeout=3, json=data, headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
 
 if __name__ == "__main__":

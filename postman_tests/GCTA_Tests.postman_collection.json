@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "375529fd-d272-403e-b77b-527eae112d87",
 		"name": "GCTA_Tests",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"schema": "http://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "39570797"
 	},
 	"item": [
@@ -96,7 +96,7 @@
 							]
 						},
 						"url": {
-							"raw": "https://gcta_ase_2024-2025_user_player_auth:5000/users/auth/register",
+							"raw": "http://gcta_ase_2024-2025_user_player_auth:5000/users/auth/register",
 							"protocol": "http",
 							"host": [
 								"gcta_ase_2024-2025_user_player_auth"
@@ -181,7 +181,7 @@
 							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
 						},
 						"url": {
-							"raw": "https://gcta_ase_2024-2025_user_player_auth:5000/users/auth/login",
+							"raw": "http://gcta_ase_2024-2025_user_player_auth:5000/users/auth/login",
 							"protocol": "http",
 							"host": [
 								"gcta_ase_2024-2025_user_player_auth"
@@ -269,7 +269,7 @@
 							"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\",\n  \"email\": \"{{email@email.com}}\",\n  \"image\": \"\"\n}"
 						},
 						"url": {
-							"raw": "https://gateway_user/users/auth/update",
+							"raw": "http://gateway_user/users/auth/update",
 							"protocol": "http",
 							"host": [
 								"gateway_user"
@@ -337,7 +337,7 @@
 							"raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"amount\": 50\n}"
 						},
 						"url": {
-							"raw": "https://gateway_user/users/player/real_money_transaction",
+							"raw": "http://gateway_user/users/player/real_money_transaction",
 							"protocol": "http",
 							"host": [
 								"gateway_user"
@@ -401,7 +401,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://gateway_user/users/player/get_user_balance/{{user_id}}",
+							"raw": "http://gateway_user/users/player/get_user_balance/{{user_id}}",
 							"protocol": "http",
 							"host": [
 								"gateway_user"
@@ -489,7 +489,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://gateway_user/gacha/roll",
+							"raw": "http://gateway_user/gacha/roll",
 							"protocol": "http",
 							"host": [
 								"gateway_user"

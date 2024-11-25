@@ -1,8 +1,8 @@
 # GCTA ASE 2024-2025
 
-[![CI Pipeline](https://github.com/francescocopelli/GCTA_ASE_2024-2025/actions/workflows/workflow.yaml/badge.svg?branch=main)](https://github.com/francescocopelli/GCTA_ASE_2024-2025/actions/workflows/workflow.yaml)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![Language](https://img.shields.io/github/languages/top/francescocopelli/GCTA_ASE_2024-2025)
+[![CI Pipeline](http://github.com/francescocopelli/GCTA_ASE_2024-2025/actions/workflows/workflow.yaml/badge.svg?branch=main)](http://github.com/francescocopelli/GCTA_ASE_2024-2025/actions/workflows/workflow.yaml)
+[![License](http://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Language](http://img.shields.io/github/languages/top/francescocopelli/GCTA_ASE_2024-2025)
 ## Description
 This repository contains the code for GCTA ASE 2024-2025.
 
@@ -36,7 +36,7 @@ In order to start using the GCTA game, you have to:
     ```
 
 4. **Access the application**
-    - The application should now be running. You can access it via `https://localhost:8080` for the user services and via `https://localhost:8081` for the admin related operations.
+    - The application should now be running. You can access it via `http://localhost:8080` for the user services and via `http://localhost:8081` for the admin related operations.
 
 5. **API Documentation**
     - The API documentation can be found in the [doc/openapi.yaml](doc/openapi.yaml) file.
