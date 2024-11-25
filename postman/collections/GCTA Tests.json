@@ -2366,6 +2366,53 @@
 								"type": "text/javascript",
 								"packages": {}
 							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9f9db7a8-402d-4272-b57e-73048b2e9660",
+								"exec": [
+									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"\r",
+									"// Recupera le credenziali dalle variabili di ambiente\r",
+									"const username = pm.environment.get(\"username\");\r",
+									"const password = pm.environment.get(\"password\");\r",
+									"\r",
+									"const payload = {\r",
+									"    username: username,\r",
+									"    password: password\r",
+									"};\r",
+									"\r",
+									"const requestOptions = {\r",
+									"    url: loginUrl,\r",
+									"    method: \"POST\",\r",
+									"    header: {\r",
+									"        \"Content-Type\": \"application/json\"\r",
+									"    },\r",
+									"    body: JSON.stringify(payload)\r",
+									"};\r",
+									"\r",
+									"// Esegui la richiesta di login\r",
+									"pm.sendRequest(requestOptions, function (err, res) {\r",
+									"    if (err) {\r",
+									"        console.error(\"Errore durante il login:\", err);\r",
+									"        return;\r",
+									"    }\r",
+									"\r",
+									"    // Salva il token nelle variabili di ambiente se esiste\r",
+									"    const responseJson = res.json();\r",
+									"    if (responseJson.session_token) {\r",
+									"        pm.environment.set(\"session_token\", responseJson.session_token);\r",
+									"        console.log(\"Token salvato:\", responseJson.session_token);\r",
+									"    } else {\r",
+									"        console.warn(\"Login fallito: Nessun token trovato nella risposta.\");\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						}
 					],
 					"id": "a288f4f8-16d9-4492-9a06-9873f22f9b97",
@@ -2386,7 +2433,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/auction/get_gacha_auctions?gacha_id=999999999",
+							"raw": "{{base_url}}/auction/get_gacha_auctions?gacha_id=99999",
 							"host": [
 								"{{base_url}}"
 							],
@@ -2397,7 +2444,7 @@
 							"query": [
 								{
 									"key": "gacha_id",
-									"value": "999999999"
+									"value": "99999"
 								}
 							]
 						}
