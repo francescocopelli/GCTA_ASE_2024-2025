@@ -2061,53 +2061,6 @@
 					"response": []
 				},
 				{
-					"name": "Get User Transactions",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
-									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"No transactions found for the user\");\r",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"id": "e9fa07a7-d802-467b-a6a4-046f4a2b0f2e"
-							}
-						}
-					],
-					"id": "ecf437b3-eb74-4800-a8a0-75d2d7330304",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/transaction/get_user_transactions?user_id=9999999999",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"transaction",
-								"get_user_transactions"
-							],
-							"query": [
-								{
-									"key": "user_id",
-									"value": "9999999999"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Get One Gacha",
 					"event": [
 						{
@@ -2298,14 +2251,14 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "e3b5300d-fd96-476d-8634-1bb74d2dc09b",
 								"exec": [
 									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
 									"  pm.expect(pm.response.text()).to.include(\"Gacha is locked or does not exist\");\r",
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "e3b5300d-fd96-476d-8634-1bb74d2dc09b"
+								"packages": {}
 							}
 						}
 					],
@@ -2315,7 +2268,14 @@
 					},
 					"request": {
 						"auth": {
-							"type": "noauth"
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
 						},
 						"method": "POST",
 						"header": [
