@@ -1643,8 +1643,8 @@
 									"\r",
 									"pm.test(\"Error message is provided\", function () {\r",
 									"    const response = pm.response.json();\r",
-									"    pm.expect(response.message).to.exist;\r",
-									"    pm.expect(response.message).to.include(\"Invalid email address\");\r",
+									"    pm.expect(response.error).to.exist;\r",
+									"    pm.expect(response.error).to.include(\"Invalid email address\");\r",
 									"});\r",
 									""
 								],
