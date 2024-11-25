@@ -2387,14 +2387,14 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "10376825-5f59-4e08-a612-b70018c2fcf5",
 								"exec": [
 									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
 									"  pm.expect(pm.response.text()).to.include(\"No auctions found for the gacha\");\r",
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "10376825-5f59-4e08-a612-b70018c2fcf5"
+								"packages": {}
 							}
 						}
 					],
@@ -2403,16 +2403,25 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/auction//get_gacha_auctions?gacha_id=999999999",
+							"raw": "{{base_url}}/auction/get_gacha_auctions?gacha_id=999999999",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"auction",
-								"",
 								"get_gacha_auctions"
 							],
 							"query": [
@@ -2480,7 +2489,7 @@
 									"    // Salva il token (se esiste) nelle variabili di ambiente/globale\r",
 									"    const responseJson = res.json();\r",
 									"    if (responseJson.token) {\r",
-									"      pm.environment.set(\"session_token\", responseJson.token);\r",
+									"      pm.environment.set(\"auth_token\", responseJson.token);\r",
 									"    } else {\r",
 									"      console.warn(\"Nessun token trovato nella risposta.\");\r",
 									"    }\r",
