@@ -1,7 +1,7 @@
 import logging
 import os
+import sqlite3
 from datetime import datetime, timedelta
-from functools import wraps
 
 import jwt
 import requests
@@ -17,9 +17,95 @@ dbm_url = "http://db-manager:5000"
 admin_url = "http://user_admin:5000"
 # mancano admin e player authentication
 
+import time
+from threading import Lock
+from functools import wraps
+
+# Constants
+DB_ERROR_THRESHOLD = 5
+COOLDOWN_PERIOD = 20  # In seconds
+
+
+class CircuitBreaker:
+    def __init__(self, error_threshold, cooldown_period):
+        self.error_threshold = error_threshold
+        self.cooldown_period = cooldown_period
+        self.failure_count = 0
+        self.last_failure_time = None
+        self.is_open = False
+        self.lock = Lock()
+
+    def reset(self):
+        """Reset the circuit breaker state."""
+        self.failure_count = 0
+        self.is_open = False
+        self.last_failure_time = None
+
+    def trip(self):
+        """Trip the circuit breaker."""
+        self.is_open = True
+        self.last_failure_time = time.time()
+
+    def check_state(self):
+        """Check if the circuit breaker should be reset based on cooldown."""
+        if self.is_open:
+            elapsed_time = time.time() - self.last_failure_time
+            if elapsed_time > self.cooldown_period:
+                self.reset()
+
+
+# Instantiate the circuit breaker
+circuit_breaker = CircuitBreaker(DB_ERROR_THRESHOLD, COOLDOWN_PERIOD)
+
+
+# Circuit breaker decorator
+def circuit_breaker_decorator(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        with circuit_breaker.lock:
+            circuit_breaker.check_state()
+            if circuit_breaker.is_open:
+                logging.error("Circuit breaker is open. Rejecting the request.")
+                return jsonify({"error": "Database is temporarily unavailable"}), 503
+
+        # Execute the function
+        try:
+            result = func(*args, **kwargs)
+            try:
+                if result[1] >= 200:
+                    circuit_breaker.reset()
+            except:
+                None
+            return result
+
+        except sqlite3.Error as e:
+            with circuit_breaker.lock:
+                circuit_breaker.failure_count += 1
+                logging.error(f"Database error: {e}")
+                if circuit_breaker.failure_count >= circuit_breaker.error_threshold:
+                    circuit_breaker.trip()
+                    logging.critical("Circuit breaker tripped due to repeated database failures.")
+            return jsonify({"error": "Database error occurred"}), 500
+
+        except Exception as e:
+            with circuit_breaker.lock:
+                circuit_breaker.failure_count += 1
+                logging.error(f"Unexpected error: {e}")
+                if circuit_breaker.failure_count >= circuit_breaker.error_threshold:
+                    circuit_breaker.trip()
+                    logging.critical("Circuit breaker tripped due to repeated errors.")
+            return jsonify({"error": "An unexpected error occurred"}), 500
+
+    return wrapper
+
+
 # make a function that take json data and return a response
+@circuit_breaker_decorator
 def send_response(message, status_code):
+    if status_code == 500:
+        raise Exception(message)
     return jsonify(message), status_code
+
 
 
 def is_system_call(token):
