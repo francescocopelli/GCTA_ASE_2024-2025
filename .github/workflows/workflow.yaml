@@ -69,8 +69,8 @@ jobs:
           curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
       - name: Login to Postman CLI
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
-      - name: Sleep for 15 seconds
-        run: sleep 15
+      - name: Sleep for 5 seconds
+        run: sleep 5
       - name: Run API tests
         run: |
           postman collection run "${{ github.workspace }}/postman/collections/GCTA Tests.json" -e "39570797-6ed4f213-c7dd-4d9d-ad28-a5089e5c7de4"
