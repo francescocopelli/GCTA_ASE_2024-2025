@@ -11,10 +11,10 @@ app = Flask(__name__)
 print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 DATABASE = "./auction.db/auction.db"
-gacha_url = "https://gacha:5000"
-user_url = "https://user_player:5000"
-transaction_url = "https://transaction:5000"
-admin_url = "https://user_admin:5000"
+gacha_url = "http://gacha:5000"
+user_url = "http://user_player:5000"
+transaction_url = "http://transaction:5000"
+admin_url = "http://user_admin:5000"
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -92,7 +92,7 @@ def get_all_auctions():
 @app.route("/all_active", methods=["GET"])
 @login_required_void
 def get_all_auctions_restricted():
-    req = requests.get("https://localhost:5000/all?status=active", verify=False, timeout=3, headers=generate_session_token_system())
+    req = requests.get("http://localhost:5000/all?status=active", verify=False, timeout=3, headers=generate_session_token_system())
     return send_response(req.json(), req.status_code)
 
 
@@ -500,7 +500,7 @@ def all_my_auction(user):
     user_id = user["user_id"]
     if jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])['user_type'] == "ADMIN":
         return send_response({"error": "Admins don't have auctions"}, 403)
-    req = requests.get("https://localhost:5000/get_auction?user_id=" + str(user_id),verify=False, timeout=3, 
+    req = requests.get("http://localhost:5000/get_auction?user_id=" + str(user_id),verify=False, timeout=3, 
                        headers=generate_session_token_system())
     return send_response(req.json(), req.status_code)
 
