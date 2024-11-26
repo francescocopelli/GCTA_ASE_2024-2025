@@ -3,7 +3,7 @@ name: CI Pipeline
 on:
   push:
     branches:
-      - main
+      - https
 
 jobs:
   build_and_test:
@@ -11,6 +11,21 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
+
+      - name: Set custom workspace for https branch
+        if: ${{ github.ref_name == 'https' }}
+        run: |
+          CUSTOM_WORKSPACE="/tmp/https_branch_workspace"
+          mkdir -p $CUSTOM_WORKSPACE
+          cp -r $GITHUB_WORKSPACE/* $CUSTOM_WORKSPACE/
+          export GITHUB_WORKSPACE=$CUSTOM_WORKSPACE
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+
+      - name: Verify custom workspace
+        run: |
+          echo "Using workspace: $GITHUB_WORKSPACE"
+          ls -al $GITHUB_WORKSPACE
 
       - name: Set up Docker
         uses: docker/setup-buildx-action@v2
@@ -42,38 +57,36 @@ jobs:
           done
           echo "Service is ready!"
 
-
-      - name: Run Docker logs 
+      - name: Run Docker logs
         run: |
           echo "Checking dbm logs:" 
           docker logs gcta_ase_2024-2025_db-manager_1 > db_manager_logs.txt 
           docker logs gcta_ase_2024-2025_user_player_1 > user_player_logs.txt 
           docker logs gcta_ase_2024-2025_user_player_auth_1 > user_player_auth_logs.txt 
 
-      - name: Upload log files 
+      - name: Upload log files
         uses: actions/upload-artifact@v4
-        with: 
-          name: docker-logs 
+        with:
+          name: docker-logs
           path: |
             db_manager_logs.txt
             user_player_logs.txt
             user_player_auth_logs.txt
 
-      # - name: Install newman
-      #   run: npm install -g newman
-
-      # - name: Automated API tests using Postman CLI
-      #     - uses: actions/checkout@v4
       - name: Install Postman CLI
         run: |
           curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+
       - name: Login to Postman CLI
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+
       - name: Sleep for 10 seconds
         run: sleep 10
+
       - name: Run API tests
         run: |
-          postman collection run "${{ github.workspace }}/postman/collections/GCTA Tests.json" -e "39570797-6ed4f213-c7dd-4d9d-ad28-a5089e5c7de4" --integration-id "171433-${{ github.run_id }}"
+          postman collection run "${GITHUB_WORKSPACE}/postman/collections/GCTA Tests.json" -e "39572674-595d61b8-a2f9-4c18-a8a3-5ac4a64987fe" --integration-id "171433-${{ github.run_id }}" --insecure
+
       - name: Stop Docker services
         if: always()
         run: docker-compose down

@@ -2,7 +2,7 @@ services:
   gateway_user:
     build: ./services/player_gateway
     ports:
-      - 8080:80
+      - 8080:443
     depends_on:
       - user_admin
       - user_admin_auth
@@ -16,7 +16,7 @@ services:
   gateway_admin:
     build: ./services/admin_gateway
     ports:
-      - 8081:80
+      - 8081:443
     depends_on:
       - user_admin
       - user_admin_auth
