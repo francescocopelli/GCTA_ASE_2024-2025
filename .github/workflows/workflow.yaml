@@ -3,7 +3,7 @@ name: CI Pipeline
 on:
   push:
     branches:
-      - https
+      - test-locust-pt2
 
 jobs:
   build_and_test:
