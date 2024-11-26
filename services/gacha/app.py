@@ -372,17 +372,10 @@ def get_gacha_item(gacha_id):
 @token_required_void
 def get_user_gacha_item(user_id, gacha_id):
     logging.debug("User ID: %s", user_id)
-    logging.debug("JWT Dec User ID: %s", jwt.decode(request.headers.get("Authorization").split(" ")[1], app.config['SECRET_KEY'],
-                                                    algorithms=["HS256"])['user_id'])
-    if jwt.decode(request.headers.get("Authorization").split(" ")[1], app.config['SECRET_KEY'],
-                  algorithms=["HS256"])['user_type'] == 'PLAYER' and str(jwt.decode(
-        request.headers.get("Authorization").split(" ")[1], app.config['SECRET_KEY'], algorithms=["HS256"])['user_id']) != str(user_id):
+    token_user = jwt.decode(request.headers.get("Authorization").split(" ")[1], app.config['SECRET_KEY'],algorithms=["HS256"])
+    logging.debug("JWT Dec User ID: %s", token_user['user_id'])
+    if token_user['user_type'] == 'PLAYER' and str(token_user['user_id']) != str(user_id):
         return send_response({'error': 'You are not authorized to view this page'}, 403)
-    res = requests.get('http://user_player:5000/get_user/' + str(user_id),  timeout=60, headers=generate_session_token_system())
-    if res.status_code != 200:
-        logging.debug("User not found: user_id=%s", user_id)
-        return send_response({'error': 'User not found'}, 404)
-
     # Connect to the database
     try:
         conn = get_db_connection()
