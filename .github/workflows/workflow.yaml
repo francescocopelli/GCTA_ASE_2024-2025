@@ -85,7 +85,7 @@ jobs:
 
       - name: Run API tests
         run: |
-          postman collection run "${GITHUB_WORKSPACE}/postman/collections/GCTA Tests.json" -e "39570797-6ed4f213-c7dd-4d9d-ad28-a5089e5c7de4" --integration-id "171433-${{ github.run_id }}" --insecure
+          postman collection run "${GITHUB_WORKSPACE}/postman/collections/GCTA Tests.json" -e "39572674-595d61b8-a2f9-4c18-a8a3-5ac4a64987fe" --integration-id "171433-${{ github.run_id }}" --insecure
 
       - name: Stop Docker services
         if: always()
