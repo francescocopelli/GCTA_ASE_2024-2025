@@ -159,12 +159,12 @@ def roll_gacha(user):
         cursor.execute("SELECT * FROM GachaItems WHERE status = 'available' ORDER BY RANDOM() LIMIT 1")
         gacha_item = cursor.fetchone()
 
-    # Add the gacha item to the user's inventory
-    response = requests.post('https://gacha:5000/inventory/add', headers=generate_session_token_system(), timeout=3, 
-                             json={'user_id': user_id, 'gacha_id': gacha_item['gacha_id']},verify=False)
-    if response.status_code != 201:
-        logging.debug("Failed to add gacha item to inventory: user_id=%s, gacha_id=%s", user_id, gacha_item['gacha_id'])
-        return send_response({'error': 'Failed to add gacha item to inventory'}, 500)
+        # Add the gacha item to the user's inventory
+        response = requests.post('https://gacha:5000/inventory/add', headers=generate_session_token_system(), timeout=3, 
+                                json={'user_id': user_id, 'gacha_id': gacha_item['gacha_id']},verify=False)
+        if response.status_code != 201:
+            logging.debug("Failed to add gacha item to inventory: user_id=%s, gacha_id=%s", user_id, gacha_item['gacha_id'])
+            return send_response({'error': 'Failed to add gacha item to inventory'}, 500)
 
         if not gacha_item:
             logging.debug("Failed to perform gacha roll")
@@ -172,13 +172,13 @@ def roll_gacha(user):
 
         # Add the gacha item to the user's inventory
         response = requests.post('https://gacha:5000/inventory/add', headers=generate_session_token_system(), timeout=60,
-                                 json={'user_id': user_id, 'gacha_id': gacha_item['gacha_id']})
+                                    json={'user_id': user_id, 'gacha_id': gacha_item['gacha_id']})
         if response.status_code != 201:
             logging.debug("Failed to add gacha item to inventory: user_id=%s, gacha_id=%s", user_id, gacha_item['gacha_id'])
             return send_response({'error': 'Failed to add gacha item to inventory'}, 500)
 
         logging.debug("Gacha roll successful: user_id=%s, gacha_id=%s, name=%s, rarity=%s", user_id, gacha_item['gacha_id'],
-                      gacha_item['name'], gacha_item['rarity'])
+                        gacha_item['name'], gacha_item['rarity'])
         return send_response({
             'message': 'Gacha roll successful',
             'gacha_id': gacha_item['gacha_id'],
