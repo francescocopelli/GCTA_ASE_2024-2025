@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import jwt
 import requests
 from flask import request, abort, jsonify, current_app
- 
+
 SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
 logging.basicConfig(level=logging.DEBUG)
 
