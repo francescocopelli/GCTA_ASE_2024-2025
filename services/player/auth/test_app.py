@@ -2,7 +2,8 @@ from locust import HttpUser, TaskSet, task, between
 import random,string
 def create_header(token):
     return {"Authorization": f"Bearer {token}"}
-    
+
+from shared.auth_middleware import *
 def gen():
     alph=string.ascii_letters+string.digits
     return ''.join(random.choice(alph) for i in range(random.randint(5,32)))
@@ -12,7 +13,7 @@ class UserAuthBehavior(TaskSet):
     valid_session_token=None
     @task
     def login_success(self):
-        response = self.client.post('/login', json={
+        response = self.client.post(f'{user_auth}/login', json={
             "username": "provando",
             "password": "prova"
         })
@@ -24,7 +25,7 @@ class UserAuthBehavior(TaskSet):
         
     @task
     def login_failure(self):
-        with self.client.post('/login', json={
+        with self.client.post(f'{user_auth}/login', json={
             "username": "wronguser",
             "password": "wrongpassword"
         },catch_response=True) as response:
@@ -41,7 +42,7 @@ class UserAuthBehavior(TaskSet):
         print(f'username: {random_username} password: {random_password}')
         random_email=random_username+f"@{random_username[:4]}.com"
         print(f'email: {random_email}')
-        response = self.client.post('/register', data={
+        response = self.client.post(f'{user_auth}/register', data={
 
             "username": random_username,
             "password": random_password,
@@ -51,14 +52,15 @@ class UserAuthBehavior(TaskSet):
         print(response.status_code)
         assert response.status_code == 200
         assert response.json()["message"] == "PLAYER registered successfully"
-        response = self.client.post('/login', json={
+        response = self.client.post(f'{user_auth}/login', json={
             "username": random_username,
             "password": random_password
         })
         assert response.status_code == 200
         assert response.json()["message"] == "Login successful"
-        response = self.client.delete('/logout', headers=create_header(response.json()["session_token"]))
+        response = self.client.delete(f'{user_auth}/logout', headers=create_header(response.json()["session_token"]))
         assert response.status_code == 200
+
     '''
     
     

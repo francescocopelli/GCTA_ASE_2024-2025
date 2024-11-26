@@ -11,7 +11,7 @@ app.config['SECRET_KEY'] = SECRET_KEY
 @admin_required
 def logout():
     url = f"http://db-manager:5000/logout"
-    response = requests.delete(url,  timeout=3, headers=request.headers)
+    response = requests.delete(url,  timeout=60, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
 
@@ -24,7 +24,7 @@ def login():
         "username": username,
         "password": password
     }
-    response = requests.post(url,  timeout=3, json=data)
+    response = requests.post(url,  timeout=60, json=data)
     return send_response(response.json(), response.status_code)
 
 
@@ -40,7 +40,7 @@ def register():
         "password": password,
         "email": email
     }
-    response = requests.post(url,  timeout=3, data=data)
+    response = requests.post(url,  timeout=60, data=data)
     return send_response(response.json(), response.status_code)
 
 
