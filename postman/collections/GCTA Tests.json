@@ -1851,6 +1851,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "fde128d0-db44-45a2-bf0e-d8b7c28d525f",
 								"exec": [
 									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
 									"    const response = pm.response.json();\r",
@@ -1864,8 +1865,9 @@
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "0f6668d6-fcad-4dd0-8502-97456526ac65",
 								"exec": [
-									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"const loginUrl = pm.environment.get('base_url')+\"/users/auth/login\";\r",
 									"\r",
 									"// Recupera le credenziali dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",
@@ -2234,6 +2236,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "1d8dcfe4-f1d2-47f7-987e-63b1fbfa254e",
 								"exec": [
 									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
 									"  pm.expect(pm.response.text()).to.include(\"No auctions found for the gacha\");\r",
@@ -2246,8 +2249,9 @@
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "2505dce1-0e71-4dea-837c-7a1bf8487611",
 								"exec": [
-									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"const loginUrl = pm.environment.get('base_url')+\"/users/auth/login\";\r",
 									"\r",
 									"// Recupera le credenziali dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",
@@ -2332,6 +2336,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "fd0fb973-697b-4853-9f69-79b3d5c6f283",
 								"exec": [
 									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
 									"  pm.expect(pm.response.text()).to.include(\"Auction not found or already ended\");\r",
@@ -2344,8 +2349,9 @@
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "7dda5519-993a-4269-9eaa-33bd4d31c14c",
 								"exec": [
-									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"const loginUrl = pm.environment.get('base_url')+\"/users/auth/login\";\r",
 									"\r",
 									"// Recupera le credenziali dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",
