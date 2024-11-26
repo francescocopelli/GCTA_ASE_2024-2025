@@ -15,9 +15,9 @@ jobs:
       - name: Set custom workspace for https branch
         if: ${{ github.ref_name == 'https' }}
         run: |
-          export CUSTOM_WORKSPACE="${{ github.workspace }}/https_branch_workspace"
+          CUSTOM_WORKSPACE="/tmp/https_branch_workspace"
           mkdir -p $CUSTOM_WORKSPACE
-          mv $GITHUB_WORKSPACE/* $CUSTOM_WORKSPACE/
+          cp -r $GITHUB_WORKSPACE/* $CUSTOM_WORKSPACE/
           export GITHUB_WORKSPACE=$CUSTOM_WORKSPACE
         env:
           GITHUB_WORKSPACE: ${{ github.workspace }}
