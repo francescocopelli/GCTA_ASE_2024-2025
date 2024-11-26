@@ -10,8 +10,8 @@ app.config['SECRET_KEY'] = SECRET_KEY
 @app.route('/logout', methods=['DELETE'])
 @admin_required
 def logout():
-    url = f"https://db-manager:5000/logout"
-    response = requests.delete(url,  timeout=3, headers=request.headers,verify=False)
+    url = f"http://db-manager:5000/logout"
+    response = requests.delete(url,  timeout=60, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
 
@@ -19,12 +19,12 @@ def logout():
 def login():
     username = request.json['username']
     password = request.json['password']
-    url = f"https://db-manager:5000/login/ADMIN"
+    url = f"http://db-manager:5000/login/ADMIN"
     data = {
         "username": username,
         "password": password
     }
-    response = requests.post(url,  timeout=3, json=data,verify=False)
+    response = requests.post(url,  timeout=60, json=data)
     return send_response(response.json(), response.status_code)
 
 
@@ -34,13 +34,13 @@ def register():
     username = request.form.get('username')
     password = request.form.get('password')
     email = request.form.get('email')
-    url = f"https://db-manager:5000/register/ADMIN"
+    url = f"http://db-manager:5000/register/ADMIN"
     data = {
         "username": username,
         "password": password,
         "email": email
     }
-    response = requests.post(url,  timeout=3, data=data,verify=False)
+    response = requests.post(url,  timeout=60, data=data)
     return send_response(response.json(), response.status_code)
 
 

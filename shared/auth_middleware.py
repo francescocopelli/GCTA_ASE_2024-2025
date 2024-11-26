@@ -10,11 +10,11 @@ from flask import request, abort, jsonify, current_app
 SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
 logging.basicConfig(level=logging.DEBUG)
 
-transaction_url = "https://transaction:5000"
-user_url = "https://user_player:5000"
-gacha_url = "https://gacha:5000"
-dbm_url = "https://db-manager:5000"
-admin_url = "https://user_admin:5000"
+transaction_url = "http://transaction:5000"
+user_url = "http://user_player:5000"
+gacha_url = "http://gacha:5000"
+dbm_url = "http://db-manager:5000"
+admin_url = "http://user_admin:5000"
 # mancano admin e player authentication
 
 import time
@@ -159,8 +159,9 @@ def _f(require_return, f, *args, **kwargs):
 
         if not (token_is_valid(data["expiration"])):
             abort(401, "Token expired!")
-        rst = requests.get(f"{dbm_url}/get_user/{data['user_type']}/{data['user_id']}", timeout=3, 
-                           headers=generate_session_token_system(),verify=False)
+
+        rst = requests.get(f"{dbm_url}/get_user/{data['user_type']}/{data['user_id']}", timeout=60, 
+                           headers=generate_session_token_system())
         current_user = rst.json()
 
         if current_user is None:
@@ -237,8 +238,8 @@ def admin_required(f):
             # user_id = int(data["user_id"]) if not type(data["user_id"]) == int else data["user_id"]
             user_id = data["user_id"]
             logging.info(f"User id: {user_id}")
-            rst = requests.get(f"{dbm_url}/get_user/ADMIN/{user_id}", timeout=3, 
-                               headers=generate_session_token_system(),verify=False)
+            rst = requests.get(f"{dbm_url}/get_user/ADMIN/{user_id}", timeout=60, 
+                               headers=generate_session_token_system())
 
             current_user = rst.json()
             logging.info(f"Response: {current_user}")
