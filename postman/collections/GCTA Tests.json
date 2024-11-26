@@ -2728,7 +2728,7 @@
 								"exec": [
 									"// Generate random values for the gacha request\r",
 									"const randomName = 'gacha_' + Math.random().toString(36).substring(2, 8); // Random name\r",
-									"const rarities = [\"common\", \"rare\", \"epic\", \"legendary\"]; // Example rarities\r",
+									"const rarities = [\"common\", \"rare\", \"epic\"]; // Example rarities\r",
 									"const randomRarity = rarities[Math.floor(Math.random() * rarities.length)]; // Random rarity\r",
 									"const statuses = [\"available\", \"unavailable\"]; // Example statuses\r",
 									"const randomStatus = statuses[Math.floor(Math.random() * statuses.length)]; // Random status\r",
