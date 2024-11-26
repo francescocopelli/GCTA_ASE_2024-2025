@@ -72,20 +72,26 @@ def add_transaction():
     elif "top_up" in data['type']:
         transaction_type = "top_up"
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO TRANSACTIONS (transaction_id, user_id, transaction_type, amount) VALUES (?, ?, ?, ?)",
-        (transaction_id, str(data["user_id"]), transaction_type, data["amount"]),
-    )
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO TRANSACTIONS (transaction_id, user_id, transaction_type, amount) VALUES (?, ?, ?, ?)",
+            (transaction_id, str(data["user_id"]), transaction_type, data["amount"]),
+        )
 
-    # Log the derived transaction type
-    logging.debug(f"Derived transaction type: {transaction_type}")
-    conn.commit()
-    conn.close()
-    if cursor.rowcount == 0:
-        return send_response({"error": "Failed to add transaction"}, 500)
-    return send_response({"message": "Transaction added successfully"}, 200)
+        # Log the derived transaction type
+        logging.debug(f"Derived transaction type: {transaction_type}")
+        conn.commit()
+        if cursor.rowcount == 0:
+            return send_response({"error": "Failed to add transaction"}, 500)
+        return send_response({"message": "Transaction added successfully"}, 200)
+    except Exception as e:
+        return manage_errors(e)
+    finally:
+        for elem in [cursor, conn]:
+            if elem:
+                elem.close()
 
 
 @app.route("/get_transaction", methods=["GET"])
@@ -109,18 +115,24 @@ def get_transaction():
     transaction_id = request.args.get("transaction_id")
     if not transaction_id:
         return send_response({"error": "Missing transaction_id parameter"}, 400)
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM TRANSACTIONS WHERE transaction_id = ?", (transaction_id,)
+        )
+        transaction = cursor.fetchone()
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT * FROM TRANSACTIONS WHERE transaction_id = ?", (transaction_id,)
-    )
-    transaction = cursor.fetchone()
-    conn.close()
+        if transaction:
+            return send_response(dict(transaction), 200)
+        return send_response({"error": "Transaction not found"}, 404)
 
-    if transaction:
-        return send_response(dict(transaction), 200)
-    return send_response({"error": "Transaction not found"}, 404)
+    except Exception as e:
+        return manage_errors(e)
+    finally:
+        for elem in [cursor, conn]:
+            if elem:
+                elem.close()
 
 
 @app.route("/get_user_transactions", methods=["GET"])
@@ -157,17 +169,23 @@ def get_user_transactions(user_id):
     """
     if not user_id:
         return send_response({"error": "Missing user_id parameter"}, 400)
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM TRANSACTIONS WHERE user_id = ?", (user_id,))
+        transactions = cursor.fetchall()
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM TRANSACTIONS WHERE user_id = ?", (user_id,))
-    transactions = cursor.fetchall()
-    conn.close()
 
-    if transactions:
-        return send_response([dict(transaction) for transaction in transactions], 200)
-    return send_response({"error": "No transactions found for the user"}, 404)
+        if transactions:
+            return send_response([dict(transaction) for transaction in transactions], 200)
+        return send_response({"error": "No transactions found for the user"}, 404)
 
+    except Exception as e:
+        return manage_errors(e)
+    finally:
+        for elem in [cursor, conn]:
+            if elem:
+                elem.close()
 
 @app.get("/all")
 @login_required_void
@@ -182,17 +200,25 @@ def get_all_transactions():
     Returns:
         Response: A JSON response containing all transactions in the database with a 200 status code.
     """
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    if not is_admin:
-        cursor.execute("SELECT * FROM TRANSACTIONS WHERE user_id = ?", (str(user['user_id']),))
-    else:
-        cursor.execute("SELECT * FROM TRANSACTIONS")
-    transactions = cursor.fetchall()
-    conn.close()
-    if not transactions:
-        return send_response({"error": "No transactions found"}, 404)
-    return send_response([dict(transaction) for transaction in transactions], 200)
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        if not is_admin:
+            cursor.execute("SELECT * FROM TRANSACTIONS WHERE user_id = ?", (str(user['user_id']),))
+        else:
+            cursor.execute("SELECT * FROM TRANSACTIONS")
+        transactions = cursor.fetchall()
+
+        if not transactions:
+            return send_response({"error": "No transactions found"}, 404)
+        return send_response([dict(transaction) for transaction in transactions], 200)
+
+    except Exception as e:
+        return manage_errors(e)
+    finally:
+        for elem in [cursor, conn]:
+            if elem:
+                elem.close()
 
 if __name__ == "__main__":
     app.run()
