@@ -1,5 +1,9 @@
 from locust import HttpUser, TaskSet, task, between
 import random,string
+
+from locustfile import user_auth
+
+
 def create_header(token):
     return {"Authorization": f"Bearer {token}"}
 
