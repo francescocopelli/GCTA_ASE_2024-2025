@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "0f2aa2d1-5a19-4b88-9ccb-9510721199cf",
+		"_postman_id": "1da71a4f-3078-42d3-93f5-9c914431fab2",
 		"name": "GCTA Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "39567640",
-		"_collection_link": "https://gcta11.postman.co/workspace/GCTA~e4883204-fa99-45fc-8245-f67cc6533c3b/collection/39567640-0f2aa2d1-5a19-4b88-9ccb-9510721199cf?action=share&source=collection_link&creator=39567640"
+		"_collection_link": "https://gcta11.postman.co/workspace/GCTA~e4883204-fa99-45fc-8245-f67cc6533c3b/collection/39567640-1da71a4f-3078-42d3-93f5-9c914431fab2?action=share&source=collection_link&creator=39567640"
 	},
 	"item": [
 		{
@@ -1034,6 +1034,13 @@
 									"pm.test(\"Response schema matches the expected schema\", function () {\r",
 									"    const responseData = pm.response.json();\r",
 									"    pm.expect(responseData).to.have.property('auction_id');\r",
+									"    if (responseData.auction_id){\r",
+									"        pm.environment.set(\"auction_id\",responseData.auction_id);\r",
+									"        console.log(\"setting auction_id: \"+responseData.auction_id);\r",
+									"    }\r",
+									"    else\r",
+									"        console.log(\"auction_id not found\");\r",
+									"\r",
 									"\r",
 									"});\r",
 									""
@@ -2575,7 +2582,7 @@
 								"exec": [
 									"// Generate random values for the gacha request\r",
 									"const randomName = 'gacha_' + Math.random().toString(36).substring(2, 8); // Random name\r",
-									"const rarities = [\"common\", \"rare\", \"epic\", \"legendary\"]; // Example rarities\r",
+									"const rarities = [\"common\", \"rare\", \"epic\"]; // Example rarities\r",
 									"const randomRarity = rarities[Math.floor(Math.random() * rarities.length)]; // Random rarity\r",
 									"const statuses = [\"available\", \"unavailable\"]; // Example statuses\r",
 									"const randomStatus = statuses[Math.floor(Math.random() * statuses.length)]; // Random status\r",
