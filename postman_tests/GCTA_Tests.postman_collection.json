@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "63d9f12e-ca2d-46cd-ad4a-fc08ecba1338",
+		"_postman_id": "0f2aa2d1-5a19-4b88-9ccb-9510721199cf",
 		"name": "GCTA Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "39567640",
-		"_collection_link": "https://gcta11.postman.co/workspace/GCTA~e4883204-fa99-45fc-8245-f67cc6533c3b/collection/39567640-63d9f12e-ca2d-46cd-ad4a-fc08ecba1338?action=share&source=collection_link&creator=39567640"
+		"_collection_link": "https://gcta11.postman.co/workspace/GCTA~e4883204-fa99-45fc-8245-f67cc6533c3b/collection/39567640-0f2aa2d1-5a19-4b88-9ccb-9510721199cf?action=share&source=collection_link&creator=39567640"
 	},
 	"item": [
 		{
@@ -1776,7 +1776,7 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"const loginUrl = pm.environment.get('base_url')+\"/users/auth/login\";\r",
 									"\r",
 									"// Recupera le credenziali dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",
@@ -2137,7 +2137,7 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"const loginUrl = pm.environment.get('base_url')+\"/users/auth/login\";\r",
 									"\r",
 									"// Recupera le credenziali dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",
@@ -2231,7 +2231,7 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"const loginUrl = pm.environment.get('base_url')+\"/users/auth/login\";\r",
 									"\r",
 									"// Recupera le credenziali dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",
