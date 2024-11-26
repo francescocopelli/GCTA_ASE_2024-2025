@@ -65,6 +65,7 @@ def get_all_auctions():
             cursor.execute("SELECT * FROM Auctions")
 
         auctions = cursor.fetchall()
+        conn.close()
 
         # Format the auctions for JSON response
         result = [dict(auction) for auction in auctions]
@@ -74,20 +75,24 @@ def get_all_auctions():
             auction['end_time'] = datetime.fromtimestamp(float(auction['end_time'])).strftime('%Y-%m-%d %H:%M:%S')
 
         return send_response({"auctions": result}, 200)
+
+    except sqlite3.Error as e:
+        logging.error(f"Database error occurred: {e}")
+        return send_response({"error": "Database error occurred"}, 500)
+
     except Exception as e:
-        return manage_errors(e)
+        logging.error(f"Error occurred: {e}")
+        return send_response({"error": "An error occurred"}, 500)
+
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        if conn:
+            conn.close()
 
 
 @app.route("/all_active", methods=["GET"])
 @login_required_void
 def get_all_auctions_restricted():
-
     req = requests.get("https://localhost:5000/all?status=active",  timeout=3, headers=generate_session_token_system(),verify=False)
-
     return send_response(req.json(), req.status_code)
 
 
@@ -110,7 +115,7 @@ def is_gacha_unlocked(user_id, gacha_id):
 # Function to update gacha status
 def update_gacha_status(user_id, gacha_id, status):
     try:
-        response = requests.put(f"{gacha_url}/update_gacha_status", timeout=60, 
+        response = requests.put(f"{gacha_url}/update_gacha_status", timeout=3, 
                                 json={"user_id": user_id, "gacha_id": gacha_id, "status": status},
                                 headers=generate_session_token_system(),verify=False)
         response.raise_for_status()
@@ -127,7 +132,7 @@ def update_gacha_status(user_id, gacha_id, status):
 # Function to update gacha owner
 def update_gacha_owner(buyer_id, gacha_id, seller_id, status):
     try:
-        response = requests.put(f"{gacha_url}/update_gacha_owner", timeout=60, 
+        response = requests.put(f"{gacha_url}/update_gacha_owner", timeout=3, 
                                 json={"buyer_id": buyer_id, "seller_id": seller_id, "gacha_id": gacha_id,
                                       "status": status}, headers=generate_session_token_system(),verify=False)
         response.raise_for_status()
@@ -144,7 +149,7 @@ def update_gacha_owner(buyer_id, gacha_id, seller_id, status):
 # Function to create a transaction
 def create_transaction(user_id, amount, transaction_type):
     try:
-        response = requests.post(f"{transaction_url}/add_transaction", timeout=60, 
+        response = requests.post(f"{transaction_url}/add_transaction", timeout=3, 
                                  json={"user_id": user_id, "amount": amount, "type": transaction_type},
                                  headers=generate_session_token_system(),verify=False)
         response.raise_for_status()
@@ -238,13 +243,12 @@ def add_auction():
         else:
             logging.error("Gacha is locked or does not exist")
             return send_response({"error": "Gacha is locked or does not exist"}, 404)
-
     except Exception as e:
-            return manage_errors(e)
+        logging.error(f"Error occurred while adding auction: {e}")
+        return send_response({"error": "An error occurred while adding auction"}, 500)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        if conn:
+            conn.close()
 
 
 # write a function that checks if the auction has ended and if it has, update the status to expired
@@ -316,12 +320,14 @@ def check_auction_status():
         conn.commit()
         logging.debug("Auction status updated successfully")
         return send_response({"message": "Auction status updated successfully"}, 200)
+
     except Exception as e:
-        return manage_errors(e)
+        logging.error(f"Error occurred while checking auction status: {e}")
+        return send_response({"error": "An error occurred while checking auction status"}, 500)
+
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        if conn:
+            conn.close()
 
 
 # Endpoint to retrieve all auctions for a specific gacha
@@ -347,23 +353,22 @@ def get_gacha_auctions():
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM Auctions WHERE gacha_id = ?", (gacha_id,))
         auctions = cursor.fetchall()
-
-        if auctions:
-            logging.debug(f"Found {len(auctions)} auctions for gacha_id {gacha_id}")
-            res = [dict(auction) for auction in auctions]
-            for auction in res:
-                auction['end_time'] = datetime.fromtimestamp(float(auction['end_time'])).strftime('%Y-%m-%d %H:%M:%S')
-            return send_response(res, 200)
-        else:
-            logging.debug(f"No auctions found for gacha_id {gacha_id}")
-            return send_response({'error': 'No auctions found for the gacha'}, 404)
-
-    except Exception as e:
-        return manage_errors(e)
+    except sqlite3.Error as e:
+        logging.error(f"Database error occurred: {e}")
+        return send_response({'error': 'Database error occurred'}, 500)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        if conn:
+            conn.close()
+
+    if auctions:
+        logging.debug(f"Found {len(auctions)} auctions for gacha_id {gacha_id}")
+        res = [dict(auction) for auction in auctions]
+        for auction in res:
+            auction['end_time'] = datetime.fromtimestamp(float(auction['end_time'])).strftime('%Y-%m-%d %H:%M:%S')
+        return send_response(res, 200)
+    else:
+        logging.debug(f"No auctions found for gacha_id {gacha_id}")
+        return send_response({'error': 'No auctions found for the gacha'}, 404)
 
 
 # Functions for Bidding
@@ -434,12 +439,18 @@ def place_bid(user):
             return send_response({"error": "Failed to place bid"}, 409)
 
         return send_response({"message": "Bid placed successfully"}, 200)
+
+    except sqlite3.Error as e:
+        logging.error(f"Database error occurred: {e}")
+        return send_response({"error": "Database error occurred"}, 500)
+
     except Exception as e:
-        return manage_errors(e)
+        logging.error(f"Error occurred: {e}")
+        return send_response({"error": "An error occurred"}, 500)
+
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        if conn:
+            conn.close()
 
 
 # Endpoint to retrieve all bids for a specific auction
@@ -468,16 +479,19 @@ def get_bids():
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM Bids WHERE auction_id = ?", (auction_id,))
         bids = cursor.fetchall()
-        result = [dict(bid) for bid in bids]
-        logging.debug(f"Retrieved {len(result)} bids for auction_id {auction_id}")
-        return send_response({"bids": result}, 200)
-
+    except sqlite3.Error as e:
+        logging.error(f"Database error occurred: {e}")
+        return send_response({"error": "Database error occurred"}, 500)
     except Exception as e:
-        return manage_errors(e)
+        logging.error(f"Error occurred: {e}")
+        return send_response({"error": "An error occurred"}, 500)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        if conn:
+            conn.close()
+
+    result = [dict(bid) for bid in bids]
+    logging.debug(f"Retrieved {len(result)} bids for auction_id {auction_id}")
+    return send_response({"bids": result}, 200)
 
 
 @app.get("/my")
@@ -515,43 +529,55 @@ def get_auction():
     if not auction_id and not user_id:
         return send_response({"error": "Missing auction_id or user_id parameter"}, 400)
 
-    try:
-        if auction_id:
+    if auction_id:
+        try:
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM Auctions WHERE auction_id = ?", (auction_id,))
             auction = cursor.fetchone()
+        except sqlite3.Error as e:
+            logging.error(f"Database error occurred: {e}")
+            return send_response({"error": "Database error occurred"}, 500)
+        except Exception as e:
+            logging.error(f"Error occurred: {e}")
+            return send_response({"error": "An error occurred"}, 500)
+        finally:
+            if conn:
+                conn.close()
 
-            if not auction:
-                logging.error(f"No auction found for auction_id {auction_id}")
-                return send_response({"error": "No auction found"}, 404)
+        if not auction:
+            logging.error(f"No auction found for auction_id {auction_id}")
+            return send_response({"error": "No auction found"}, 404)
 
-            logging.debug(f"Retrieved auction information for auction_id {auction_id}")
-            res = dict(auction)
-            for a in res.keys():
-                if a == "end_time":
-                    res[a] = datetime.fromtimestamp(float(res[a])).strftime('%Y-%m-%d %H:%M:%S')
-            return send_response(res, 200)
-        elif user_id:
+        logging.debug(f"Retrieved auction information for auction_id {auction_id}")
+        res = dict(auction)
+        for a in res.keys():
+            if a == "end_time":
+                res[a] = datetime.fromtimestamp(float(res[a])).strftime('%Y-%m-%d %H:%M:%S')
+        return send_response(res, 200)
+    elif user_id:
+        try:
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM Auctions WHERE buyer_id = ? OR seller_id = ?", (user_id, user_id))
             auctions = cursor.fetchall()
+        except sqlite3.Error as e:
+            logging.error(f"Database error occurred: {e}")
+            return send_response({"error": "Database error occurred"}, 500)
+        except Exception as e:
+            logging.error(f"Error occurred: {e}")
+            return send_response({"error": "An error occurred"}, 500)
+        finally:
+            if conn:
+                conn.close()
 
-            result = [dict(auction) for auction in auctions]
-            for auction in result:
-                auction['end_time'] = datetime.fromtimestamp(float(auction['end_time'])).strftime('%Y-%m-%d %H:%M:%S')
-            logging.debug(f"Retrieved {len(result)} auctions for user_id {user_id}")
-            return send_response({"auctions": result}, 200)
-        else:
-            return send_response({"error": "Missing auction_id or user_id parameter"}, 400)
-
-    except Exception as e:
-        return manage_errors(e)
-    finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        result = [dict(auction) for auction in auctions]
+        for auction in result:
+            auction['end_time'] = datetime.fromtimestamp(float(auction['end_time'])).strftime('%Y-%m-%d %H:%M:%S')
+        logging.debug(f"Retrieved {len(result)} auctions for user_id {user_id}")
+        return send_response({"auctions": result}, 200)
+    else:
+        return send_response({"error": "Missing auction_id or user_id parameter"}, 400)
 
 
 @app.get("/highest_bid")
@@ -567,24 +593,18 @@ def get_highest_bid():
     """
     if not gacha_id:
         return send_response({"error": "Missing gacha_id parameter"}, 400)
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT auction_id,highest_bid,buyer_id FROM Auctions WHERE gacha_id = ?", (gacha_id,))
-        auction = cursor.fetchone()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT auction_id,highest_bid,buyer_id FROM Auctions WHERE gacha_id = ?", (gacha_id,))
+    auction = cursor.fetchone()
+    conn.close()
 
-        if auction:
-            return send_response(
-                {"auction": auction['auction_id'], "highest_bid": auction["highest_bid"], "buyer_id": auction["buyer_id"]},
-                200)
-        else:
-            return send_response({"error": "Auction not found"}, 404)
-    except Exception as e:
-        return manage_errors(e)
-    finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+    if auction:
+        return send_response(
+            {"auction": auction['auction_id'], "highest_bid": auction["highest_bid"], "buyer_id": auction["buyer_id"]},
+            200)
+    else:
+        return send_response({"error": "Auction not found"}, 404)
 
 
 @app.route("/update", methods=["PUT"])
@@ -601,50 +621,44 @@ def update_auction(user):
     auction_id = request.args.get("auction_id") or None
     if not auction_id:
         return send_response({"error": "Missing auction_id parameter"}, 400)
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM Auctions WHERE auction_id = ?", (auction_id,))
-        auction = cursor.fetchone()
 
-        if not auction:
-            return send_response({"error": "Auction not found"}, 404)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Auctions WHERE auction_id = ?", (auction_id,))
+    auction = cursor.fetchone()
 
-        if auction['seller_id'] != user["user_id"] and user["user_type"] == "PLAYER":
-            return send_response({"error": "You are not the seller of this auction"}, 403)
+    if not auction:
+        return send_response({"error": "Auction not found"}, 404)
 
-        if auction['status'] != 'active':
-            return send_response({"error": "Auction has finished"}, 400)
+    if auction['seller_id'] != user["user_id"] and user["user_type"] == "PLAYER":
+        return send_response({"error": "You are not the seller of this auction"}, 403)
 
-        data = request.get_json()
-        base_price = data.get("base_price") or auction["base_price"]
-        end_time = auction["end_time"]
+    if auction['status'] != 'active':
+        return send_response({"error": "Auction has finished"}, 400)
 
-        if data.get("end_time"):
-            end_time = (datetime.strptime(data.get("end_time"), "%Y-%m-%d %H:%M:%S") + timedelta(hours=1)).timestamp()
+    data = request.get_json()
+    base_price = data.get("base_price") or auction["base_price"]
+    end_time = auction["end_time"]
 
-        # Update the auction record with the new data
-        cursor.execute(
-            "UPDATE Auctions SET base_price = ?, end_time = ? WHERE auction_id = ?",
-            (
-                base_price,
-                end_time,
-                auction_id,
-            ),
-        )
-        conn.commit()
+    if data.get("end_time"):
+        end_time = (datetime.strptime(data.get("end_time"), "%Y-%m-%d %H:%M:%S") + timedelta(hours=1)).timestamp()
 
-        check_auction_status()
-        if not cursor.rowcount:
-            return send_response({"error": "Failed to update auction"}, 400)
-        return send_response({"message": "Auction updated successfully"}, 200)
+    # Update the auction record with the new data
+    cursor.execute(
+        "UPDATE Auctions SET base_price = ?, end_time = ? WHERE auction_id = ?",
+        (
+            base_price,
+            end_time,
+            auction_id,
+        ),
+    )
+    conn.commit()
+    conn.close()
+    check_auction_status()
+    if not cursor.rowcount:
+        return send_response({"error": "Failed to update auction"}, 400)
+    return send_response({"message": "Auction updated successfully"}, 200)
 
-    except Exception as e:
-        return manage_errors(e)
-    finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
 
 @app.route("/delete", methods=["DELETE"])
 @admin_required
@@ -660,29 +674,22 @@ def delete_auction():
     gacha_id = request.args.get("gacha_id") or None
     if not gacha_id:
         return send_response({"error": "Missing gacha_id parameter"}, 400)
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM Auctions WHERE gacha_id = ?", (gacha_id,))
-        auctions = cursor.fetchall()
 
-        if not auctions:
-            return send_response({"error": "Auction not found"}, 404)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Auctions WHERE gacha_id = ?", (gacha_id,))
+    auctions = cursor.fetchall()
 
-        for auction in auctions:
-            cursor.execute("DELETE FROM Auctions WHERE auction_id = ?", (auction["auction_id"],))
-            cursor.execute("DELETE FROM Bids WHERE auction_id = ?", (auction["auction_id"],))
+    if not auctions:
+        return send_response({"error": "Auction not found"}, 404)
 
-        conn.commit()
+    for auction in auctions:
+        cursor.execute("DELETE FROM Auctions WHERE auction_id = ?", (auction["auction_id"],))
+        cursor.execute("DELETE FROM Bids WHERE auction_id = ?", (auction["auction_id"],))
 
+    conn.commit()
+    conn.close()
 
-        if not cursor.rowcount:
-            return send_response({"error": "Failed to delete auction"}, 400)
-        return send_response({"message": "Auction deleted successfully"}, 200)
-
-    except Exception as e:
-        return manage_errors(e)
-    finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+    if not cursor.rowcount:
+        return send_response({"error": "Failed to delete auction"}, 400)
+    return send_response({"message": "Auction deleted successfully"}, 200)
