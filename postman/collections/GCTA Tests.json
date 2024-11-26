@@ -15,6 +15,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "327f0a15-4477-4385-9626-fe71d99398bd",
 								"exec": [
 									"// Generate random username, password, and email\r",
 									"const randomUsername = 'user_' + Math.random().toString(36).substring(2, 10); // Random username\r",
@@ -33,6 +34,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "670b1c40-4081-4e19-b1d7-a781ac5c5e2f",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -100,15 +102,10 @@
 							]
 						},
 						"url": {
-							"raw": "http://127.0.0.1:8080/users/auth/register",
-							"protocol": "http",
+							"raw": "{{base_url}}/users/auth/register",
 							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
+								"{{base_url}}"
 							],
-							"port": "8080",
 							"path": [
 								"users",
 								"auth",
@@ -124,6 +121,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "fa4ddfa9-acfd-4270-b12b-137261561478",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -166,6 +164,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "0baf51e3-6a95-4bd8-bf92-a720cf4c2d02",
 								"exec": [
 									"\r",
 									""
@@ -192,15 +191,10 @@
 							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
 						},
 						"url": {
-							"raw": "http://127.0.0.1:8080/users/auth/login",
-							"protocol": "http",
+							"raw": "{{base_url}}/users/auth/login",
 							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
+								"{{base_url}}"
 							],
-							"port": "8080",
 							"path": [
 								"users",
 								"auth",
