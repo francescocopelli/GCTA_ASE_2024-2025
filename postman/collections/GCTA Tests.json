@@ -1068,6 +1068,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "3871bc74-6561-4e8e-958e-d3493588c2f4",
 								"exec": [
 									"pm.test(\"Response status code is 201\", function () {\r",
 									"  pm.response.to.have.status(201);\r",
@@ -1082,6 +1083,13 @@
 									"pm.test(\"Response schema matches the expected schema\", function () {\r",
 									"    const responseData = pm.response.json();\r",
 									"    pm.expect(responseData).to.have.property('auction_id');\r",
+									"    if (responseData.auction_id){\r",
+									"        pm.environment.set(\"auction_id\",responseData.auction_id);\r",
+									"        console.log(\"setting auction_id: \"+responseData.auction_id);\r",
+									"    }\r",
+									"    else\r",
+									"        console.log(\"auction_id not found\");\r",
+									"\r",
 									"\r",
 									"});\r",
 									""
