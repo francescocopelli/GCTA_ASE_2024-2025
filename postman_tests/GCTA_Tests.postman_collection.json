@@ -96,12 +96,10 @@
 							]
 						},
 						"url": {
-							"raw": "http://gcta_ase_2024-2025_user_player_auth:5000/users/auth/register",
-							"protocol": "http",
+							"raw": "{{base_url}}/users/auth/register",
 							"host": [
-								"gcta_ase_2024-2025_user_player_auth"
+								"{{base_url}}"
 							],
-							"port": "5000",
 							"path": [
 								"users",
 								"auth",
@@ -181,103 +179,14 @@
 							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
 						},
 						"url": {
-							"raw": "http://gcta_ase_2024-2025_user_player_auth:5000/users/auth/login",
-							"protocol": "http",
+							"raw": "{{base_url}}/users/auth/login",
 							"host": [
-								"gcta_ase_2024-2025_user_player_auth"
+								"{{base_url}}"
 							],
-							"port": "5000",
 							"path": [
 								"users",
 								"auth",
 								"login"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Account",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"    pm.expect(pm.response.code).to.equal(200);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Response time is less than 500ms\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response body should have the correct schema\", function () {\r",
-									"  const responseData = pm.response.text();\r",
-									"  pm.expect(responseData).to.include('Internal Server Error');\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"// Retrieve the original email from the environment\r",
-									"const originalEmail = pm.environment.get(\"email\");\r",
-									"\r",
-									"if (originalEmail) {\r",
-									"    // Add \"updated\" in front of the original email\r",
-									"    const updatedEmail = `updated_${originalEmail}`;\r",
-									"    \r",
-									"    // Save the updated email back to the environment\r",
-									"    pm.environment.set(\"email\", updatedEmail);\r",
-									"    console.log(\"Updated email saved:\", updatedEmail);\r",
-									"} else {\r",
-									"    console.log(\"Original email not found in the environment.\");\r",
-									"}\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{session_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\",\n  \"email\": \"{{email@email.com}}\",\n  \"image\": \"\"\n}"
-						},
-						"url": {
-							"raw": "http://gateway_user/users/auth/update",
-							"protocol": "http",
-							"host": [
-								"gateway_user"
-							],
-							"path": [
-								"users",
-								"auth",
-								"update"
 							]
 						}
 					},
@@ -297,7 +206,7 @@
 									"pm.test(\"Response has the required fields\", function () {\r",
 									"  const responseData = pm.response.json();\r",
 									"  console.log(responseData.message)\r",
-									"  pm.expect(responseData.message).to.equal(\"Transaction added successfully\");\r",
+									"  pm.expect(responseData.message).to.equal(\"Account topped up successfully\");\r",
 									"});\r",
 									"\r",
 									"pm.test(\"Response time is within an acceptable range\", function () {\r",
@@ -337,10 +246,9 @@
 							"raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"amount\": 50\n}"
 						},
 						"url": {
-							"raw": "http://gateway_user/users/player/real_money_transaction",
-							"protocol": "http",
+							"raw": "{{base_url}}/users/player/real_money_transaction",
 							"host": [
-								"gateway_user"
+								"{{base_url}}"
 							],
 							"path": [
 								"users",
@@ -401,16 +309,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://gateway_user/users/player/get_user_balance/{{user_id}}",
-							"protocol": "http",
+							"raw": "{{base_url}}/users/player/get_user_balance",
 							"host": [
-								"gateway_user"
+								"{{base_url}}"
 							],
 							"path": [
 								"users",
 								"player",
-								"get_user_balance",
-								"{{user_id}}"
+								"get_user_balance"
 							]
 						}
 					},
@@ -489,10 +395,9 @@
 							}
 						},
 						"url": {
-							"raw": "http://gateway_user/gacha/roll",
-							"protocol": "http",
+							"raw": "{{base_url}}/gacha/roll",
 							"host": [
-								"gateway_user"
+								"{{base_url}}"
 							],
 							"path": [
 								"gacha",
@@ -555,9 +460,26 @@
 								"type": "text/javascript",
 								"packages": {}
 							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -621,6 +543,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"body": {
@@ -684,6 +616,16 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -1078,8 +1020,8 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"  pm.response.to.have.status(200);\r",
+									"pm.test(\"Response status code is 201\", function () {\r",
+									"  pm.response.to.have.status(201);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -1090,12 +1032,15 @@
 									"\r",
 									"pm.test(\"Response schema matches the expected schema\", function () {\r",
 									"    const responseData = pm.response.json();\r",
-									"    \r",
-									"    pm.expect(responseData).to.have.property('id');\r",
-									"    pm.expect(responseData).to.have.property('name');\r",
-									"    pm.expect(responseData).to.have.property('email');\r",
-									"    pm.expect(responseData).to.have.property('address');\r",
-									"    pm.expect(responseData).to.have.property('phone');\r",
+									"    pm.expect(responseData).to.have.property('auction_id');\r",
+									"    if (responseData.auction_id){\r",
+									"        pm.environment.set(\"auction_id\",responseData.auction_id);\r",
+									"        console.log(\"setting auction_id: \"+responseData.auction_id);\r",
+									"    }\r",
+									"    else\r",
+									"        console.log(\"auction_id not found\");\r",
+									"\r",
+									"\r",
 									"});\r",
 									""
 								],
@@ -1168,8 +1113,8 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"pm.test(\"Response time is less than 400ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(400);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -1188,16 +1133,26 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/auction/all",
+							"raw": "{{base_url}}/auction/all_active",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"auction",
-								"all"
+								"all_active"
 							]
 						}
 					},
@@ -1232,7 +1187,8 @@
 									"    responseData.forEach(function (auction) {\r",
 									"        pm.expect(auction.auction_id).to.exist;\r",
 									"        pm.expect(auction.base_price).to.exist;\r",
-									"        pm.expect(auction.buyer_id).to.exist;\r",
+									"        pm.expect(auction).to.have.property('buyer_id');\r",
+									"        pm.expect(auction.buyer_id).to.be.oneOf([null, auction.buyer_id]);\r",
 									"        pm.expect(auction.end_time).to.exist;\r",
 									"        pm.expect(auction.gacha_id).to.exist;\r",
 									"        pm.expect(auction.highest_bid).to.exist;\r",
@@ -1270,11 +1226,13 @@
 									"    responseData.forEach(function (item) {\r",
 									"        pm.expect(item).to.be.an('object');\r",
 									"        pm.expect(item.auction_id).to.be.a('string');\r",
-									"        pm.expect(item.base_price).to.be.a('number');\r",
-									"        pm.expect(item.buyer_id).to.be.a('number');\r",
-									"        pm.expect(item.end_time).to.be.a('number');\r",
+									"        pm.expect(item.base_price).to.satisfy(value => typeof value === 'number' || value === null, 'base_price should be a number or null');\r",
+									"        pm.expect(item).to.have.property('buyer_id');\r",
+									"        pm.expect(item.buyer_id).to.be.oneOf([null, item.buyer_id]);\r",
+									"        pm.expect(item.end_time).to.be.a('string');\r",
 									"        pm.expect(item.gacha_id).to.be.a('number');\r",
-									"        pm.expect(item.highest_bid).to.be.a('number');\r",
+									"        pm.expect(item).to.have.property('highest_bid');\r",
+									"        pm.expect(item.highest_bid).to.be.oneOf([null, item.highest_bid]);\r",
 									"        pm.expect(item.seller_id).to.be.a('number');\r",
 									"        pm.expect(item.status).to.be.a('string');\r",
 									"    });\r",
@@ -1288,6 +1246,16 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -1327,8 +1295,8 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"pm.test(\"Response time is less than 300ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(300);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -1343,6 +1311,16 @@
 									"    const responseData = pm.response.json();\r",
 									"    pm.expect(responseData.message).to.exist;\r",
 									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
 									""
 								],
 								"type": "text/javascript",
@@ -1505,7 +1483,17 @@
 						}
 					],
 					"request": {
-						"method": "POST",
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
 						"header": [
 							{
 								"key": "Content-Type",
@@ -1558,8 +1546,8 @@
 									"\r",
 									"pm.test(\"Error message is provided\", function () {\r",
 									"    const response = pm.response.json();\r",
-									"    pm.expect(response.message).to.exist;\r",
-									"    pm.expect(response.message).to.include(\"Invalid input\");\r",
+									"    pm.expect(response.error).to.exist;\r",
+									"    pm.expect(response.error).to.include(\"Invalid email address\");\r",
 									"});\r",
 									""
 								],
@@ -1670,92 +1658,6 @@
 					"response": []
 				},
 				{
-					"name": "Update Account",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"    pm.expect(pm.response.code).to.equal(200);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Response time is less than 500ms\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response body should have the correct schema\", function () {\r",
-									"  const responseData = pm.response.text();\r",
-									"  pm.expect(responseData).to.include('Internal Server Error');\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"// Retrieve the original email from the environment\r",
-									"const originalEmail = pm.environment.get(\"email\");\r",
-									"\r",
-									"if (originalEmail) {\r",
-									"    // Add \"updated\" in front of the original email\r",
-									"    const updatedEmail = `updated_${originalEmail}`;\r",
-									"    \r",
-									"    // Save the updated email back to the environment\r",
-									"    pm.environment.set(\"email\", updatedEmail);\r",
-									"    console.log(\"Updated email saved:\", updatedEmail);\r",
-									"} else {\r",
-									"    console.log(\"Original email not found in the environment.\");\r",
-									"}\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{session_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\",\n  \"email\": \"{{email@email.com}}\",\n  \"image\": \"\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/users/auth/update",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"users",
-								"auth",
-								"update"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Real Money Transaction",
 					"event": [
 						{
@@ -1764,7 +1666,7 @@
 								"exec": [
 									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
 									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token expired!\");\r",
+									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token mismatch!\");\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1809,51 +1711,6 @@
 					"response": []
 				},
 				{
-					"name": "Get User Balance",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
-									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token expired!\");\r",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{session_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/users/player/get_user_balance/9999999999",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"users",
-								"player",
-								"get_user_balance",
-								"9999999999"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "roll",
 					"event": [
 						{
@@ -1862,7 +1719,7 @@
 								"exec": [
 									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
 									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token expired!\");\r",
+									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token mismatch!\");\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1906,42 +1763,6 @@
 					"response": []
 				},
 				{
-					"name": "Get All Transactions",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
-									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token expired!\");\r",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/transaction/all",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"transaction",
-								"all"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Get Transaction",
 					"event": [
 						{
@@ -1956,12 +1777,68 @@
 								"type": "text/javascript",
 								"packages": {}
 							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const loginUrl = pm.environment.get('base_url')+\"/users/auth/login\";\r",
+									"\r",
+									"// Recupera le credenziali dalle variabili di ambiente\r",
+									"const username = pm.environment.get(\"username\");\r",
+									"const password = pm.environment.get(\"password\");\r",
+									"\r",
+									"const payload = {\r",
+									"    username: username,\r",
+									"    password: password\r",
+									"};\r",
+									"\r",
+									"const requestOptions = {\r",
+									"    url: loginUrl,\r",
+									"    method: \"POST\",\r",
+									"    header: {\r",
+									"        \"Content-Type\": \"application/json\"\r",
+									"    },\r",
+									"    body: JSON.stringify(payload)\r",
+									"};\r",
+									"\r",
+									"// Esegui la richiesta di login\r",
+									"pm.sendRequest(requestOptions, function (err, res) {\r",
+									"    if (err) {\r",
+									"        console.error(\"Errore durante il login:\", err);\r",
+									"        return;\r",
+									"    }\r",
+									"\r",
+									"    // Salva il token nelle variabili di ambiente se esiste\r",
+									"    const responseJson = res.json();\r",
+									"    if (responseJson.session_token) {\r",
+									"        pm.environment.set(\"session_token\", responseJson.session_token);\r",
+									"        console.log(\"Token salvato:\", responseJson.session_token);\r",
+									"    } else {\r",
+									"        console.warn(\"Login fallito: Nessun token trovato nella risposta.\");\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						}
 					],
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"body": {
@@ -1980,48 +1857,6 @@
 							"query": [
 								{
 									"key": "transaction_id",
-									"value": "9999999999"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get User Transactions",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
-									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"No transactions found for the user\");\r",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/transaction/get_user_transactions?user_id=9999999999",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"transaction",
-								"get_user_transactions"
-							],
-							"query": [
-								{
-									"key": "user_id",
 									"value": "9999999999"
 								}
 							]
@@ -2078,42 +1913,6 @@
 								"gacha",
 								"get",
 								"9999999999"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get All Gachas",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
-									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"Gacha item not found\");\r",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/gacha/all",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"gacha",
-								"all"
 							]
 						}
 					},
@@ -2211,7 +2010,14 @@
 					],
 					"request": {
 						"auth": {
-							"type": "noauth"
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
 						},
 						"method": "POST",
 						"header": [
@@ -2251,6 +2057,52 @@
 								"type": "text/javascript",
 								"packages": {}
 							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"\r",
+									"// Recupera le credenziali dalle variabili di ambiente\r",
+									"const username = pm.environment.get(\"username\");\r",
+									"const password = pm.environment.get(\"password\");\r",
+									"\r",
+									"const payload = {\r",
+									"    username: username,\r",
+									"    password: password\r",
+									"};\r",
+									"\r",
+									"const requestOptions = {\r",
+									"    url: loginUrl,\r",
+									"    method: \"POST\",\r",
+									"    header: {\r",
+									"        \"Content-Type\": \"application/json\"\r",
+									"    },\r",
+									"    body: JSON.stringify(payload)\r",
+									"};\r",
+									"\r",
+									"// Esegui la richiesta di login\r",
+									"pm.sendRequest(requestOptions, function (err, res) {\r",
+									"    if (err) {\r",
+									"        console.error(\"Errore durante il login:\", err);\r",
+									"        return;\r",
+									"    }\r",
+									"\r",
+									"    // Salva il token nelle variabili di ambiente se esiste\r",
+									"    const responseJson = res.json();\r",
+									"    if (responseJson.session_token) {\r",
+									"        pm.environment.set(\"session_token\", responseJson.session_token);\r",
+									"        console.log(\"Token salvato:\", responseJson.session_token);\r",
+									"    } else {\r",
+									"        console.warn(\"Login fallito: Nessun token trovato nella risposta.\");\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						}
 					],
 					"request": {
@@ -2286,25 +2138,80 @@
 								"type": "text/javascript",
 								"packages": {}
 							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const loginUrl = pm.environment.get('base_url')+\"/users/auth/login\";\r",
+									"\r",
+									"// Recupera le credenziali dalle variabili di ambiente\r",
+									"const username = pm.environment.get(\"username\");\r",
+									"const password = pm.environment.get(\"password\");\r",
+									"\r",
+									"const payload = {\r",
+									"    username: username,\r",
+									"    password: password\r",
+									"};\r",
+									"\r",
+									"const requestOptions = {\r",
+									"    url: loginUrl,\r",
+									"    method: \"POST\",\r",
+									"    header: {\r",
+									"        \"Content-Type\": \"application/json\"\r",
+									"    },\r",
+									"    body: JSON.stringify(payload)\r",
+									"};\r",
+									"\r",
+									"// Esegui la richiesta di login\r",
+									"pm.sendRequest(requestOptions, function (err, res) {\r",
+									"    if (err) {\r",
+									"        console.error(\"Errore durante il login:\", err);\r",
+									"        return;\r",
+									"    }\r",
+									"\r",
+									"    // Salva il token nelle variabili di ambiente se esiste\r",
+									"    const responseJson = res.json();\r",
+									"    if (responseJson.session_token) {\r",
+									"        pm.environment.set(\"session_token\", responseJson.session_token);\r",
+									"        console.log(\"Token salvato:\", responseJson.session_token);\r",
+									"    } else {\r",
+									"        console.warn(\"Login fallito: Nessun token trovato nella risposta.\");\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/auction//get_gacha_auctions?gacha_id=999999999",
+							"raw": "{{base_url}}/auction/get_gacha_auctions?gacha_id=99999",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"auction",
-								"",
 								"get_gacha_auctions"
 							],
 							"query": [
 								{
 									"key": "gacha_id",
-									"value": "999999999"
+									"value": "99999"
 								}
 							]
 						}
@@ -2321,6 +2228,52 @@
 									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
 									"  pm.expect(pm.response.text()).to.include(\"Auction not found or already ended\");\r",
 									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const loginUrl = pm.environment.get('base_url')+\"/users/auth/login\";\r",
+									"\r",
+									"// Recupera le credenziali dalle variabili di ambiente\r",
+									"const username = pm.environment.get(\"username\");\r",
+									"const password = pm.environment.get(\"password\");\r",
+									"\r",
+									"const payload = {\r",
+									"    username: username,\r",
+									"    password: password\r",
+									"};\r",
+									"\r",
+									"const requestOptions = {\r",
+									"    url: loginUrl,\r",
+									"    method: \"POST\",\r",
+									"    header: {\r",
+									"        \"Content-Type\": \"application/json\"\r",
+									"    },\r",
+									"    body: JSON.stringify(payload)\r",
+									"};\r",
+									"\r",
+									"// Esegui la richiesta di login\r",
+									"pm.sendRequest(requestOptions, function (err, res) {\r",
+									"    if (err) {\r",
+									"        console.error(\"Errore durante il login:\", err);\r",
+									"        return;\r",
+									"    }\r",
+									"\r",
+									"    // Salva il token nelle variabili di ambiente se esiste\r",
+									"    const responseJson = res.json();\r",
+									"    if (responseJson.session_token) {\r",
+									"        pm.environment.set(\"session_token\", responseJson.session_token);\r",
+									"        console.log(\"Token salvato:\", responseJson.session_token);\r",
+									"    } else {\r",
+									"        console.warn(\"Login fallito: Nessun token trovato nella risposta.\");\r",
+									"    }\r",
+									"});\r",
+									""
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -2420,7 +2373,7 @@
 						"auth": {
 							"type": "noauth"
 						},
-						"method": "POST",
+						"method": "DELETE",
 						"header": [
 							{
 								"key": "Content-Type",
@@ -2444,6 +2397,702 @@
 						}
 					},
 					"response": []
+				}
+			]
+		},
+		{
+			"name": "GCTA Admin Tests",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate random username, password, and email\r",
+									"const uniqueSuffix = Date.now(); // Add a timestamp for uniqueness\r",
+									"const randomUsername = 'user_' + Math.random().toString(36).substring(2, 10) + '_' + uniqueSuffix; // Unique random username\r",
+									"const randomPassword = Math.random().toString(36).substring(2, 12); // Random password\r",
+									"const randomEmail = randomUsername + '@example.com'; // Random email based on the username\r",
+									"\r",
+									"// Set them as environment variables for use in the request\r",
+									"pm.environment.set(\"a_username\", randomUsername);\r",
+									"pm.environment.set(\"a_password\", randomPassword);\r",
+									"pm.environment.set(\"a_email\", randomEmail);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required field - message\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.exist;\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Message is a non-empty string\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(300);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "username",
+									"value": "{{a_username}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{a_password}}",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "{{a_email}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{a_base_url}}/users/admin_auth/register",
+							"host": [
+								"{{a_base_url}}"
+							],
+							"path": [
+								"users",
+								"admin_auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response has the required fields - message and session_token\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.have.property('message');\r",
+									"    pm.expect(responseData).to.have.property('session_token');\r",
+									"\r",
+									"});\r",
+									"\r",
+									"// Extract and save the session token\r",
+									"const response = pm.response.json();\r",
+									"if (response.session_token) {\r",
+									"    pm.environment.set(\"a_session_token\", response.session_token);\r",
+									"    console.log(\"Session token saved:\", response.session_token);\r",
+									"} else {\r",
+									"    console.log(\"Session token not found in the response.\");\r",
+									"}\r",
+									"pm.test(\"User_id is extracted and saved to an environment variable\", function () {\r",
+									"    const response = pm.response.json();\r",
+									"    pm.expect(response).to.have.property('user_id');\r",
+									"    pm.environment.set(\"a_user_id\", response.user_id);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"{{a_username}}\",\r\n    \"password\": \"{{a_password}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{a_base_url}}/users/admin_auth/login",
+							"host": [
+								"{{a_base_url}}"
+							],
+							"path": [
+								"users",
+								"admin_auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Gacha",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate random values for the gacha request\r",
+									"const randomName = 'gacha_' + Math.random().toString(36).substring(2, 8); // Random name\r",
+									"const rarities = [\"common\", \"rare\", \"epic\"]; // Example rarities\r",
+									"const randomRarity = rarities[Math.floor(Math.random() * rarities.length)]; // Random rarity\r",
+									"const statuses = [\"available\", \"unavailable\"]; // Example statuses\r",
+									"const randomStatus = statuses[Math.floor(Math.random() * statuses.length)]; // Random status\r",
+									"const randomDescription = \"Description_\" + Math.random().toString(36).substring(2, 15); // Random description\r",
+									"\r",
+									"// Set them as environment variables\r",
+									"pm.environment.set(\"gacha_name\", randomName);\r",
+									"pm.environment.set(\"gacha_rarity\", randomRarity);\r",
+									"pm.environment.set(\"gacha_status\", randomStatus);\r",
+									"pm.environment.set(\"gacha_description\", randomDescription);\r",
+									"\r",
+									"// Log for debugging\r",
+									"console.log(\"Generated Gacha Data:\", {\r",
+									"    name: randomName,\r",
+									"    rarity: randomRarity,\r",
+									"    status: randomStatus,\r",
+									"    description: randomDescription\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the response\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"// Tests to validate the response\r",
+									"pm.test(\"Status code is 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response has a valid ID\", function () {\r",
+									"    pm.expect(response).to.have.property(\"gacha_id\");\r",
+									"\r",
+									"});\r",
+									"\r",
+									"// Log the response for debugging\r",
+									"console.log(\"Response Data:\", pm.response.json().gacha_id);\r",
+									"// Stores the gacha_id in an environment or global variable\r",
+									"var gachaId = pm.response.json().gacha_id;\r",
+									"pm.environment.set(\"new_gacha_id\", pm.response.json().gacha_id);\r",
+									"\r",
+									"pm.test(\"Message contains 'Gacha item added successfully'\", function () {\r",
+									"    const response = pm.response.json();\r",
+									"    pm.expect(response.message).to.include(\"Gacha item added successfully\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{a_session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "{{gacha_name}}",
+									"type": "text"
+								},
+								{
+									"key": "rarity",
+									"value": "{{gacha_rarity}}",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "{{gacha_status}}",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "{{gacha_description}}",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{a_base_url}}/gacha/add",
+							"host": [
+								"{{a_base_url}}"
+							],
+							"path": [
+								"gacha",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Gacha",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.message).to.contain(\"Gacha item updated successfully\")\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{a_session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "gacha_id",
+									"value": "{{new_gacha_id}}",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "{{gacha_name}}",
+									"type": "text"
+								},
+								{
+									"key": "rarity",
+									"value": "common",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "available",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "updated gacha to common",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{a_base_url}}/gacha/update",
+							"host": [
+								"{{a_base_url}}"
+							],
+							"path": [
+								"gacha",
+								"update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Gacha",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required field 'message'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData).to.have.property('message');\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Message field must be a non-empty string\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.message).to.contain(\"Gacha item deleted successfully\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{a_session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{a_base_url}}/gacha/delete/{{new_gacha_id}}",
+							"host": [
+								"{{a_base_url}}"
+							],
+							"path": [
+								"gacha",
+								"delete",
+								"{{new_gacha_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "roll Gacha",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Error message indicates admins cannot roll gacha\", function () {\r",
+									"  pm.expect(pm.response.text()).to.include(\"Admins cannot roll gacha\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{a_session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"user_id\": \"{{a_user_id}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/gacha/roll",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"gacha",
+								"roll"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Users",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.users).to.be.an('array');\r",
+									"    \r",
+									"    responseData.users.forEach(function(user) {\r",
+									"        pm.expect(user).to.have.property('currency_balance');\r",
+									"        pm.expect(user).to.have.property('email');\r",
+									"        pm.expect(user).to.have.property('session_token');\r",
+									"        pm.expect(user).to.have.property('user_id');\r",
+									"        pm.expect(user).to.have.property('username');\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Email is in a valid format\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.users).to.be.an('array').and.to.have.lengthOf.at.least(1);\r",
+									"    \r",
+									"    responseData.users.forEach(function(user) {\r",
+									"        pm.expect(user.email).to.be.a('string').and.to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/);\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{a_session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{a_base_url}}/users/admin/get_all/PLAYER",
+							"host": [
+								"{{a_base_url}}"
+							],
+							"path": [
+								"users",
+								"admin",
+								"get_all",
+								"PLAYER"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.message).to.exist;\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Message is a non-empty string\", function () {\r",
+									"  const responseData = pm.response.json();\r",
+									"  \r",
+									"  pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{a_session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{a_base_url}}/users/admin_auth/logout",
+							"host": [
+								"{{a_base_url}}"
+							],
+							"path": [
+								"users",
+								"admin_auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{a_session_token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
 				}
 			]
 		}

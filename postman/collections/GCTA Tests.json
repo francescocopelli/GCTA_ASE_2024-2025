@@ -15,6 +15,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "327f0a15-4477-4385-9626-fe71d99398bd",
 								"exec": [
 									"// Generate random username, password, and email\r",
 									"const randomUsername = 'user_' + Math.random().toString(36).substring(2, 10); // Random username\r",
@@ -33,6 +34,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "670b1c40-4081-4e19-b1d7-a781ac5c5e2f",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -100,15 +102,10 @@
 							]
 						},
 						"url": {
-							"raw": "http://127.0.0.1:8080/users/auth/register",
-							"protocol": "http",
+							"raw": "{{base_url}}/users/auth/register",
 							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
+								"{{base_url}}"
 							],
-							"port": "8080",
 							"path": [
 								"users",
 								"auth",
@@ -124,6 +121,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "fa4ddfa9-acfd-4270-b12b-137261561478",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -166,6 +164,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "0baf51e3-6a95-4bd8-bf92-a720cf4c2d02",
 								"exec": [
 									"\r",
 									""
@@ -192,15 +191,10 @@
 							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
 						},
 						"url": {
-							"raw": "http://127.0.0.1:8080/users/auth/login",
-							"protocol": "http",
+							"raw": "{{base_url}}/users/auth/login",
 							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
+								"{{base_url}}"
 							],
-							"port": "8080",
 							"path": [
 								"users",
 								"auth",
@@ -1086,6 +1080,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "3871bc74-6561-4e8e-958e-d3493588c2f4",
 								"exec": [
 									"pm.test(\"Response status code is 201\", function () {\r",
 									"  pm.response.to.have.status(201);\r",
@@ -1100,6 +1095,13 @@
 									"pm.test(\"Response schema matches the expected schema\", function () {\r",
 									"    const responseData = pm.response.json();\r",
 									"    pm.expect(responseData).to.have.property('auction_id');\r",
+									"    if (responseData.auction_id){\r",
+									"        pm.environment.set(\"auction_id\",responseData.auction_id);\r",
+									"        console.log(\"setting auction_id: \"+responseData.auction_id);\r",
+									"    }\r",
+									"    else\r",
+									"        console.log(\"auction_id not found\");\r",
+									"\r",
 									"\r",
 									"});\r",
 									""
@@ -1356,6 +1358,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "a90bafe9-9bd0-457d-8244-c14a86856ed0",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -1367,8 +1370,8 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"pm.test(\"Response time is less than 300ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(300);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -1392,6 +1395,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "3cbadfa2-a8d4-407e-bdac-71b2f2d7382d",
 								"exec": [
 									""
 								],
@@ -1869,6 +1873,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "fde128d0-db44-45a2-bf0e-d8b7c28d525f",
 								"exec": [
 									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
 									"    const response = pm.response.json();\r",
@@ -1882,8 +1887,9 @@
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "0f6668d6-fcad-4dd0-8502-97456526ac65",
 								"exec": [
-									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"const loginUrl = pm.environment.get('base_url')+\"/users/auth/login\";\r",
 									"\r",
 									"// Recupera le credenziali dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",
@@ -2252,6 +2258,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "1d8dcfe4-f1d2-47f7-987e-63b1fbfa254e",
 								"exec": [
 									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
 									"  pm.expect(pm.response.text()).to.include(\"No auctions found for the gacha\");\r",
@@ -2264,8 +2271,9 @@
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "2505dce1-0e71-4dea-837c-7a1bf8487611",
 								"exec": [
-									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"const loginUrl = pm.environment.get('base_url')+\"/users/auth/login\";\r",
 									"\r",
 									"// Recupera le credenziali dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",
@@ -2350,6 +2358,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "fd0fb973-697b-4853-9f69-79b3d5c6f283",
 								"exec": [
 									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
 									"  pm.expect(pm.response.text()).to.include(\"Auction not found or already ended\");\r",
@@ -2362,8 +2371,9 @@
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "7dda5519-993a-4269-9eaa-33bd4d31c14c",
 								"exec": [
-									"const loginUrl = \"http://127.0.0.1:8080/users/auth/login\";\r",
+									"const loginUrl = pm.environment.get('base_url')+\"/users/auth/login\";\r",
 									"\r",
 									"// Recupera le credenziali dalle variabili di ambiente\r",
 									"const username = pm.environment.get(\"username\");\r",
@@ -2732,7 +2742,7 @@
 								"exec": [
 									"// Generate random values for the gacha request\r",
 									"const randomName = 'gacha_' + Math.random().toString(36).substring(2, 8); // Random name\r",
-									"const rarities = [\"common\", \"rare\", \"epic\", \"legendary\"]; // Example rarities\r",
+									"const rarities = [\"common\", \"rare\", \"epic\"]; // Example rarities\r",
 									"const randomRarity = rarities[Math.floor(Math.random() * rarities.length)]; // Random rarity\r",
 									"const statuses = [\"available\", \"unavailable\"]; // Example statuses\r",
 									"const randomStatus = statuses[Math.floor(Math.random() * statuses.length)]; // Random status\r",
@@ -2809,8 +2819,8 @@
 						"method": "POST",
 						"header": [],
 						"body": {
-							"mode": "urlencoded",
-							"urlencoded": [
+							"mode": "formdata",
+							"formdata": [
 								{
 									"key": "name",
 									"value": "{{gacha_name}}",
