@@ -175,7 +175,6 @@ def logout(user):
 
 # Endpoint per visualizzare il saldo della valuta di gioco
 @app.route("/balance/<user_type>", methods=["GET"])
-@login_required_void
 def get_balance(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")
