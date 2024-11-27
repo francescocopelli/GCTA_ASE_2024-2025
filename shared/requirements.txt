@@ -2,3 +2,4 @@ Flask
 requests
 pyjwt
 pybreaker
+bcrypt
