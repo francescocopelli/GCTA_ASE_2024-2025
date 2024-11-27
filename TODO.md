@@ -16,8 +16,8 @@
 
 ## Security
 - [x] **API Segmentation**: Separate admin API access on a distinct Docker network.
-- [ ] **HTTPS**: Enable HTTPS for all services using self-signed certificates.
-  - [ ] Self-signed cerficate creation
+- [x] **HTTPS**: Enable HTTPS for all services using self-signed certificates.
+  - [x] Self-signed cerficate creation
 - [ ] **Data Encryption**: Encrypt sensitive data in the database.
 - [ ] **Authentication & Authorization**:
   - [ ] Implement OAuth2 and OpenID Connect standards using JWT.
