@@ -48,8 +48,9 @@ def register(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         return send_response({"error": "Invalid user type"}, 401)
 
-    conn = get_db_connection()
     try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
         data = request.form
         logging.info(f'Se nel mondo esistesse un po\' di {data}')
         username = data.get("username")
@@ -62,7 +63,6 @@ def register(user_type):
         hashed_password = hash_password(password)
 
         # Inserimento nel database
-        cursor = conn.cursor()
         if "PLAYER" in user_type:
             image = base64.b64decode(data.get("image")) if data.get("image") else None
             query = (
