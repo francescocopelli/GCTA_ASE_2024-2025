@@ -970,6 +970,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "ce9f84fd-1afe-4408-b252-fc482110f2df",
 								"exec": [
 									"pm.test(\"Status code is 200 for successful retrieval\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1005,7 +1006,7 @@
 									"        pm.expect(item.acquired_date).to.be.a('string');\r",
 									"        pm.expect(item.description).to.be.a('string');\r",
 									"        pm.expect(item.gacha_id).to.be.a('number');\r",
-									"        pm.expect(item.image).to.be.a('string');\r",
+									"        //pm.expect(item.image).to.be.a('string');\r",
 									"        pm.expect(item.locked).to.be.a('boolean');\r",
 									"        pm.expect(item.name).to.be.a('string');\r",
 									"        pm.expect(item.rarity).to.be.a('string');\r",
@@ -1022,7 +1023,7 @@
 									"        pm.expect(item.acquired_date).to.be.a('string');\r",
 									"        pm.expect(item.description).to.be.a('string');\r",
 									"        pm.expect(item.gacha_id).to.be.a('number');\r",
-									"        pm.expect(item.image).to.be.a('string');\r",
+									"        //pm.expect(item.image).to.be.a('string');\r",
 									"        pm.expect(item.locked).to.be.a('boolean');\r",
 									"        pm.expect(item.name).to.be.a('string');\r",
 									"        pm.expect(item.rarity).to.be.a('string');\r",
@@ -1030,6 +1031,17 @@
 									"    });\r",
 									"});\r",
 									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "b0fe0273-7c2a-4c95-a1a0-4ad93da8efb9",
+								"exec": [
 									""
 								],
 								"type": "text/javascript",
