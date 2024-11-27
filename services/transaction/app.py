@@ -10,7 +10,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
-print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 
 DATABASE = "./transactions.db/transactions.db"
