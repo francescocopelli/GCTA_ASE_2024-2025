@@ -1386,7 +1386,7 @@
 									"\r",
 									"pm.test(\"Response schema matches the expected schema\", function () {\r",
 									"    const responseData = pm.response.json();\r",
-									"    console.log(responseData)\r",
+									"    console.log(\"received response: \"+responseData)\r",
 									"    pm.expect(responseData).to.have.property('message');\r",
 									"});\r",
 									"\r",
