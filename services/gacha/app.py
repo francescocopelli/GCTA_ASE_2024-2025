@@ -126,7 +126,7 @@ def roll_gacha(user):
         return send_response({'error': 'Insufficient funds for gacha roll'}, 403)
 
     # Update the user's currency balance
-    response = requests.put('https://user_player:5000/update_balance/PLAYER',  timeout=3, headers=generate_session_token_system(),
+    response = requests.put('https://user_player:5000/update_balance/PLAYER',  timeout=10, headers=generate_session_token_system(),
                             json={'user_id': user_id, 'amount': roll_cost, 'type': 'roll_purchase'},verify=False)
 
     if response.status_code != 200:
@@ -135,7 +135,7 @@ def roll_gacha(user):
 
     # Add transaction to db
     data = {'user_id': user_id, 'amount': roll_cost, 'type': 'roll_purchase'}
-    response = requests.post('https://transaction:5000/add_transaction', json=data, timeout=3, 
+    response = requests.post('https://transaction:5000/add_transaction', json=data, timeout=10, 
                              headers=generate_session_token_system(),verify=False)
     if response.status_code != 200:
         logging.debug("Failed to add transaction: user_id=%s, roll_cost=%s", user_id, roll_cost)
@@ -158,7 +158,7 @@ def roll_gacha(user):
         return send_response({'error': 'Failed to perform gacha roll'}, 500)
 
     # Add the gacha item to the user's inventory
-    response = requests.post('https://gacha:5000/inventory/add', headers=generate_session_token_system(), timeout=3, 
+    response = requests.post('https://gacha:5000/inventory/add', headers=generate_session_token_system(), timeout=10, 
                              json={'user_id': user_id, 'gacha_id': gacha_item['gacha_id']},verify=False)
     if response.status_code != 201:
         logging.debug("Failed to add gacha item to inventory: user_id=%s, gacha_id=%s", user_id, gacha_item['gacha_id'])
@@ -188,7 +188,7 @@ def add_to_inventory():
         logging.debug("Missing data to add gacha to inventory: user_id=%s, gacha_id=%s", user_id, gacha_id)
         return send_response({'error': 'Missing data to add gacha to inventory'}, 400)
 
-    user = requests.get('https://user_player:5000/get_user/' + user_id, timeout=3,  headers=generate_session_token_system(),verify=False)
+    user = requests.get('https://user_player:5000/get_user/' + user_id, timeout=10,  headers=generate_session_token_system(),verify=False)
 
     if user.status_code != 200:
         logging.debug("User not found: user_id=%s", user_id)
@@ -339,7 +339,7 @@ def get_user_gacha_item(user_id, gacha_id):
                   algorithms=["HS256"])['user_type'] == 'PLAYER' and str(jwt.decode(
         request.headers.get("Authorization").split(" ")[1], app.config['SECRET_KEY'], algorithms=["HS256"])['user_id']) != str(user_id):
         return send_response({'error': 'You are not authorized to view this page'}, 403)
-    res = requests.get('https://user_player:5000/get_user/' + str(user_id),  timeout=3, headers=generate_session_token_system(),verify=False)
+    res = requests.get('https://user_player:5000/get_user/' + str(user_id),  timeout=10, headers=generate_session_token_system(),verify=False)
     if res.status_code != 200:
         logging.debug("User not found: user_id=%s", user_id)
         return send_response({'error': 'User not found'}, 404)
@@ -414,12 +414,12 @@ def update_gacha_status():
                       status)
         return send_response({'error': 'Missing data to update gacha status'}, 400)
 
-    res = requests.get('https://user_player:5000/get_user/' + user_id,  timeout=3, headers=request.headers,verify=False)
+    res = requests.get('https://user_player:5000/get_user/' + user_id,  timeout=10, headers=request.headers,verify=False)
     if res.status_code != 200:
         logging.debug("User not found: user_id=%s", user_id)
         return send_response({'error': 'User not found'}, 409)
 
-    res = requests.get('https://gacha:5000/get/' + gacha_id,  timeout=3, headers=request.headers,verify=False)
+    res = requests.get('https://gacha:5000/get/' + gacha_id,  timeout=10, headers=request.headers,verify=False)
     if res.status_code != 200:
         logging.debug("Gacha item not found: gacha_id=%s", gacha_id)
         return send_response({'error': 'Gacha item not found'}, 408)
@@ -459,13 +459,13 @@ def update_gacha_owner():
                       seller_id, gacha_id, status)
         return send_response({'error': 'Missing data to update gacha owner'}, 400)
 
-    res = requests.get(f'https://user_player:5000/get_user/{buyer_id}', timeout=3,  headers=request.headers,verify=False)
+    res = requests.get(f'https://user_player:5000/get_user/{buyer_id}', timeout=10,  headers=request.headers,verify=False)
     if res.status_code != 200:
         logging.debug("Buyer not found: buyer_id=%s", buyer_id)
         return send_response({'error': 'Buyer not found'}, 404)
     logging.debug("Buyer found: buyer_id=%s", buyer_id)
 
-    res = requests.get(f'https://gacha:5000/get/{seller_id}/{gacha_id}',  timeout=3, headers=request.headers,verify=False)
+    res = requests.get(f'https://gacha:5000/get/{seller_id}/{gacha_id}',  timeout=10, headers=request.headers,verify=False)
     if res.status_code != 200:
         logging.debug("Gacha item not found: seller_id=%s, gacha_id=%s", seller_id, gacha_id)
         return send_response({'error': 'Gacha item not found'}, 404)
@@ -489,7 +489,7 @@ def update_gacha_owner():
     return send_response({'error': 'Failed to update gacha owner'}, 500)
 
 def exist_auction(gacha_id):
-    req = requests.get('https://auction:5000/get_gacha_auctions?gacha_id=' + gacha_id,  timeout=3, headers=generate_session_token_system(),verify=False)
+    req = requests.get('https://auction:5000/get_gacha_auctions?gacha_id=' + gacha_id,  timeout=10, headers=generate_session_token_system(),verify=False)
     return req.status_code == 200
 
 @app.route('/delete/<gacha_id>', methods=['DELETE'])
@@ -517,7 +517,7 @@ def delete_gacha_item(gacha_id):
             break
     if cursor.rowcount and one_is_locked:
         # get the highest bid from auction table
-        req = requests.get('https://auction:5000/highest_bid?gacha_id=' + gacha_id, timeout=3, 
+        req = requests.get('https://auction:5000/highest_bid?gacha_id=' + gacha_id, timeout=10, 
                            headers=generate_session_token_system(),verify=False)
         if req.status_code != 200 and exist_auction(gacha_id):
             return send_response({'error': 'Failed to get highest bid'}, 500)
@@ -525,13 +525,13 @@ def delete_gacha_item(gacha_id):
         user_id = req.json()['buyer_id']
         # undo the auction
         response = requests.put(f"https://user_player:5000/update_balance/PLAYER",
-                                headers=generate_session_token_system(), timeout=3, 
+                                headers=generate_session_token_system(), timeout=10, 
                                 json={"user_id": user_id, "amount": bid, "type": "credit"},verify=False)
         if response.status_code != 200:
             return send_response({"error": "Failed to update balance"}, 500)
         cursor.execute("UPDATE UserGachaInventory SET locked='unlocked' WHERE gacha_id = ?", (gacha_id,))
 
-    req = requests.delete('https://auction:5000/delete?gacha_id=' + gacha_id,  timeout=3, headers=generate_session_token_system(),verify=False)
+    req = requests.delete('https://auction:5000/delete?gacha_id=' + gacha_id,  timeout=10, headers=generate_session_token_system(),verify=False)
     if req.status_code != 200 and exist_auction(gacha_id):
         return send_response({'error': 'Failed to delete auction'}, 500)
 

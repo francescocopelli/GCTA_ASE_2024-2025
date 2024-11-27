@@ -160,7 +160,7 @@ def _f(require_return, f, *args, **kwargs):
         if not (token_is_valid(data["expiration"])):
             abort(401, "Token expired!")
 
-        rst = requests.get(f"{dbm_url}/get_user/{data['user_type']}/{data['user_id']}", timeout=3, 
+        rst = requests.get(f"{dbm_url}/get_user/{data['user_type']}/{data['user_id']}", timeout=10, 
                            headers=generate_session_token_system(),verify=False)
         current_user = rst.json()
 
@@ -238,7 +238,7 @@ def admin_required(f):
             # user_id = int(data["user_id"]) if not type(data["user_id"]) == int else data["user_id"]
             user_id = data["user_id"]
             logging.info(f"User id: {user_id}")
-            rst = requests.get(f"{dbm_url}/get_user/ADMIN/{user_id}", timeout=3, 
+            rst = requests.get(f"{dbm_url}/get_user/ADMIN/{user_id}", timeout=10, 
                                headers=generate_session_token_system(),verify=False)
 
             current_user = rst.json()
