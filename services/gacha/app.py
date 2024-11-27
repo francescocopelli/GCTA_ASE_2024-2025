@@ -71,7 +71,8 @@ def get_user_inventory(user_id):
 
     # Retrieve all gacha items owned by the user
     cursor.execute("""
-        SELECT GachaItems.*, UserGachaInventory.acquired_date, UserGachaInventory.locked
+        SELECT GachaItems.gacha_id, GachaItems.name, GachaItems.rarity, GachaItems.status, GachaItems.description,
+        UserGachaInventory.acquired_date, UserGachaInventory.locked
         FROM UserGachaInventory
         JOIN GachaItems ON UserGachaInventory.gacha_id = GachaItems.gacha_id
         WHERE UserGachaInventory.user_id = ?
@@ -96,7 +97,7 @@ def get_user_inventory(user_id):
             "description": x['description'],
             "acquired_date": x['acquired_date'],
             "locked": x['status'] == 'locked',
-            "image": base64.b64encode(x['image']).decode('utf-8') if x['image'] else None
+            # "image": base64.b64encode(x['image']).decode('utf-8') if x['image'] else None
         })
 
     logging.debug("User inventory retrieved successfully for user_id=%s", user_id)
