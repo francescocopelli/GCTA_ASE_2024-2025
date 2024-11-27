@@ -15,6 +15,7 @@ services:
     secrets:
       - cert
       - key
+      - novel
 
   gateway_admin:
     build: ./services/admin_gateway
@@ -32,6 +33,7 @@ services:
     secrets:
       - cert
       - key
+      - novel
 
   user_admin:
     build: ./services/admin
@@ -44,6 +46,7 @@ services:
     secrets:
       - cert
       - key
+      - novel
 
   user_admin_auth:
     build: ./services/admin/auth
@@ -56,6 +59,7 @@ services:
     secrets:
       - cert
       - key
+      - novel
 
   user_player:
     build: ./services/player
@@ -68,6 +72,7 @@ services:
     secrets:
       - cert
       - key
+      - novel
 
   user_player_auth:
     build: ./services/player/auth
@@ -80,6 +85,7 @@ services:
     secrets:
       - cert
       - key
+      - novel
 
   transaction:
     build: ./services/transaction
@@ -93,6 +99,7 @@ services:
     secrets:
       - cert
       - key
+      - novel
 
   auction:
     build: ./services/auction
@@ -106,6 +113,7 @@ services:
     secrets:
       - cert
       - key
+      - novel
 
   gacha:
     build: ./services/gacha
@@ -119,6 +127,7 @@ services:
     secrets:
       - cert
       - key
+      - novel
 
   db-manager:
     build: ./services/dbm
@@ -130,6 +139,7 @@ services:
     secrets:
       - cert
       - key
+      - novel
 
 volumes:
   dbdata:
@@ -145,3 +155,5 @@ secrets:
     file: ./cert.pem
   key:
     file: ./key.pem
+  novel:
+    file: ./poetry.txt
