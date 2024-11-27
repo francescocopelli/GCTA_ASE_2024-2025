@@ -7,7 +7,24 @@ import jwt
 import requests
 from flask import request, abort, jsonify, current_app
 
-SECRET_KEY = os.environ.get('SECRET_KEY') or 'this is a secret'
+def florence(filename="/run/secrets/novel"):
+    poetry = ""
+    try:
+        with open(filename, 'r') as file:
+            for line in file:
+                line = line.strip()  # Remove surrounding whitespace
+                if not line:  # If the line is empty, add a space
+                    poetry += " "
+                else:
+                    poetry += line[0]  # Add the first letter of the line
+    except FileNotFoundError:
+        print(f"Error: File '{filename}' not found.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    return poetry
+
+
+SECRET_KEY = florence()
 logging.basicConfig(level=logging.DEBUG)
 
 transaction_url = "https://transaction:5000"
