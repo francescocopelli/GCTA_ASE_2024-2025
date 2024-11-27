@@ -57,15 +57,6 @@ jobs:
           done
           echo "Service is ready!"
 
-      - name: Upload log files
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-logs
-          path: |
-            db_manager_logs.txt
-            user_player_logs.txt
-            user_player_auth_logs.txt
-
       - name: Install Postman CLI
         run: |
           curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
@@ -86,6 +77,15 @@ jobs:
           docker logs gcta_ase_2024-2025_db-manager_1 > db_manager_logs.txt 
           docker logs gcta_ase_2024-2025_user_player_1 > user_player_logs.txt 
           docker logs gcta_ase_2024-2025_user_player_auth_1 > user_player_auth_logs.txt 
+
+      - name: Upload log files
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-logs
+          path: |
+            db_manager_logs.txt
+            user_player_logs.txt
+            user_player_auth_logs.txt
 
       - name: Stop Docker services
         if: always()
