@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "186c68b1-d2d9-48aa-a3e9-685316267382",
 		"name": "GCTA Tests",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"schema": "http://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_uid": "39570797-186c68b1-d2d9-48aa-a3e9-685316267382"
 	},
 	"item": [
