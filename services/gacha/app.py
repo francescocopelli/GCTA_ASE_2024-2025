@@ -13,13 +13,6 @@ DATABASE = './gacha.db/gacha.db'
 logging.basicConfig(level=logging.DEBUG)
 
 
-# Helper function to connect to the database
-def get_db_connection():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
 @app.post('/add')
 @admin_required
 def add():
@@ -39,7 +32,7 @@ def add():
         return send_response({'error': 'Missing data to add gacha item'}, 400)
 
     # Connect to the database
-    conn = get_db_connection()
+    conn = get_db_connection(DATABASE)
     cursor = conn.cursor()
     try:
         # Add the gacha item to the database
@@ -58,9 +51,7 @@ def add():
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 # Endpoint to retrieve a user's gacha inventory
@@ -69,7 +60,7 @@ def add():
 def get_user_inventory(user_id):
     try:
         # Connect to the database
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
 
         # Retrieve all gacha items owned by the user
@@ -108,9 +99,7 @@ def get_user_inventory(user_id):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 @app.route('/roll', methods=['POST'])
@@ -153,7 +142,7 @@ def roll_gacha(user):
 
     # Connect to the database
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
 
         # Perform the gacha roll by selecting a random item based on rarity
@@ -186,9 +175,7 @@ def roll_gacha(user):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 # Endpoint to add a gacha item to a user's inventory
@@ -213,7 +200,7 @@ def add_to_inventory():
 
     # Connect to the database
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
 
         # Add gacha item to user's inventory if it exists and is available
@@ -235,14 +222,12 @@ def add_to_inventory():
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 @app.get("/all")
 def get_all():
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
 
         # write another execute cursor to get all the gacha items with an arbitrary offset limit taken from request if present otherwise use a default one
@@ -271,9 +256,7 @@ def get_all():
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 # update gacha item
@@ -295,7 +278,7 @@ def update_gacha_item():
         return send_response({'error': 'Missing data to update gacha item'}, 400)
 
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
 
         # Check if the gacha item exists
@@ -329,16 +312,14 @@ def update_gacha_item():
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 # retrieve information about a specific gacha item
 @app.route('/get/<gacha_id>')
 def get_gacha_item(gacha_id):
     # Connect to the database
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
 
         # Retrieve the gacha item details
@@ -363,9 +344,7 @@ def get_gacha_item(gacha_id):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 # get detail of a specific gacha of a specific user
 @app.get('/get/<user_id>/<gacha_id>')
@@ -378,7 +357,7 @@ def get_user_gacha_item(user_id, gacha_id):
         return send_response({'error': 'You are not authorized to view this page'}, 403)
     # Connect to the database
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
 
         # Retrieve the user's gacha item details
@@ -409,9 +388,7 @@ def get_user_gacha_item(user_id, gacha_id):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 @app.get('/is_gacha_unlocked/<user_id>/<gacha_id>')
@@ -423,7 +400,7 @@ def is_gacha_unlocked(user_id, gacha_id):
 
     # Connect to the database
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
 
         # Check if the gacha item is unlocked for the user
@@ -443,9 +420,7 @@ def is_gacha_unlocked(user_id, gacha_id):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 # Hidden from the API documentation
 @app.route("/update_gacha_status", methods=['PUT'])
@@ -470,7 +445,7 @@ def update_gacha_status():
         logging.debug("Gacha item not found: gacha_id=%s", gacha_id)
         return send_response({'error': 'Gacha item not found'}, 408)
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
 
         # cursor.execute("UPDATE UserGachaInventory SET locked = ? WHERE user_id = ? AND gacha_id = ? LIMIT 1",
@@ -492,9 +467,7 @@ def update_gacha_status():
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 # Hidden from the API documentation
 @app.route('/update_gacha_owner', methods=['PUT'])
@@ -522,7 +495,7 @@ def update_gacha_owner():
         return send_response({'error': 'Gacha item not found'}, 404)
     logging.debug("Gacha item found: seller_id=%s, gacha_id=%s", seller_id, gacha_id)
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
 
         cursor.execute("""UPDATE UserGachaInventory SET locked = ?, user_id=? 
@@ -541,9 +514,7 @@ def update_gacha_owner():
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 def exist_auction(gacha_id):
     req = requests.get('http://auction:5000/get_gacha_auctions?gacha_id=' + gacha_id,  timeout=60, headers=generate_session_token_system())
@@ -554,7 +525,7 @@ def exist_auction(gacha_id):
 def delete_gacha_item(gacha_id):
     # Connect to the database
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
 
         # Check if the gacha item exists
@@ -606,6 +577,4 @@ def delete_gacha_item(gacha_id):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)

@@ -18,19 +18,6 @@ admin_url = "http://user_admin:5000"
 
 logging.basicConfig(level=logging.DEBUG)
 
-
-# Helper function to connect to the database
-def get_db_connection():
-    try:
-        conn = sqlite3.connect(DATABASE)
-        conn.row_factory = sqlite3.Row
-        logging.debug("Database connection established")
-        return conn
-    except sqlite3.Error as e:
-        logging.error(f"Database connection error: {e}")
-        return None
-
-
 @app.route("/all", methods=["GET"])
 @admin_required
 # Endpoint to retrieve all auction
@@ -54,7 +41,7 @@ def get_all_auctions():
     # Optional query parameter to filter by auction status (active or expired)
 
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
 
         # If status filter is provided, retrieve only the matching auctions
@@ -77,9 +64,7 @@ def get_all_auctions():
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 @app.route("/all_active", methods=["GET"])
@@ -209,7 +194,7 @@ def add_auction():
             return send_response({"error": "Missing data for new auction"}, 400)
 
         # Connect to the database
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
 
         # VERIFY IF THE GACHA EXIST AND IF ITS NOT LOCKED
@@ -240,14 +225,12 @@ def add_auction():
     except Exception as e:
             return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 # write a function that checks if the auction has ended and if it has, update the status to expired
 def check_auction_status():
-    conn = get_db_connection()
+    conn = get_db_connection(DATABASE)
     try:
         # Connect to the database
         cursor = conn.cursor()
@@ -317,9 +300,7 @@ def check_auction_status():
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 # Endpoint to retrieve all auctions for a specific gacha
@@ -341,7 +322,7 @@ def get_gacha_auctions():
         return send_response({'error': 'Missing gacha_id parameter'}, 400)
 
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM Auctions WHERE gacha_id = ?", (gacha_id,))
         auctions = cursor.fetchall()
@@ -359,9 +340,7 @@ def get_gacha_auctions():
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 # Functions for Bidding
@@ -385,7 +364,7 @@ def place_bid(user):
         return send_response({"error": "You cannot place a bid as an admin"}, 403)
     try:
         # Connect to the database
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
 
         # Check if the auction exists and is active
@@ -435,9 +414,7 @@ def place_bid(user):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 # Endpoint to retrieve all bids for a specific auction
@@ -462,7 +439,7 @@ def get_bids():
         return send_response({"error": "Missing auction_id parameter"}, 400)
 
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM Bids WHERE auction_id = ?", (auction_id,))
         bids = cursor.fetchall()
@@ -473,9 +450,7 @@ def get_bids():
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 @app.get("/my")
@@ -515,7 +490,7 @@ def get_auction():
 
     try:
         if auction_id:
-            conn = get_db_connection()
+            conn = get_db_connection(DATABASE)
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM Auctions WHERE auction_id = ?", (auction_id,))
             auction = cursor.fetchone()
@@ -531,7 +506,7 @@ def get_auction():
                     res[a] = datetime.fromtimestamp(float(res[a])).strftime('%Y-%m-%d %H:%M:%S')
             return send_response(res, 200)
         elif user_id:
-            conn = get_db_connection()
+            conn = get_db_connection(DATABASE)
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM Auctions WHERE buyer_id = ? OR seller_id = ?", (user_id, user_id))
             auctions = cursor.fetchall()
@@ -547,9 +522,7 @@ def get_auction():
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 @app.get("/highest_bid")
@@ -566,7 +539,7 @@ def get_highest_bid():
     if not gacha_id:
         return send_response({"error": "Missing gacha_id parameter"}, 400)
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
         cursor.execute("SELECT auction_id,highest_bid,buyer_id FROM Auctions WHERE gacha_id = ?", (gacha_id,))
         auction = cursor.fetchone()
@@ -580,9 +553,7 @@ def get_highest_bid():
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 @app.route("/update", methods=["PUT"])
@@ -600,7 +571,7 @@ def update_auction(user):
     if not auction_id:
         return send_response({"error": "Missing auction_id parameter"}, 400)
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM Auctions WHERE auction_id = ?", (auction_id,))
         auction = cursor.fetchone()
@@ -640,9 +611,7 @@ def update_auction(user):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 @app.route("/delete", methods=["DELETE"])
 @admin_required
@@ -659,7 +628,7 @@ def delete_auction():
     if not gacha_id:
         return send_response({"error": "Missing gacha_id parameter"}, 400)
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM Auctions WHERE gacha_id = ?", (gacha_id,))
         auctions = cursor.fetchall()
@@ -681,6 +650,4 @@ def delete_auction():
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)

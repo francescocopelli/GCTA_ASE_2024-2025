@@ -21,13 +21,6 @@ DATABASE = './users.db/user.db'
 
 # Funzione di connessione al database
 
-
-def get_db_connection():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
 # Funzione di hashing della password
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -49,7 +42,7 @@ def register(user_type):
         return send_response({"error": "Invalid user type"}, 401)
 
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
         data = request.form
         logging.info(f'Se nel mondo esistesse un po\' di {data}')
@@ -79,9 +72,7 @@ def register(user_type):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 # Endpoint di login per USER e ADMIN
@@ -98,7 +89,7 @@ def login(user_type):
         hashed_password = hash_password(password)
 
         # Verifica delle credenziali
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
         query = f"SELECT * FROM {user_type} WHERE username = ? AND password = ?"
         cursor.execute(query, (username, hashed_password))
@@ -119,9 +110,7 @@ def login(user_type):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 # Endpoint per il logout
@@ -132,7 +121,7 @@ def logout(user):
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")
         return send_response({"error": "Invalid user type"}, 401)
-    conn = get_db_connection()
+    conn = get_db_connection(DATABASE)
     cursor = conn.cursor()
     try:
 
@@ -146,9 +135,7 @@ def logout(user):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 # Endpoint per visualizzare il saldo della valuta di gioco
@@ -165,7 +152,7 @@ def get_balance(user_type):
         return send_response({"error": "User ID is required"}, 400)
 
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
         query = f"SELECT currency_balance FROM {user_type} WHERE user_id = ?"
         cursor.execute(query, (user_id,))
@@ -181,9 +168,7 @@ def get_balance(user_type):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 # Delete profile
@@ -199,7 +184,7 @@ def delete(user_type):
         return send_response({"error": "Session token is required"}, 400)
 
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
 
         # Verifica se il token si trova nella tabella PLAYER o ADMIN
@@ -220,9 +205,7 @@ def delete(user_type):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 def change_user_info(conn, cursor, user_type, request, column, identifier):
@@ -275,7 +258,7 @@ def update(user_type):
         return send_response({"error": "Invalid user type"}, 400)
 
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
         session_token = request.json.get("session_token") or request.headers["Authorization"].split(" ")[1]
 
@@ -285,9 +268,7 @@ def update(user_type):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 # Create a function that updates user balance of a given user_id with a given amount
@@ -308,7 +289,7 @@ def update_balance_user(user_type):
         return send_response({"error": "user_id, amount, and type are required"}, 400)
 
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
         if transaction_type == "credit":
             query_update = f"UPDATE {user_type} SET currency_balance = currency_balance + ? WHERE user_id = ?"
@@ -322,9 +303,7 @@ def update_balance_user(user_type):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 @app.route("/get_user/<user_id>", methods=["GET"])
@@ -343,7 +322,7 @@ def get_user(user_type, user_id):
         return send_response({"error": "Invalid user type"}, 400)
 
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
         query = f"SELECT * FROM {user_type} WHERE user_id = ?"
         cursor.execute(query, (user_id,))
@@ -365,9 +344,7 @@ def get_user(user_type, user_id):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 @app.route("/get_all/<user_type>", methods=["GET"])
@@ -377,7 +354,7 @@ def get_all(user_type):
         return send_response({"error": "Invalid user type"}, 400)
 
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
         query = f"SELECT * FROM {user_type}"
         cursor.execute(query)
@@ -404,9 +381,7 @@ def get_all(user_type):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 # Make the function that delete the user from the database with the given session_token
@@ -421,7 +396,7 @@ def delete_user(user_type, session_token):
         return send_response({"error": "Session token is required"}, 400)
 
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(DATABASE)
         cursor = conn.cursor()
 
         # Verify if the session_token exists in the table
@@ -442,9 +417,7 @@ def delete_user(user_type, session_token):
     except Exception as e:
         return manage_errors(e)
     finally:
-        for elem in [cursor, conn]:
-            if elem:
-                elem.close()
+        release_db_connection(DATABASE, conn, cursor)
 
 
 if __name__ == '__main__':

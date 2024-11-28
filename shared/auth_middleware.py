@@ -25,6 +25,71 @@ from functools import wraps
 DB_ERROR_THRESHOLD = 5
 COOLDOWN_PERIOD = 20  # In seconds
 
+import sqlite3
+import logging
+from queue import Queue
+
+class SQLiteConnectionPool:
+    def __init__(self, db_path, pool_size=15):
+        self.db_path = db_path
+        self.pool = Queue(maxsize=pool_size)
+        for _ in range(pool_size):
+            conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            conn.row_factory = sqlite3.Row
+            self.pool.put(conn)
+        logging.debug(f"Connection pool created with size {pool_size} for {self.db_path}")
+
+    def get_connection(self):
+        try:
+            conn = self.pool.get(timeout=30)  # Ottieni una connessione dal pool
+            logging.debug("Database connection retrieved from pool")
+            return conn
+        except Exception as e:
+            logging.error(f"Error retrieving connection from pool: {e}")
+            return None
+
+    def release_connection(self, conn, cursor=None):
+        try:
+            if cursor:
+                cursor.close()
+            if conn:
+                self.pool.put(conn)  # Rilascia la connessione nel pool
+                logging.debug("Database connection released back to pool")
+        except Exception as e:
+            logging.error(f"Error releasing connection back to pool: {e}")
+
+    def close_all(self):
+        while not self.pool.empty():
+            conn = self.pool.get()
+            conn.close()
+        logging.debug("All connections in the pool have been closed")
+
+# Utilizzo della classe
+connection_pools = {}
+
+def get_db_connection(db_name):
+    pool = connection_pools.get(db_name)
+    if pool:
+        conn = pool.get_connection()
+    else:
+        # add a new connection pool
+        db_path = f"{db_name}"
+        pool = SQLiteConnectionPool(db_path)
+        connection_pools[db_name] = pool
+        conn = pool.get_connection()
+        if not conn:
+            logging.error(f"Error retrieving connection from pool for {db_name}")
+    return conn
+
+
+def release_db_connection(db_name, conn, cursor=None):
+    pool = connection_pools.get(db_name)
+    if pool:
+        pool.release_connection(conn, cursor)
+    else:
+        logging.error(f"Connection pool for {db_name} not found")
+
+
 
 class CircuitBreaker:
     def __init__(self, error_threshold, cooldown_period):
@@ -66,16 +131,13 @@ def circuit_breaker_decorator(func):
             circuit_breaker.check_state()
             if circuit_breaker.is_open:
                 logging.error("Circuit breaker is open. Rejecting the request.")
-                return jsonify({"error": "Database is temporarily unavailable"}), 503
+                return jsonify({"error": "Database is temporarily unavailable"}), 603
 
         # Execute the function
         try:
             result = func(*args, **kwargs)
-            try:
-                if result[1] < 500:
-                    circuit_breaker.reset()
-            except:
-                None
+            if not result is Exception:
+                circuit_breaker.reset()
             return result
 
         except sqlite3.Error as e:
@@ -85,16 +147,16 @@ def circuit_breaker_decorator(func):
                 if circuit_breaker.failure_count >= circuit_breaker.error_threshold:
                     circuit_breaker.trip()
                     logging.critical("Circuit breaker tripped due to repeated database failures.")
-            return jsonify({"error": "Database error occurred"}), 500
+            return jsonify({"error": "Database error occurred"}), 600
 
         except Exception as e:
             with circuit_breaker.lock:
                 circuit_breaker.failure_count += 1
-                logging.error(f"Unexpected error: {e}")
+                logging.error(f"Unexpected error: {e.args[0]}")
                 if circuit_breaker.failure_count >= circuit_breaker.error_threshold:
                     circuit_breaker.trip()
                     logging.critical("Circuit breaker tripped due to repeated errors.")
-            return jsonify({"error": "An unexpected error occurred"}), 500
+            return jsonify({"error": "An unexpected error occurred"}), 602
 
     return wrapper
 

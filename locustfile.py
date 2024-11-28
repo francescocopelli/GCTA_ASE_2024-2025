@@ -1,8 +1,9 @@
-# from services.player.auth.test_app import AuthUser
+
 from threading import Lock
 from locust import events
 
-from services.player.test_app import UserPlayer
+#from services.player.auth.test_app import AuthUser
+#from services.player.test_app import UserPlayer
 #from services.transaction.test_app import GetTransactionTest
 #from services.gacha.test_app import GachaTest
 from services.auction.test_app import GetAllAuctionsTest
@@ -12,6 +13,8 @@ from services.auction.test_app import GetAllAuctionsTest
 session_token = []
 user_id = []
 session_token_lock = Lock()
+all_auctions = []
+
 
 user_auth = "/users/auth"
 user_player = "/users/player"
