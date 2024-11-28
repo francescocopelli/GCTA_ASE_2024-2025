@@ -1,9 +1,9 @@
-FROM python:3.8-slim
+FROM python:3.12-slim
 
+# upgrade openssl and sqlite3 to fix vulnerable version in image
+RUN apt-get update && apt-get install -y libssl-dev libsqlite3-dev
 WORKDIR /app
 COPY . /app/
-# RUN apt-get update && apt-get install -y gcc && apt install libsqlite3-dev -y
-
 # RUN pip install -r requirements.txt
 
 EXPOSE 5000
