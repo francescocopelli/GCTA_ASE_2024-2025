@@ -4,10 +4,8 @@ services:
     ports:
       - 8080:80
     depends_on:
-      - user_admin
-      - user_admin_auth
-      - user_player
-      - user_player_auth
+        - user_player
+        - user_player_auth
     networks:
       - microservice-network
     volumes:
@@ -20,8 +18,6 @@ services:
     depends_on:
       - user_admin
       - user_admin_auth
-      - user_player
-      - user_player_auth
     networks:
       - microservice-network
     volumes:
@@ -30,7 +26,8 @@ services:
   user_admin:
     build: ./services/admin
     depends_on:
-      - db-manager
+      users_db:
+        condition: service_healthy
     networks:
       - microservice-network
     volumes:
@@ -39,7 +36,8 @@ services:
   user_admin_auth:
     build: ./services/admin/auth
     depends_on:
-      - db-manager
+      users_db:
+        condition: service_healthy
     networks:
       - microservice-network
     volumes:
@@ -48,7 +46,8 @@ services:
   user_player:
     build: ./services/player
     depends_on:
-      - db-manager
+      users_db:
+        condition: service_healthy
     networks:
       - microservice-network
     volumes:
@@ -57,7 +56,8 @@ services:
   user_player_auth:
     build: ./services/player/auth
     depends_on:
-      - db-manager
+      users_db:
+        condition: service_healthy
     networks:
       - microservice-network
     volumes:
@@ -66,44 +66,92 @@ services:
   transaction:
     build: ./services/transaction
     depends_on:
-      - db-manager
+      transactions_db:
+        condition: service_healthy
     networks:
       - microservice-network
     volumes:
-      - ./dbdata/transactions_db:/app/transactions.db
       - ./shared:/app/shared
 
   auction:
     build: ./services/auction
     depends_on:
-      - db-manager
+      auctions_db:
+        condition: service_healthy
     networks:
       - microservice-network
     volumes:
-      - ./dbdata/auctions_db:/app/auction.db
       - ./shared:/app/shared
 
   gacha:
     build: ./services/gacha
     depends_on:
-      - db-manager
+      gacha_db:
+        condition: service_healthy
     networks:
       - microservice-network
     volumes:
-      - ./dbdata/gacha_db:/app/gacha.db
       - ./shared:/app/shared
 
   db-manager:
     build: ./services/dbm
     networks:
       - microservice-network
+    depends_on:
+      users_db:
+        condition: service_healthy
+  
+
     volumes:
-      - ./dbdata/users_db:/app/users.db
       - ./shared:/app/shared
+
+
+  auctions_db:
+    build: db/auctions_db
+    networks:
+      - microservice-network
+    volumes:
+      - ./dbdata/auctions_db:/var/lib/mysql:rw
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "127.0.0.1"]
+      timeout: 5s
+      retries: 10
+
+  transactions_db:
+    build: db/transactions_db
+    networks:
+      - microservice-network
+    volumes:
+      - ./dbdata/transactions_db:/var/lib/mysql:rw
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "127.0.0.1"]
+      timeout: 5s
+      retries: 10
+
+  users_db:
+    build: db/users_db
+    networks:
+      - microservice-network
+    volumes:
+      - ./dbdata/users_db:/var/lib/mysql:rw
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "127.0.0.1"]
+      timeout: 5s
+      retries: 10
+
+  gacha_db:
+    build: db/gacha_db
+    networks:
+      - microservice-network
+    volumes:
+      - ./dbdata/gacha_db:/var/lib/mysql:rw
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "127.0.0.1"]
+      timeout: 5s
+      retries: 10
 
 volumes:
   dbdata:
-  user_db_data:
 
 
 networks:
