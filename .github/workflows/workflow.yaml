@@ -3,7 +3,7 @@ name: CI Pipeline
 on:
   push:
     branches:
-      - main
+      - db-multithreading
 
 jobs:
   build_and_test:
