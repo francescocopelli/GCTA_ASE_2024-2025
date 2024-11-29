@@ -9,6 +9,23 @@ This repository contains the code for GCTA ASE 2024-2025.
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## Introduction
+The GCTA project is a backend system for a gacha game. It uses microservices architecture with Flask and Docker. Core functionalities include user management, authentication, transactions, auctions, and gacha item management. The system is designed to be scalable and maintainable, leveraging the benefits of microservices to isolate different parts of the application for easier development and deployment.
+
+### Key Features:
+- **User Management**: Handles user registration, login, and profile management.
+- **Authentication**: Secure authentication mechanisms using JWT tokens.
+- **Transactions**: Manages user transactions, including in-game purchases and currency balance updates.
+- **Auctions**: Facilitates the creation and management of auctions for gacha items.
+- **Gacha Item Management**: Manages the inventory of gacha items, including adding, updating, and retrieving items.
+
+### Technologies Used:
+- **Flask**: A lightweight WSGI web application framework in Python.
+- **Docker**: Containerization platform to package and deploy microservices.
+- **SQLite**: Lightweight database for storing application data.
+- **JWT**: JSON Web Tokens for secure authentication.
+- **Requests**: Python HTTP library for making API requests.
+
 
 ## Get Started
 
