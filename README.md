@@ -22,7 +22,7 @@ The GCTA project is a backend system for a gacha game. It uses microservices arc
 ### Technologies Used:
 - **Flask**: A lightweight WSGI web application framework in Python.
 - **Docker**: Containerization platform to package and deploy microservices.
-- **SQLite**: Lightweight database for storing application data.
+- **MySQL**: Database for storing application data.
 - **JWT**: JSON Web Tokens for secure authentication.
 - **Requests**: Python HTTP library for making API requests.
 
