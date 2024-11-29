@@ -245,7 +245,7 @@ class GachaInventoryBehavior(TaskSet):
     @task
     def add_to_inventory(self):
         locustfile.admin_login(self)
-        user_id = random.choice(locustfile.user_id)
+        user_id = random.choice(locustfile.admin_user_id)
         gacha_id = random.randint(1, 100)  # Assuming gacha_id ranges from 1 to 100
         token = locustfile.admin_session_token[random.choice(range(0, 3))]
         headers = create_header(token)

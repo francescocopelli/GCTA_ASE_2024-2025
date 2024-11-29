@@ -2,7 +2,7 @@ import base64
 import hashlib
 import logging
 import re
-import sqlite3
+
 
 from flask import Flask
 
@@ -16,7 +16,8 @@ app = Flask(__name__)
 print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 
-DATABASE = './users.db/user.db'
+DATABASE = 'users'
+DB_HOST = 'users_db'
 
 
 # Funzione di connessione al database
@@ -42,8 +43,8 @@ def register(user_type):
         return send_response({"error": "Invalid user type"}, 401)
 
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
         data = request.form
         logging.info(f'Se nel mondo esistesse un po\' di {data}')
         username = data.get("username")
@@ -59,20 +60,20 @@ def register(user_type):
         if "PLAYER" in user_type:
             image = base64.b64decode(data.get("image")) if data.get("image") else None
             query = (
-                "INSERT INTO PLAYER (username, password, email, image, session_token) VALUES (?, ?, ?, ?, 0)"
+                "INSERT INTO PLAYER (username, password, email, image, session_token) VALUES (%s,%s,%s,%s,%s)"
             )
-            cursor.execute(query, (username, hashed_password, email, image))
-        elif "ADMIN":
+            cursor.execute(query, (username, hashed_password, email, image,0))
+        elif "ADMIN" in user_type:
             query = (
-                "INSERT INTO ADMIN (username, password, email, session_token) VALUES (?, ?, ?, 0)"
+                "INSERT INTO ADMIN (username, password, email, session_token) VALUES (%s,%s,%s,%s)"
             )
-            cursor.execute(query, (username, hashed_password, email))
+            cursor.execute(query, (username, hashed_password, email,0))
         conn.commit()
         return send_response({"message": f"{user_type} registered successfully"}, 200)
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 # Endpoint di login per USER e ADMIN
@@ -89,15 +90,15 @@ def login(user_type):
         hashed_password = hash_password(password)
 
         # Verifica delle credenziali
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
-        query = f"SELECT * FROM {user_type} WHERE username = ? AND password = ?"
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        query = f"SELECT * FROM {user_type} WHERE username = %s AND password =%s"
         cursor.execute(query, (username, hashed_password))
         user = cursor.fetchone()
 
         if user:
             session_token = generate_session_token(user_id=user["user_id"], user_type=user_type)
-            query = f"UPDATE {user_type} SET session_token = ? WHERE username = ?"
+            query = f"UPDATE {user_type} SET session_token = %s WHERE username =%s"
             cursor.execute(query, (session_token, username))
             conn.commit()
             # response.set_cookie('session_token', session_token, httponly=True, secure=True)
@@ -110,7 +111,7 @@ def login(user_type):
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 # Endpoint per il logout
@@ -121,12 +122,12 @@ def logout(user):
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")
         return send_response({"error": "Invalid user type"}, 401)
-    conn = get_db_connection(DATABASE)
-    cursor = conn.cursor()
+    conn = get_db_connection(DB_HOST, DATABASE)
+    cursor = conn.cursor(dictionary=True)
     try:
 
         # Elimina il token dalla tabella PLAYER o ADMIN
-        query_delete = f"UPDATE {user_type} SET session_token = 0 WHERE user_id = ?"
+        query_delete = f"UPDATE {user_type} SET session_token = 0 WHERE user_id =%s"
         user_id = user["user_id"]
         cursor.execute(query_delete, (user_id,))
         conn.commit()
@@ -135,7 +136,7 @@ def logout(user):
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 # Endpoint per visualizzare il saldo della valuta di gioco
@@ -152,9 +153,9 @@ def get_balance(user_type):
         return send_response({"error": "User ID is required"}, 400)
 
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
-        query = f"SELECT currency_balance FROM {user_type} WHERE user_id = ?"
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        query = f"SELECT currency_balance FROM {user_type} WHERE user_id =%s"
         cursor.execute(query, (user_id,))
         balance = cursor.fetchone()
 
@@ -168,7 +169,7 @@ def get_balance(user_type):
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 # Delete profile
@@ -184,17 +185,17 @@ def delete(user_type):
         return send_response({"error": "Session token is required"}, 400)
 
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
 
         # Verifica se il token si trova nella tabella PLAYER o ADMIN
-        query_player = f"SELECT * FROM {user_type} WHERE session_token = ?"
+        query_player = f"SELECT * FROM {user_type} WHERE session_token =%s"
         cursor.execute(query_player, (session_token,))
         token_found = cursor.fetchone()
 
         if token_found:
             # Elimina il token dalla tabella PLAYER o ADMIN
-            query_delete = f"DELETE FROM {user_type} WHERE session_token = ?"
+            query_delete = f"DELETE FROM {user_type} WHERE session_token =%s"
             cursor.execute(query_delete, (session_token,))
             conn.commit()
             logging.info(f"User with session token {session_token} deleted successfully")
@@ -205,13 +206,13 @@ def delete(user_type):
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 def change_user_info(conn, cursor, user_type, request, column, identifier):
     logging.warning(f"Session token: {identifier}")
     # Verifica se il token si trova nella tabella PLAYER
-    query_player = "SELECT * FROM " + user_type + " WHERE " + column + " = ?"
+    query_player = "SELECT * FROM " + user_type + " WHERE " + column + " =%s"
     cursor.execute(query_player, (identifier,))
     token_found = cursor.fetchone()
 
@@ -219,12 +220,12 @@ def change_user_info(conn, cursor, user_type, request, column, identifier):
         # Update the player profile
         if request.json.get("username"):
             query_update = (
-                    "UPDATE " + user_type + " SET username = ? WHERE " + column + " = ?"
+                    "UPDATE " + user_type + " SET username = %s WHERE " + column + " =%s"
             )
             cursor.execute(query_update, (request.json.get("username"), identifier))
         if request.json.get("password"):
             query_update = (
-                    "UPDATE " + user_type + " SET password = ? WHERE " + column + " = ?"
+                    "UPDATE " + user_type + " SET password = %s WHERE " + column + " =%s"
             )
             cursor.execute(
                 query_update,
@@ -232,14 +233,14 @@ def change_user_info(conn, cursor, user_type, request, column, identifier):
             )
         if request.json.get("email"):
             query_update = (
-                    "UPDATE " + user_type + " SET email = ? WHERE " + column + " = ?"
+                    "UPDATE " + user_type + " SET email = %s WHERE " + column + " =%s"
             )
             cursor.execute(query_update, (request.json.get("email"), identifier))
         if request.json.get("image"):
             logging.warning("Image found in request" + request.json.get("image"))
             image = base64.b64decode(request.json.get("image"))
             query_update = (
-                    "UPDATE " + user_type + " SET image = ? WHERE " + column + " = ?"
+                    "UPDATE " + user_type + " SET image = %s WHERE " + column + " =%s"
             )
             cursor.execute(query_update, (image, identifier))
 
@@ -258,8 +259,8 @@ def update(user_type):
         return send_response({"error": "Invalid user type"}, 400)
 
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
         session_token = request.json.get("session_token") or request.headers["Authorization"].split(" ")[1]
 
         if jwt.decode(session_token, app.config['SECRET_KEY'], algorithms=["HS256"])["user_type"] != "PLAYER":
@@ -268,7 +269,7 @@ def update(user_type):
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 # Create a function that updates user balance of a given user_id with a given amount
@@ -289,12 +290,12 @@ def update_balance_user(user_type):
         return send_response({"error": "user_id, amount, and type are required"}, 400)
 
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
         if transaction_type == "credit":
-            query_update = f"UPDATE {user_type} SET currency_balance = currency_balance + ? WHERE user_id = ?"
+            query_update = f"UPDATE {user_type} SET currency_balance = currency_balance + %s WHERE user_id =%s"
         else:
-            query_update = f"UPDATE {user_type} SET currency_balance = currency_balance - ? WHERE user_id = ?"
+            query_update = f"UPDATE {user_type} SET currency_balance = currency_balance - %s WHERE user_id =%s"
 
         cursor.execute(query_update, (amount, user_id))
         conn.commit()
@@ -303,7 +304,7 @@ def update_balance_user(user_type):
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 @app.route("/get_user/<user_id>", methods=["GET"])
@@ -322,9 +323,9 @@ def get_user(user_type, user_id):
         return send_response({"error": "Invalid user type"}, 400)
 
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
-        query = f"SELECT * FROM {user_type} WHERE user_id = ?"
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        query = f"SELECT * FROM {user_type} WHERE user_id =%s"
         cursor.execute(query, (user_id,))
         user = cursor.fetchone()
         if not user:
@@ -344,7 +345,7 @@ def get_user(user_type, user_id):
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 @app.route("/get_all/<user_type>", methods=["GET"])
@@ -354,8 +355,8 @@ def get_all(user_type):
         return send_response({"error": "Invalid user type"}, 400)
 
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
         query = f"SELECT * FROM {user_type}"
         cursor.execute(query)
         users = cursor.fetchall()
@@ -381,7 +382,7 @@ def get_all(user_type):
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 # Make the function that delete the user from the database with the given session_token
@@ -396,17 +397,17 @@ def delete_user(user_type, session_token):
         return send_response({"error": "Session token is required"}, 400)
 
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
 
         # Verify if the session_token exists in the table
-        query = f"SELECT * FROM {user_type} WHERE session_token = ?"
+        query = f"SELECT * FROM {user_type} WHERE session_token =%s"
         cursor.execute(query, (session_token,))
         user = cursor.fetchone()
 
         if user:
             # Delete the user from the table
-            query_delete = f"DELETE FROM {user_type} WHERE session_token = ?"
+            query_delete = f"DELETE FROM {user_type} WHERE session_token =%s"
             cursor.execute(query_delete, (session_token,))
             conn.commit()
             logging.info(f"User with session token {session_token} deleted successfully")
@@ -417,7 +418,7 @@ def delete_user(user_type, session_token):
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 if __name__ == '__main__':

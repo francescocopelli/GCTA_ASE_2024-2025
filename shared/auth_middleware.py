@@ -1,6 +1,5 @@
 import logging
 import os
-import sqlite3
 from datetime import datetime, timedelta
 
 import jwt
@@ -25,69 +24,28 @@ from functools import wraps
 DB_ERROR_THRESHOLD = 5
 COOLDOWN_PERIOD = 20  # In seconds
 
-import sqlite3
+
 import logging
 from queue import Queue
 
-class SQLiteConnectionPool:
-    def __init__(self, db_path, pool_size=15):
-        self.db_path = db_path
-        self.pool = Queue(maxsize=pool_size)
-        for _ in range(pool_size):
-            conn = sqlite3.connect(self.db_path, check_same_thread=False)
-            conn.row_factory = sqlite3.Row
-            self.pool.put(conn)
-        logging.debug(f"Connection pool created with size {pool_size} for {self.db_path}")
-
-    def get_connection(self):
-        try:
-            conn = self.pool.get(timeout=30)  # Ottieni una connessione dal pool
-            logging.debug("Database connection retrieved from pool")
-            return conn
-        except Exception as e:
-            logging.error(f"Error retrieving connection from pool: {e}")
-            return None
-
-    def release_connection(self, conn, cursor=None):
-        try:
-            if cursor:
-                cursor.close()
-            if conn:
-                self.pool.put(conn)  # Rilascia la connessione nel pool
-                logging.debug("Database connection released back to pool")
-        except Exception as e:
-            logging.error(f"Error releasing connection back to pool: {e}")
-
-    def close_all(self):
-        while not self.pool.empty():
-            conn = self.pool.get()
-            conn.close()
-        logging.debug("All connections in the pool have been closed")
+import logging
+from queue import Queue
+from mysql.connector import *
 
 # Utilizzo della classe
-connection_pools = {}
 
-def get_db_connection(db_name):
-    pool = connection_pools.get(db_name)
-    if pool:
-        conn = pool.get_connection()
-    else:
-        # add a new connection pool
-        db_path = f"{db_name}"
-        pool = SQLiteConnectionPool(db_path)
-        connection_pools[db_name] = pool
-        conn = pool.get_connection()
-        if not conn:
-            logging.error(f"Error retrieving connection from pool for {db_name}")
+def get_db_connection(db_host,db_name):
+    username= "root"
+    password= "123456"
+    conn = connect(host=db_host, user=username, password=password, database=db_name)
     return conn
 
+def release_db_connection(conn, cursor=None):
+    if cursor:
+        cursor.close()
+    if conn:
+        conn.close()
 
-def release_db_connection(db_name, conn, cursor=None):
-    pool = connection_pools.get(db_name)
-    if pool:
-        pool.release_connection(conn, cursor)
-    else:
-        logging.error(f"Connection pool for {db_name} not found")
 
 
 
@@ -140,7 +98,7 @@ def circuit_breaker_decorator(func):
                 circuit_breaker.reset()
             return result
 
-        except sqlite3.Error as e:
+        except Error as e:
             with circuit_breaker.lock:
                 circuit_breaker.failure_count += 1
                 logging.error(f"Database error: {e}")

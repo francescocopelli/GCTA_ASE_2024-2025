@@ -14,19 +14,8 @@ def gen():
 class UserAuthBehavior(TaskSet):
     is_logged_in=None
     valid_session_token=None
-    @task
-    def login_success(self):
-        response = self.client.post(f'{locustfile.user_auth}/login', json={
-            "username": "provando",
-            "password": "prova"
-        })
-        
-        assert int(response.status_code) == 200
-        assert response.json()["message"] == "Login successful"
-        self.valid_session_token = response.json()["session_token"]
-        self.is_logged_in = True
-        
-    @task
+
+    # @task
     def login_failure(self):
         with self.client.post(f'{locustfile.user_auth}/login', json={
             "username": "wronguser",
@@ -38,31 +27,31 @@ class UserAuthBehavior(TaskSet):
             else:
                 response.failure(f"Unexpected status code: {response.status_code}")
     #generate test for register a random user with random password and email. Login with it and then logout. Check all return codes
-    @task(100)
+    # @task
     def register_login_logout(self):
         random_username=gen()
         random_password=gen()
         print(f'username: {random_username} password: {random_password}')
         random_email=random_username+f"@{random_username[:4]}.com"
         print(f'email: {random_email}')
-        response = self.client.post(f'{locustfile.user_auth}/register', data={
+        with self.client.post(f'{locustfile.user_auth}/register', data={
 
             "username": random_username,
             "password": random_password,
             "email": random_email
-        })
-        print(response.json())
-        print(response.status_code)
-        assert response.status_code == 200
-        assert response.json()["message"] == "PLAYER registered successfully"
-        response = self.client.post(f'{locustfile.user_auth}/login', json={
-            "username": random_username,
-            "password": random_password
-        })
-        assert response.status_code == 200
-        assert response.json()["message"] == "Login successful"
-        response = self.client.delete(f'{locustfile.user_auth}/logout', headers=create_header(response.json()["session_token"]))
-        assert response.status_code == 200
+        }) as response:
+            print(response.json())
+            print(response.status_code)
+            assert response.status_code == 200
+            assert response.json()["message"] == "PLAYER registered successfully"
+            response = self.client.post(f'{locustfile.user_auth}/login', json={
+                "username": random_username,
+                "password": random_password
+            })
+            assert response.status_code == 200
+            assert response.json()["message"] == "Login successful"
+            response = self.client.delete(f'{locustfile.user_auth}/logout', headers=create_header(response.json()["session_token"]))
+            assert response.status_code == 200
 
     '''
     

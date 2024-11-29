@@ -1,4 +1,3 @@
-import sqlite3
 import uuid
 
 from flask import Flask
@@ -13,7 +12,8 @@ app = Flask(__name__)
 print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 
-DATABASE = "./transactions.db/transactions.db"
+DATABASE = "transactions"
+DB_HOST = "transactions_db"
 
 @app.route("/add_transaction", methods=["POST"])
 @admin_required
@@ -60,10 +60,10 @@ def add_transaction():
         transaction_type = "top_up"
 
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "INSERT INTO TRANSACTIONS (transaction_id, user_id, transaction_type, amount) VALUES (?, ?, ?, ?)",
+            "INSERT INTO TRANSACTIONS (transaction_id, user_id, transaction_type, amount) VALUES (%s,%s,%s,%s)",
             (transaction_id, str(data["user_id"]), transaction_type, data["amount"]),
         )
 
@@ -76,7 +76,7 @@ def add_transaction():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 @app.route("/get_transaction", methods=["GET"])
@@ -101,10 +101,10 @@ def get_transaction():
     if not transaction_id:
         return send_response({"error": "Missing transaction_id parameter"}, 400)
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM TRANSACTIONS WHERE transaction_id = ?", (transaction_id,)
+            "SELECT * FROM TRANSACTIONS WHERE transaction_id =%s", (transaction_id,)
         )
         transaction = cursor.fetchone()
 
@@ -115,7 +115,7 @@ def get_transaction():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 @app.route("/get_user_transactions", methods=["GET"])
@@ -153,9 +153,9 @@ def get_user_transactions(user_id):
     if not user_id:
         return send_response({"error": "Missing user_id parameter"}, 400)
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM TRANSACTIONS WHERE user_id = ?", (user_id,))
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM TRANSACTIONS WHERE user_id =%s", (user_id,))
         transactions = cursor.fetchall()
 
 
@@ -166,7 +166,7 @@ def get_user_transactions(user_id):
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 @app.get("/all")
 @login_required_void
@@ -182,10 +182,10 @@ def get_all_transactions():
         Response: A JSON response containing all transactions in the database with a 200 status code.
     """
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
         if not is_admin:
-            cursor.execute("SELECT * FROM TRANSACTIONS WHERE user_id = ?", (str(user['user_id']),))
+            cursor.execute("SELECT * FROM TRANSACTIONS WHERE user_id =%s", (str(user['user_id']),))
         else:
             cursor.execute("SELECT * FROM TRANSACTIONS")
         transactions = cursor.fetchall()
@@ -197,7 +197,7 @@ def get_all_transactions():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 if __name__ == "__main__":
     app.run()

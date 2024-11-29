@@ -65,7 +65,7 @@ class UserBehavior(TaskSet):
         locustfile.login(self)
         usr=random.choice(range(0,3))
         response = self.client.put(f"{locustfile.user_player}/update", data={
-            "email": f"temp_{random.choices('abcdefghijklmnopqrstuvwxyz' + '0123456789', k=10)}@email.com",
+            "email": f"temp_{''.join(random.choices('abcdefghijklmnopqrstuvwxyz' + '0123456789', k=10))}@email.com",
             "password":"prova"
         }, headers=create_header(locustfile.session_token[usr]))
         assert response.status_code == 200

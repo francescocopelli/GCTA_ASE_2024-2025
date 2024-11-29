@@ -1,4 +1,4 @@
-import sqlite3
+
 import uuid
 from urllib import request
 
@@ -10,7 +10,8 @@ app = Flask(__name__)
 
 print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
-DATABASE = "./auction.db/auction.db"
+DATABASE = "auctions"
+DB_HOST = "auctions_db"
 gacha_url = "http://gacha:5000"
 user_url = "http://user_player:5000"
 transaction_url = "http://transaction:5000"
@@ -41,12 +42,12 @@ def get_all_auctions():
     # Optional query parameter to filter by auction status (active or expired)
 
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
 
         # If status filter is provided, retrieve only the matching auctions
         if ("active" in status) or ("expired" in status) or ("completed" in status):
-            cursor.execute("SELECT * FROM Auctions WHERE status = ?", (status,))
+            cursor.execute("SELECT * FROM Auctions WHERE status =%s", (status,))
         else:
             # If no status filter is provided, return all auctions
             cursor.execute("SELECT * FROM Auctions")
@@ -56,15 +57,11 @@ def get_all_auctions():
         # Format the auctions for JSON response
         result = [dict(auction) for auction in auctions]
 
-        # replace all end_time with human readable date
-        for auction in result:
-            auction['end_time'] = datetime.fromtimestamp(float(auction['end_time'])).strftime('%Y-%m-%d %H:%M:%S')
-
         return send_response({"auctions": result}, 200)
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 @app.route("/all_active", methods=["GET"])
@@ -194,8 +191,8 @@ def add_auction():
             return send_response({"error": "Missing data for new auction"}, 400)
 
         # Connect to the database
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
 
         # VERIFY IF THE GACHA EXIST AND IF ITS NOT LOCKED
         # Make a GET request to the Gacha service to verify the gacha
@@ -207,8 +204,8 @@ def add_auction():
             response, status_code = update_gacha_status(seller_id, gacha_id, "locked")
             if status_code == 200:
                 cursor.execute(
-                    "INSERT INTO Auctions (auction_id, gacha_id, seller_id, base_price, highest_bid, buyer_id, status, end_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                    (auction_id, gacha_id, seller_id, base_price, 0, None, "active", end_time),
+                    "INSERT INTO Auctions (auction_id, gacha_id, seller_id, base_price, highest_bid, buyer_id, status, end_time) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
+                    (auction_id, gacha_id, seller_id, base_price, 0, None, "active", datetime.fromtimestamp(end_time).strftime('%Y-%m-%d %H:%M:%S')),
                 )
 
                 # UPDATE GACHA INVENTORY WITH BLOCKED GACHA
@@ -225,35 +222,35 @@ def add_auction():
     except Exception as e:
             return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 # write a function that checks if the auction has ended and if it has, update the status to expired
 def check_auction_status():
-    conn = get_db_connection(DATABASE)
+    conn = get_db_connection(DB_HOST, DATABASE)
     try:
         # Connect to the database
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
 
         logging.debug("Inside check auction status. Before query")
         # Retrieve all active auctions that have ended
         cursor.execute("SELECT * FROM Auctions WHERE status = 'active'")
         auctions = cursor.fetchall()
 
-        today = datetime.now().timestamp()
+        today = datetime.now()
         # Update the status of each expired auction
         logging.debug("Current datetime is: %s", today)
         for auction in auctions:
             end_time = auction["end_time"]
             logging.debug("End time is: %s", end_time)
 
-            if today <= end_time:
+            if today.timestamp() <= end_time.timestamp():
                 continue
 
             logging.debug(f"Inside check auction status. Auction ({auction['auction_id']}) ended")
             if auction["highest_bid"] > 0:
                 cursor.execute(
-                    "UPDATE Auctions SET status = 'completed' WHERE auction_id = ?",
+                    "UPDATE Auctions SET status = 'completed' WHERE auction_id =%s",
                     (auction["auction_id"],),
                 )
                 # Update the owner of the gacha
@@ -287,7 +284,7 @@ def check_auction_status():
 
             else:
                 cursor.execute(
-                    "UPDATE Auctions SET status = 'expired' WHERE auction_id = ?",
+                    "UPDATE Auctions SET status = 'expired' WHERE auction_id =%s",
                     (auction["auction_id"],),
                 )
                 if update_gacha_status(auction['seller_id'], auction['gacha_id'], "unlocked")[1] != 200:
@@ -300,7 +297,7 @@ def check_auction_status():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 # Endpoint to retrieve all auctions for a specific gacha
@@ -322,16 +319,14 @@ def get_gacha_auctions():
         return send_response({'error': 'Missing gacha_id parameter'}, 400)
 
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM Auctions WHERE gacha_id = ?", (gacha_id,))
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM Auctions WHERE gacha_id =%s", (gacha_id,))
         auctions = cursor.fetchall()
 
         if auctions:
             logging.debug(f"Found {len(auctions)} auctions for gacha_id {gacha_id}")
             res = [dict(auction) for auction in auctions]
-            for auction in res:
-                auction['end_time'] = datetime.fromtimestamp(float(auction['end_time'])).strftime('%Y-%m-%d %H:%M:%S')
             return send_response(res, 200)
         else:
             logging.debug(f"No auctions found for gacha_id {gacha_id}")
@@ -340,7 +335,7 @@ def get_gacha_auctions():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 # Functions for Bidding
@@ -364,12 +359,12 @@ def place_bid(user):
         return send_response({"error": "You cannot place a bid as an admin"}, 403)
     try:
         # Connect to the database
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
 
         # Check if the auction exists and is active
         cursor.execute(
-            "SELECT * FROM Auctions WHERE auction_id = ? AND status = 'active'",
+            "SELECT * FROM Auctions WHERE auction_id = %s AND status = 'active'",
             (auction_id,),
         )
         auction = cursor.fetchone()
@@ -394,7 +389,7 @@ def place_bid(user):
         update_user_balance(user_id, bid_amount, "auction_debit")
         # Update auction
         cursor.execute(
-            "UPDATE Auctions SET highest_bid = ?, buyer_id = ? WHERE auction_id = ?",
+            "UPDATE Auctions SET highest_bid =%s, buyer_id = %s WHERE auction_id =%s",
             (int(bid_amount), user_id, auction_id),
         )
 
@@ -402,7 +397,7 @@ def place_bid(user):
         bid_id = str(uuid.uuid4())
         bid_time = datetime.now()
         cursor.execute(
-            "INSERT INTO Bids (bid_id, auction_id, user_id, bid_amount, bid_time) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO Bids (bid_id, auction_id, user_id, bid_amount, bid_time) VALUES (%s,%s,%s,%s,%s)",
             (bid_id, auction_id, user_id, bid_amount, bid_time),
         )
         conn.commit()
@@ -414,7 +409,7 @@ def place_bid(user):
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 # Endpoint to retrieve all bids for a specific auction
@@ -439,9 +434,9 @@ def get_bids():
         return send_response({"error": "Missing auction_id parameter"}, 400)
 
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM Bids WHERE auction_id = ?", (auction_id,))
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM Bids WHERE auction_id =%s", (auction_id,))
         bids = cursor.fetchall()
         result = [dict(bid) for bid in bids]
         logging.debug(f"Retrieved {len(result)} bids for auction_id {auction_id}")
@@ -450,7 +445,7 @@ def get_bids():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 @app.get("/my")
@@ -490,9 +485,9 @@ def get_auction():
 
     try:
         if auction_id:
-            conn = get_db_connection(DATABASE)
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM Auctions WHERE auction_id = ?", (auction_id,))
+            conn = get_db_connection(DB_HOST, DATABASE)
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM Auctions WHERE auction_id =%s", (auction_id,))
             auction = cursor.fetchone()
 
             if not auction:
@@ -501,19 +496,14 @@ def get_auction():
 
             logging.debug(f"Retrieved auction information for auction_id {auction_id}")
             res = dict(auction)
-            for a in res.keys():
-                if a == "end_time":
-                    res[a] = datetime.fromtimestamp(float(res[a])).strftime('%Y-%m-%d %H:%M:%S')
             return send_response(res, 200)
         elif user_id:
-            conn = get_db_connection(DATABASE)
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM Auctions WHERE buyer_id = ? OR seller_id = ?", (user_id, user_id))
+            conn = get_db_connection(DB_HOST, DATABASE)
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM Auctions WHERE buyer_id = %s OR seller_id =%s", (user_id, user_id))
             auctions = cursor.fetchall()
 
             result = [dict(auction) for auction in auctions]
-            for auction in result:
-                auction['end_time'] = datetime.fromtimestamp(float(auction['end_time'])).strftime('%Y-%m-%d %H:%M:%S')
             logging.debug(f"Retrieved {len(result)} auctions for user_id {user_id}")
             return send_response({"auctions": result}, 200)
         else:
@@ -522,7 +512,7 @@ def get_auction():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 @app.get("/highest_bid")
@@ -539,9 +529,9 @@ def get_highest_bid():
     if not gacha_id:
         return send_response({"error": "Missing gacha_id parameter"}, 400)
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
-        cursor.execute("SELECT auction_id,highest_bid,buyer_id FROM Auctions WHERE gacha_id = ?", (gacha_id,))
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT auction_id,highest_bid,buyer_id FROM Auctions WHERE gacha_id =%s", (gacha_id,))
         auction = cursor.fetchone()
 
         if auction:
@@ -553,7 +543,7 @@ def get_highest_bid():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 
 @app.route("/update", methods=["PUT"])
@@ -571,9 +561,9 @@ def update_auction(user):
     if not auction_id:
         return send_response({"error": "Missing auction_id parameter"}, 400)
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM Auctions WHERE auction_id = ?", (auction_id,))
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM Auctions WHERE auction_id =%s", (auction_id,))
         auction = cursor.fetchone()
 
         if not auction:
@@ -594,7 +584,7 @@ def update_auction(user):
 
         # Update the auction record with the new data
         cursor.execute(
-            "UPDATE Auctions SET base_price = ?, end_time = ? WHERE auction_id = ?",
+            "UPDATE Auctions SET base_price =%s, end_time = %s WHERE auction_id =%s",
             (
                 base_price,
                 end_time,
@@ -611,10 +601,11 @@ def update_auction(user):
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
 
 @app.route("/delete", methods=["DELETE"])
 @admin_required
+# only for internal purposes
 def delete_auction():
     """
     Delete an existing auction.
@@ -628,17 +619,17 @@ def delete_auction():
     if not gacha_id:
         return send_response({"error": "Missing gacha_id parameter"}, 400)
     try:
-        conn = get_db_connection(DATABASE)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM Auctions WHERE gacha_id = ?", (gacha_id,))
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM Auctions WHERE gacha_id =%s", (gacha_id,))
         auctions = cursor.fetchall()
 
         if not auctions:
             return send_response({"error": "Auction not found"}, 404)
 
         for auction in auctions:
-            cursor.execute("DELETE FROM Auctions WHERE auction_id = ?", (auction["auction_id"],))
-            cursor.execute("DELETE FROM Bids WHERE auction_id = ?", (auction["auction_id"],))
+            cursor.execute("DELETE FROM Auctions WHERE auction_id =%s", (auction["auction_id"],))
+            cursor.execute("DELETE FROM Bids WHERE auction_id =%s", (auction["auction_id"],))
 
         conn.commit()
 
@@ -650,4 +641,4 @@ def delete_auction():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(DATABASE, conn, cursor)
+        release_db_connection(conn, cursor)
