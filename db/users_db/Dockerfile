@@ -2,7 +2,6 @@ FROM mysql:8.0
 
 ENV MYSQL_ROOT_PASSWORD=123456
 ENV MYSQL_DATABASE=users
-ENV MYSQL_PASSWORD=root
 
 
 COPY ./backup/users_db.sql /docker-entrypoint-initdb.d/users_db.sql
