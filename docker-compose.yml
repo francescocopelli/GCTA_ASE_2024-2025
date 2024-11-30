@@ -103,7 +103,7 @@ services:
     networks:
       - microservice-network
     volumes:
-      - ./db/auctions_db/backup:/var/lib/auctions_db/mysql:rw
+      - ./db/auctions_db/backup:/var/lib/auctions_db/backup:rw
     stop_signal: SIGTERM
     stop_grace_period: 30s
 
@@ -113,7 +113,7 @@ services:
     networks:
       - microservice-network
     volumes:
-      - ./db/transactions_db/backup:/var/lib/transactions_db/mysql:rw
+      - ./db/transactions_db/backup:/var/lib/transactions_db/backup:rw
     stop_signal: SIGTERM
     stop_grace_period: 30s
 
@@ -122,7 +122,7 @@ services:
     networks:
       - microservice-network
     volumes:
-      - ./db/users_db/backup:/var/lib/users_db/mysql:rw
+      - ./db/users_db/backup:/var/lib/users_db/backup:rw
     stop_signal: SIGTERM
     stop_grace_period: 30s
 

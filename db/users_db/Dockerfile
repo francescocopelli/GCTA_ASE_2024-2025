@@ -5,7 +5,7 @@ ENV MYSQL_DATABASE=users
 ENV MYSQL_PASSWORD=root
 
 
-COPY ./backup/users.sql /docker-entrypoint-initdb.d/users.sql
+COPY ./backup/users_db.sql /docker-entrypoint-initdb.d/users_db.sql
 COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
 
 COPY ./backup.sh /usr/local/bin/backup.sh
