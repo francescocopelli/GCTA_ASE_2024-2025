@@ -1,45 +1,122 @@
-from flask import Flask, request, jsonify
-import logging
-import jwt
+from flask import Flask, jsonify, request
+import functools
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'test_secret_key'
 
-app.config['SECRET_KEY'] = 'your_secret_key'
-
-# Mock data
+# Mock Data
 mock_transactions = [
-    {"id": 1, "user_id": 1, "description": "Transaction 1", "amount": 100.00},
-    {"id": 2, "user_id": 2, "description": "Transaction 2", "amount": 150.50},
-    {"id": 3, "user_id": 3, "description": "Transaction 3", "amount": 50.50},
+    {
+        "transaction_id": 1,
+        "user_id": 101,
+        "transaction_type": "roll_purchase",
+        "amount": 10.0,
+    },
+    {
+        "transaction_id": 2,
+        "user_id": 102,
+        "transaction_type": "auction_credit",
+        "amount": 50.0,
+    },
 ]
 
-mock_transaction_details = {t["id"]: t for t in mock_transactions}
+mock_users = [
+    {"user_id": 101, "user_type": "PLAYER"},
+    {"user_id": 102, "user_type": "ADMIN"},
+]
 
-# Get all transactions
-@app.route('/all', methods=['GET'])
-def get_all_transactions():
-    user = jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])
-    is_admin = not user['user_type'] == 'PLAYER'
-    if not is_admin:
-        user_transactions = [t for t in mock_transactions if t["user_id"] == user['user_id']]
-        return jsonify(user_transactions), 200
-    return jsonify(mock_transactions), 200
+# Mock Middleware
+def admin_required(f):
+    @functools.wraps(f)
+    def admin_wrapper(*args, **kwargs):
+        return f(*args, **kwargs)
+    return admin_wrapper
 
-# Get transactions by user ID
-@app.route('/transactions/<string:user_id>', methods=['GET'])
-def get_transactions_by_user_id(user_id):
-    user_transactions = [t for t in mock_transactions if t["user_id"] == user_id]
-    if user_transactions:
-        return jsonify(user_transactions), 200
-    return jsonify({"error": "No transactions found for the user"}), 404
+def login_required_void(f):
+    @functools.wraps(f)
+    def login_wrapper(*args, **kwargs):
+        return f(*args, **kwargs)
+    return login_wrapper
 
-# Get transaction by ID
-@app.route('/get_transaction/<int:transaction_id>', methods=['GET'])
+def login_required_ret(f):
+    @functools.wraps(f)
+    def user_wrapper(*args, **kwargs):
+        user = mock_users[0]  # Default to the first mock user (Player)
+        return f(user, *args, **kwargs)
+    return user_wrapper
+
+# Endpoints
+
+@app.route("/add_transaction", methods=["POST"])
+@admin_required
+def add_transaction():
+    """Add a new transaction."""
+    data = request.get_json()
+    user_id = data.get("user_id")
+    amount = data.get("amount")
+    transaction_type = data.get("type", "unknown")
+
+    if not all([user_id, amount, transaction_type]):
+        return jsonify({"error": "Missing transaction data"}), 400
+
+    new_transaction = {
+        "transaction_id": len(mock_transactions) + 1,  # Incremental ID
+        "user_id": user_id,
+        "transaction_type": transaction_type,
+        "amount": amount,
+    }
+    mock_transactions.append(new_transaction)
+    return jsonify({"message": "Transaction added successfully", "transaction_id": new_transaction["transaction_id"]}), 200
+
+@app.route("/get_transaction/<int:transaction_id>", methods=["GET"])
+@login_required_void
 def get_transaction(transaction_id):
-    transaction = mock_transaction_details.get(transaction_id)
-    if transaction:
-        return jsonify(transaction), 200
-    return jsonify({"error": "Transaction not found"}), 404
+    """Retrieve a transaction by its ID."""
+    transaction = next((t for t in mock_transactions if t["transaction_id"] == transaction_id), None)
+    if not transaction:
+        return jsonify({"error": "Transaction not found"}), 404
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    return jsonify(transaction), 200
+
+@app.route("/get_user_transactions", methods=["GET"])
+@login_required_ret
+def get_my_transactions(user):
+    """Retrieve all transactions for the logged-in user."""
+    if user["user_type"] == "ADMIN":
+        return jsonify({"error": "Admins do not have transaction history"}), 403
+
+    user_transactions = [t for t in mock_transactions if t["user_id"] == user["user_id"]]
+    if not user_transactions:
+        return jsonify({"error": "No transactions found"}), 404
+
+    return jsonify(user_transactions), 200
+
+@app.route("/get_user_transactions/<int:user_id>", methods=["GET"])
+@admin_required
+def get_user_transactions(user_id):
+    """Retrieve all transactions for a specific user."""
+    user_transactions = [t for t in mock_transactions if t["user_id"] == user_id]
+    if not user_transactions:
+        return jsonify({"error": "No transactions found for the user"}), 404
+
+    return jsonify(user_transactions), 200
+
+@app.get("/all")
+@login_required_void
+def get_all_transactions():
+    """Retrieve all transactions."""
+    user = mock_users[0]  # Default mock user
+    is_admin = user["user_type"] == "ADMIN"
+
+    if is_admin:
+        return jsonify(mock_transactions), 200
+
+    user_transactions = [t for t in mock_transactions if t["user_id"] == user["user_id"]]
+    if not user_transactions:
+        return jsonify({"error": "No transactions found"}), 404
+
+    return jsonify(user_transactions), 200
+
+# Run Server
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)
