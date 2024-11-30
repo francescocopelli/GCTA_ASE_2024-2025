@@ -22,7 +22,7 @@ def add_transaction():
     Add a new transaction to the database.
 
     This endpoint handles POST requests to add a new transaction. The transaction type is derived based on the service
-    path in the request URL. The transaction details are then inserted into the TRANSACTIONS table in the database.
+    path in the request URL. The transaction details are then inserted into the Transactions table in the database.
 
     Returns:
         Response: JSON response with a success message and HTTP status code 200.
@@ -63,7 +63,7 @@ def add_transaction():
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "INSERT INTO TRANSACTIONS (transaction_id, user_id, transaction_type, amount) VALUES (%s,%s,%s,%s)",
+            "INSERT INTO Transactions (transaction_id, user_id, transaction_type, amount) VALUES (%s,%s,%s,%s)",
             (transaction_id, str(data["user_id"]), transaction_type, data["amount"]),
         )
 
@@ -104,7 +104,7 @@ def get_transaction():
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT * FROM TRANSACTIONS WHERE transaction_id =%s", (transaction_id,)
+            "SELECT * FROM Transactions WHERE transaction_id =%s", (transaction_id,)
         )
         transaction = cursor.fetchone()
 
@@ -155,7 +155,7 @@ def get_user_transactions(user_id):
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM TRANSACTIONS WHERE user_id =%s", (user_id,))
+        cursor.execute("SELECT * FROM Transactions WHERE user_id =%s", (user_id,))
         transactions = cursor.fetchall()
 
 
@@ -185,9 +185,9 @@ def get_all_transactions():
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
         if not is_admin:
-            cursor.execute("SELECT * FROM TRANSACTIONS WHERE user_id =%s", (str(user['user_id']),))
+            cursor.execute("SELECT * FROM Transactions WHERE user_id =%s", (str(user['user_id']),))
         else:
-            cursor.execute("SELECT * FROM TRANSACTIONS")
+            cursor.execute("SELECT * FROM Transactions")
         transactions = cursor.fetchall()
 
         if not transactions:

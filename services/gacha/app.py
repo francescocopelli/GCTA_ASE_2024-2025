@@ -460,7 +460,7 @@ def update_gacha_status():
         not_status = "unlocked" if status == "locked" else "locked"
 
         cursor.execute(
-            "UPDATE UserGachaInventory SET locked = %s WHERE user_id = %s AND gacha_id = %s AND locked= %s AND inventory_id = (SELECT inventory_id FROM UserGachaInventory WHERE user_id = %s AND gacha_id = %s AND locked=%s ORDER BY RAND() LIMIT 1)",
+            "UPDATE UserGachaInventory SET locked = %s WHERE user_id = %s AND gacha_id = %s AND locked= %s AND inventory_id = (SELECT inventory_id FROM gacha.UserGachaInventory WHERE user_id = %s AND gacha_id = %s AND locked=%s ORDER BY RAND() LIMIT 1)",
             (status, user_id, gacha_id, not_status, user_id, gacha_id, not_status))
 
         conn.commit()

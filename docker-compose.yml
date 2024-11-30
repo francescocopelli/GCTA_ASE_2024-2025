@@ -111,48 +111,53 @@ services:
     networks:
       - microservice-network
     volumes:
-      - ./dbdata/auctions_db:/var/lib/mysql:rw
+      - ./db/auctions_db/backup:/var/lib/auctions_db/mysql:rw
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "127.0.0.1"]
       timeout: 5s
       retries: 10
+    stop_signal: SIGTERM
+    stop_grace_period: 30s
+
 
   transactions_db:
     build: db/transactions_db
     networks:
       - microservice-network
     volumes:
-      - ./dbdata/transactions_db:/var/lib/mysql:rw
+      - ./db/transactions_db/backup:/var/lib/transactions_db/mysql:rw
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "127.0.0.1"]
       timeout: 5s
       retries: 10
+    stop_signal: SIGTERM
+    stop_grace_period: 30s
 
   users_db:
     build: db/users_db
     networks:
       - microservice-network
     volumes:
-      - ./dbdata/users_db:/var/lib/mysql:rw
+      - ./db/users_db/backup:/var/lib/users_db/mysql:rw
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "127.0.0.1"]
       timeout: 5s
       retries: 10
+    stop_signal: SIGTERM
+    stop_grace_period: 30s
 
   gacha_db:
     build: db/gacha_db
     networks:
       - microservice-network
     volumes:
-      - ./dbdata/gacha_db:/var/lib/mysql:rw
+      - ./db/gacha_db/backup:/var/lib/gacha_db/backup:rw
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "127.0.0.1"]
       timeout: 5s
       retries: 10
-
-volumes:
-  dbdata:
-
+    stop_signal: SIGTERM
+    stop_grace_period: 30s
 
 networks:
   microservice-network:
