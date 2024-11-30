@@ -161,7 +161,7 @@ def update(user):
         "image": image,
         "password": password
     }
-    response = requests.put(url,  timeout=3, json=data, headers=generate_session_token_system(),verify=False)
+    response = requests.put(url,  timeout=60, json=data, headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
 
 if __name__ == "__main__":

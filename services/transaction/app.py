@@ -108,6 +108,10 @@ def get_transaction():
         )
         transaction = cursor.fetchone()
 
+        if transaction:
+            return send_response(dict(transaction), 200)
+        return send_response({"error": "Transaction not found"}, 404)
+
     except Exception as e:
         return manage_errors(e)
     finally:
@@ -154,15 +158,10 @@ def get_user_transactions(user_id):
         cursor.execute("SELECT * FROM Transactions WHERE user_id =%s", (user_id,))
         transactions = cursor.fetchall()
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM TRANSACTIONS WHERE user_id = ?", (user_id,))
-    transactions = cursor.fetchall()
-    conn.close()
 
-    if transactions:
-        return send_response([dict(transaction) for transaction in transactions], 200)
-    return send_response({"error": "No transactions found for the user"}, 404)
+        if transactions:
+            return send_response([dict(transaction) for transaction in transactions], 200)
+        return send_response({"error": "No transactions found for the user"}, 404)
 
     except Exception as e:
         return manage_errors(e)
