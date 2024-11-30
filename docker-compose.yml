@@ -26,8 +26,7 @@ services:
   user_admin:
     build: ./services/admin
     depends_on:
-      users_db:
-        condition: service_healthy
+      - users_db
     networks:
       - microservice-network
     volumes:
@@ -36,8 +35,7 @@ services:
   user_admin_auth:
     build: ./services/admin/auth
     depends_on:
-      users_db:
-        condition: service_healthy
+      - users_db
     networks:
       - microservice-network
     volumes:
@@ -46,8 +44,7 @@ services:
   user_player:
     build: ./services/player
     depends_on:
-      users_db:
-        condition: service_healthy
+      - users_db
     networks:
       - microservice-network
     volumes:
@@ -56,8 +53,7 @@ services:
   user_player_auth:
     build: ./services/player/auth
     depends_on:
-      users_db:
-        condition: service_healthy
+      - users_db
     networks:
       - microservice-network
     volumes:
@@ -66,8 +62,7 @@ services:
   transaction:
     build: ./services/transaction
     depends_on:
-      transactions_db:
-        condition: service_healthy
+      - transactions_db
     networks:
       - microservice-network
     volumes:
@@ -76,8 +71,7 @@ services:
   auction:
     build: ./services/auction
     depends_on:
-      auctions_db:
-        condition: service_healthy
+      - auctions_db
     networks:
       - microservice-network
     volumes:
@@ -86,8 +80,7 @@ services:
   gacha:
     build: ./services/gacha
     depends_on:
-      gacha_db:
-        condition: service_healthy
+      - gacha_db
     networks:
       - microservice-network
     volumes:
@@ -98,8 +91,7 @@ services:
     networks:
       - microservice-network
     depends_on:
-      users_db:
-        condition: service_healthy
+      - users_db
   
 
     volumes:
@@ -112,10 +104,6 @@ services:
       - microservice-network
     volumes:
       - ./db/auctions_db/backup:/var/lib/auctions_db/mysql:rw
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "127.0.0.1"]
-      timeout: 5s
-      retries: 10
     stop_signal: SIGTERM
     stop_grace_period: 30s
 
@@ -126,10 +114,6 @@ services:
       - microservice-network
     volumes:
       - ./db/transactions_db/backup:/var/lib/transactions_db/mysql:rw
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "127.0.0.1"]
-      timeout: 5s
-      retries: 10
     stop_signal: SIGTERM
     stop_grace_period: 30s
 
@@ -139,10 +123,6 @@ services:
       - microservice-network
     volumes:
       - ./db/users_db/backup:/var/lib/users_db/mysql:rw
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "127.0.0.1"]
-      timeout: 5s
-      retries: 10
     stop_signal: SIGTERM
     stop_grace_period: 30s
 
@@ -152,10 +132,6 @@ services:
       - microservice-network
     volumes:
       - ./db/gacha_db/backup:/var/lib/gacha_db/backup:rw
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "127.0.0.1"]
-      timeout: 5s
-      retries: 10
     stop_signal: SIGTERM
     stop_grace_period: 30s
 
