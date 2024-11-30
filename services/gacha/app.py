@@ -47,9 +47,9 @@ def add():
         else:
             logging.error("Failed to add gacha item: lastrowid is None")
             return send_response({'error': 'Failed to add gacha item'}, 500)
-
-    except Exception as e:
-        return manage_errors(e)
+    except sqlite3.Error as e:
+        logging.error("Database error: %s", e)
+        return send_response({'error': 'Database error'}, 500)
     finally:
         release_db_connection(conn, cursor)
 
@@ -71,7 +71,8 @@ def get_user_inventory(user_id):
             WHERE UserGachaInventory.user_id =%s
         """, (user_id,))
 
-        inventory = cursor.fetchall()
+    inventory = cursor.fetchall()
+    conn.close()
 
         # If inventory is empty, return 404
         if not inventory:
@@ -124,9 +125,8 @@ def roll_gacha(user):
         return send_response({'error': 'Insufficient funds for gacha roll'}, 403)
 
     # Update the user's currency balance
-    response = requests.put('http://user_player:5000/update_balance/PLAYER', timeout=60,
-                            headers=generate_session_token_system(),
-                            json={'user_id': user_id, 'amount': roll_cost, 'type': 'roll_purchase'})
+    response = requests.put('https://user_player:5000/update_balance/PLAYER',  timeout=3, headers=generate_session_token_system(),
+                            json={'user_id': user_id, 'amount': roll_cost, 'type': 'roll_purchase'},verify=False)
 
     if response.status_code != 200:
         logging.debug("Failed to update user balance: user_id=%s, roll_cost=%s", user_id, roll_cost)
@@ -157,7 +157,7 @@ def roll_gacha(user):
             return send_response({'error': 'Failed to perform gacha roll'}, 500)
 
         # Add the gacha item to the user's inventory
-        response = requests.post('http://gacha:5000/inventory/add', headers=generate_session_token_system(), timeout=60,
+        response = requests.post('https://gacha:5000/inventory/add', headers=generate_session_token_system(), timeout=60,
                                  json={'user_id': user_id, 'gacha_id': gacha_item['gacha_id']})
         if response.status_code != 201:
             logging.debug("Failed to add gacha item to inventory: user_id=%s, gacha_id=%s", user_id,
@@ -194,7 +194,7 @@ def add_to_inventory():
         logging.debug("Missing data to add gacha to inventory: user_id=%s, gacha_id=%s", user_id, gacha_id)
         return send_response({'error': 'Missing data to add gacha to inventory'}, 400)
 
-    user = requests.get('http://user_player:5000/get_user/' + user_id, timeout=60,
+    user = requests.get('https://user_player:5000/get_user/' + user_id, timeout=60,
                         headers=generate_session_token_system())
 
     if user.status_code != 200:
@@ -214,13 +214,15 @@ def add_to_inventory():
             WHERE gacha_id = %s AND status = 'available'
         """, (user_id, gacha_id))
 
-        if cursor.rowcount == 0:
-            logging.debug("Gacha item not found or not available: gacha_id=%s", gacha_id)
-            return send_response({'error': 'Gacha item not found or not available'}, 404)
+    if cursor.rowcount == 0:
+        conn.close()
+        logging.debug("Gacha item not found or not available: gacha_id=%s", gacha_id)
+        return send_response({'error': 'Gacha item not found or not available'}, 404)
 
-        conn.commit()
-        logging.debug("Gacha item successfully added to user's inventory: user_id=%s, gacha_id=%s", user_id, gacha_id)
-        return send_response({'message': "Gacha item successfully added to user's inventory"}, 201)
+    conn.commit()
+    conn.close()
+    logging.debug("Gacha item successfully added to user's inventory: user_id=%s, gacha_id=%s", user_id, gacha_id)
+    return send_response({'message': "Gacha item successfully added to user's inventory"}, 201)
 
     except Exception as e:
         return manage_errors(e)
@@ -242,16 +244,16 @@ def get_all():
             logging.debug("No gacha items found")
             return send_response({'error': 'No gacha items found'}, 404)
 
-        items = []
-        for x in rows:
-            items.append({
-                "gacha_id": x['gacha_id'],
-                "name": x['name'],
-                "rarity": x['rarity'],
-                "status": x['status'],
-                "description": x['description'],
-                "image": base64.b64encode(x['image']).decode('utf-8') if x['image'] else None
-            })
+    items = []
+    for x in rows:
+        items.append({
+            "gacha_id": x['gacha_id'],
+            "name": x['name'],
+            "rarity": x['rarity'],
+            "status": x['status'],
+            "description": x['description'],
+            "image": base64.b64encode(x['image']).decode('utf-8') if x['image'] else None
+        })
 
         logging.debug("Gacha items retrieved successfully")
         return send_response({"message": items}, 200)
@@ -288,9 +290,10 @@ def update_gacha_item():
         cursor.execute("SELECT * FROM GachaItems WHERE gacha_id =%s", (gacha_id,))
         gacha_item = cursor.fetchone()
 
-        if not gacha_item:
-            logging.debug("Gacha item not found: gacha_id=%s", gacha_id)
-            return send_response({'error': 'Gacha item not found'}, 404)
+    if not gacha_item:
+        conn.close()
+        logging.debug("Gacha item not found: gacha_id=%s", gacha_id)
+        return send_response({'error': 'Gacha item not found'}, 404)
 
         if not description:
             description = gacha_item['description']
@@ -361,6 +364,11 @@ def get_user_gacha_item(user_id, gacha_id):
     logging.debug("JWT Dec User ID: %s", token_user['user_id'])
     if token_user['user_type'] == 'PLAYER' and str(token_user['user_id']) != str(user_id):
         return send_response({'error': 'You are not authorized to view this page'}, 403)
+    res = requests.get('https://user_player:5000/get_user/' + str(user_id),  timeout=3, headers=generate_session_token_system(),verify=False)
+    if res.status_code != 200:
+        logging.debug("User not found: user_id=%s", user_id)
+        return send_response({'error': 'User not found'}, 404)
+
     # Connect to the database
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
@@ -377,7 +385,7 @@ def get_user_gacha_item(user_id, gacha_id):
 
         if not gacha_item:
             logging.debug("Gacha item not found in user inventory: user_id=%s, gacha_id=%s", user_id, gacha_id)
-            return send_response({'error': 'Gacha item not found in user inventory'}, 200)
+            return send_response({'error': 'Gacha item not found in user inventory'}, 404)
 
         logging.debug("Gacha item retrieved successfully: user_id=%s, gacha_id=%s", user_id, gacha_id)
         return send_response({
@@ -442,12 +450,12 @@ def update_gacha_status():
                       status)
         return send_response({'error': 'Missing data to update gacha status'}, 400)
 
-    res = requests.get('http://user_player:5000/get_user/' + user_id, timeout=60, headers=request.headers)
+    res = requests.get('https://user_player:5000/get_user/' + user_id, timeout=60, headers=request.headers)
     if res.status_code != 200:
         logging.debug("User not found: user_id=%s", user_id)
         return send_response({'error': 'User not found'}, 409)
 
-    res = requests.get('http://gacha:5000/get/' + gacha_id, timeout=60, headers=request.headers)
+    res = requests.get('https://gacha:5000/get/' + gacha_id, timeout=60, headers=request.headers)
     if res.status_code != 200:
         logging.debug("Gacha item not found: gacha_id=%s", gacha_id)
         return send_response({'error': 'Gacha item not found'}, 408)
@@ -464,9 +472,10 @@ def update_gacha_status():
             (status, user_id, gacha_id, not_status, user_id, gacha_id, not_status))
 
         conn.commit()
+        conn.close()
         if cursor.rowcount:
             logging.debug("Gacha status updated successfully: user_id=%s, gacha_id=%s, status=%s", user_id, gacha_id,
-                          status)
+                        status)
             return send_response({'message': 'Gacha status updated successfully'}, 200)
         logging.debug("Failed to update gacha status: user_id=%s, gacha_id=%s, status=%s", user_id, gacha_id, status)
         return send_response({'error': 'Failed to update gacha status'}, 500)
@@ -491,13 +500,13 @@ def update_gacha_owner():
                       seller_id, gacha_id, status)
         return send_response({'error': 'Missing data to update gacha owner'}, 400)
 
-    res = requests.get(f'http://user_player:5000/get_user/{buyer_id}', timeout=60, headers=request.headers)
+    res = requests.get(f'https://user_player:5000/get_user/{buyer_id}', timeout=60, headers=request.headers)
     if res.status_code != 200:
         logging.debug("Buyer not found: buyer_id=%s", buyer_id)
         return send_response({'error': 'Buyer not found'}, 404)
     logging.debug("Buyer found: buyer_id=%s", buyer_id)
 
-    res = requests.get(f'http://gacha:5000/get/{seller_id}/{gacha_id}', timeout=60, headers=request.headers)
+    res = requests.get(f'https://gacha:5000/get/{seller_id}/{gacha_id}', timeout=60, headers=request.headers)
     if res.status_code != 200:
         logging.debug("Gacha item not found: seller_id=%s, gacha_id=%s", seller_id, gacha_id)
         return send_response({'error': 'Gacha item not found'}, 404)
@@ -508,9 +517,6 @@ def update_gacha_owner():
 
         cursor.execute("""UPDATE UserGachaInventory SET locked =%s, user_id=%s
                             WHERE user_id = %s AND gacha_id =%s""", (status, buyer_id, seller_id, gacha_id))
-
-        conn.commit()
-
         if cursor.rowcount:
             logging.debug("Gacha owner updated successfully: buyer_id=%s, seller_id=%s, gacha_id=%s, status=%s",
                           buyer_id,
@@ -544,9 +550,10 @@ def delete_gacha_item(gacha_id):
         cursor.execute("SELECT * FROM GachaItems WHERE gacha_id =%s", (gacha_id,))
         gacha_item = cursor.fetchone()
 
-        if not gacha_item:
-            logging.debug("Gacha item not found: gacha_id=%s", gacha_id)
-            return send_response({'error': 'Gacha item not found'}, 404)
+    if not gacha_item:
+        conn.close()
+        logging.debug("Gacha item not found: gacha_id=%s", gacha_id)
+        return send_response({'error': 'Gacha item not found'}, 404)
 
         cursor.execute("SELECT * FROM UserGachaInventory WHERE gacha_id =%s", (gacha_id,))
         cursor.fetchall()
@@ -574,18 +581,27 @@ def delete_gacha_item(gacha_id):
         req = requests.delete('http://auction:5000/delete?gacha_id=' + gacha_id, timeout=60,
                               headers=generate_session_token_system())
         if req.status_code != 200 and exist_auction(gacha_id):
-            return send_response({'error': 'Failed to delete auction'}, 500)
+            return send_response({'error': 'Failed to get highest bid'}, 500)
+        bid = req.json()['highest_bid']
+        user_id = req.json()['buyer_id']
+        # undo the auction
+        response = requests.put(f"https://user_player:5000/update_balance/PLAYER",
+                                headers=generate_session_token_system(), timeout=3, 
+                                json={"user_id": user_id, "amount": bid, "type": "credit"},verify=False)
+        if response.status_code != 200:
+            return send_response({"error": "Failed to update balance"}, 500)
+        cursor.execute("UPDATE UserGachaInventory SET locked='unlocked' WHERE gacha_id = ?", (gacha_id,))
 
         # Delete the gacha item
         cursor.execute("DELETE FROM UserGachaInventory WHERE gacha_id =%s", (gacha_id,))
         cursor.execute("DELETE FROM GachaItems WHERE gacha_id =%s", (gacha_id,))
         conn.commit()
 
-        if cursor.rowcount:
-            logging.debug("Gacha item deleted successfully: gacha_id=%s", gacha_id)
-            return send_response({'message': 'Gacha item deleted successfully'}, 200)
-        logging.debug("Failed to delete gacha item: gacha_id=%s", gacha_id)
-        return send_response({'error': 'Failed to delete gacha item'}, 500)
+    # Delete the gacha item
+    cursor.execute("DELETE FROM UserGachaInventory WHERE gacha_id = ?", (gacha_id,))
+    cursor.execute("DELETE FROM GachaItems WHERE gacha_id = ?", (gacha_id,))
+    conn.commit()
+    conn.close()
 
     except Exception as e:
         return manage_errors(e)
