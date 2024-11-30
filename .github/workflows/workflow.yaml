@@ -80,6 +80,7 @@ jobs:
           docker logs gcta_ase_2024-2025_user_player_auth_1 > user_player_auth_logs.txt 
 
       - name: Upload log files
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: docker-logs
