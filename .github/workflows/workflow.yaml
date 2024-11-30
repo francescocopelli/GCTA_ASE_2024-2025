@@ -12,10 +12,10 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Set custom workspace for https branch
+      - name: Set custom workspace for main branch
         if: ${{ github.ref_name == 'main' }}
         run: |
-          CUSTOM_WORKSPACE="/tmp/https_branch_workspace"
+          CUSTOM_WORKSPACE="/tmp/main_branch_workspace"
           mkdir -p $CUSTOM_WORKSPACE
           cp -r $GITHUB_WORKSPACE/* $CUSTOM_WORKSPACE/
           export GITHUB_WORKSPACE=$CUSTOM_WORKSPACE
@@ -72,6 +72,7 @@ jobs:
           postman collection run "${GITHUB_WORKSPACE}/postman/collections/GCTA Tests.json" -e "39572674-595d61b8-a2f9-4c18-a8a3-5ac4a64987fe" --integration-id "171433-${{ github.run_id }}" --insecure
 
       - name: Run Docker logs
+        if: always()
         run: |
           echo "Checking dbm logs:" 
           docker logs gcta_ase_2024-2025_db-manager_1 > db_manager_logs.txt 
