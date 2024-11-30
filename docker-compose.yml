@@ -2,7 +2,7 @@ services:
   gateway_user:
     build: ./services/player_gateway
     ports:
-      - 8080:80
+      - 8080:443
     depends_on:
         - user_player
         - user_player_auth
@@ -10,11 +10,12 @@ services:
       - microservice-network
     volumes:
       - ./shared:/app/shared
+    mem_limit: 256m
 
   gateway_admin:
     build: ./services/admin_gateway
     ports:
-      - 8081:80
+      - 8081:443
     depends_on:
       - user_admin
       - user_admin_auth
@@ -22,6 +23,7 @@ services:
       - microservice-network
     volumes:
       - ./shared:/app/shared
+    mem_limit: 256m
 
   user_admin:
     build: ./services/admin
@@ -92,8 +94,6 @@ services:
       - microservice-network
     depends_on:
       - users_db
-  
-
     volumes:
       - ./shared:/app/shared
 
@@ -106,6 +106,7 @@ services:
       - ./db/auctions_db/backup:/var/lib/auctions_db/backup:rw
     stop_signal: SIGTERM
     stop_grace_period: 30s
+    mem_limit: 1024m
 
 
   transactions_db:
@@ -116,6 +117,7 @@ services:
       - ./db/transactions_db/backup:/var/lib/transactions_db/backup:rw
     stop_signal: SIGTERM
     stop_grace_period: 30s
+    mem_limit: 1024m
 
   users_db:
     build: db/users_db
@@ -125,6 +127,7 @@ services:
       - ./db/users_db/backup:/var/lib/users_db/backup:rw
     stop_signal: SIGTERM
     stop_grace_period: 30s
+    mem_limit: 1024m
 
   gacha_db:
     build: db/gacha_db
@@ -134,6 +137,7 @@ services:
       - ./db/gacha_db/backup:/var/lib/gacha_db/backup:rw
     stop_signal: SIGTERM
     stop_grace_period: 30s
+    mem_limit: 1024m
 
 networks:
   microservice-network:
