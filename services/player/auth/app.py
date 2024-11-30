@@ -21,7 +21,7 @@ def login():
         "username": username,
         "password": password
     }
-    response = requests.post(url,  timeout=60, json=data)
+    response = requests.post(url,  timeout=3, verify=False, json=data)
     return send_response(response.json(), response.status_code)
 
 
@@ -40,7 +40,7 @@ def register():
         "email": email,
         "image": base64.b64encode(image).decode('utf-8') if image else None
     }
-    response = requests.post(url,  timeout=60, data=data)
+    response = requests.post(url,  timeout=3, verify=False, data=data)
     return send_response(response.json(), response.status_code)
 
 
@@ -48,7 +48,7 @@ def register():
 @token_required_void
 def logout():
     url = f"{dbm_url}/logout"
-    response = requests.delete(url,  timeout=60, headers=request.headers)
+    response = requests.delete(url,  timeout=3, verify=False, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
 
