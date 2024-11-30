@@ -1,174 +1,298 @@
-from flask import Flask, request, jsonify
-import logging
-import uuid
+from flask import Flask, jsonify, request
 import base64
-from datetime import datetime, timedelta
+import uuid
+from datetime import datetime
+import functools
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'test_secret_key'
 
-app.config['SECRET_KEY'] = 'your_secret_key'
-
-# Mock data
+# Mock Data
 mock_gacha_items = [
     {
-        "gacha_id": str(uuid.uuid4()),
-        "name": "Gacha Item 1",
+        "gacha_id": 20,
+        "name": "Sword",
         "rarity": "common",
         "status": "available",
-        "description": "A common gacha item",
-        "image": None
+        "description": "A basic sword.",
+        "image": None,
     },
     {
-        "gacha_id": str(uuid.uuid4()),
-        "name": "Gacha Item 2",
+        "gacha_id": 21,
+        "name": "Shield",
         "rarity": "rare",
         "status": "available",
-        "description": "A rare gacha item",
-        "image": None
+        "description": "A sturdy shield.",
+        "image": None,
+    },
+]
+
+mock_user_inventory = [
+    {
+        "user_id": 1,
+        "gacha_id": 21,
+        "acquired_date": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "locked": "unlocked",
     }
 ]
 
-mock_user_inventory = {
-    "1": [mock_gacha_items[0]["gacha_id"], mock_gacha_items[1]["gacha_id"]]
-}
+mock_users = [{"user_id": 1, "currency_balance": 100}, {"user_id": 2, "currency_balance": 200}]
 
-# Helper function to get gacha item by ID
-def get_gacha_item_by_id(gacha_id):
-    return next((item for item in mock_gacha_items if item["gacha_id"] == gacha_id), None)
+# Mock Helper Functions
+def mock_get_user(user_id):
+    return next((u for u in mock_users if u["user_id"] == user_id), None)
 
-# Endpoint to retrieve all gacha items
-@app.route('/all', methods=['GET'])
-def get_all_gacha_items():
-    return jsonify(mock_gacha_items), 200
+def mock_update_user_balance(user_id, amount, action):
+    user = mock_get_user(user_id)
+    if not user:
+        return {"error": "User not found"}
+    if action == "roll_purchase" and user["currency_balance"] >= amount:
+        user["currency_balance"] -= amount
+        return {"status": "success"}
+    elif action == "credit":
+        user["currency_balance"] += amount
+        return {"status": "success"}
+    return {"error": "Insufficient balance"}
 
-# Endpoint to add a new gacha item
-@app.route('/add', methods=['POST'])
-def add_gacha_item():
-    data = request.form
-    new_gacha_item = {
-        "gacha_id": str(uuid.uuid4()),
-        "name": data.get("name"),
-        "rarity": data.get("rarity"),
-        "status": data.get("status"),
-        "description": data.get("description"),
-        "image": base64.b64encode(data.get("image").read()).decode('utf-8') if data.get("image") else None
+def mock_is_gacha_unlocked(user_id, gacha_id):
+    inventory = next((item for item in mock_user_inventory if item["user_id"] == user_id and item["gacha_id"] == gacha_id), None)
+    return {"message": "Gacha item is unlocked"} if inventory and inventory["locked"] == "unlocked" else {"message": "Gacha item is locked"}
+
+def mock_update_gacha_status(user_id, gacha_id, status):
+    inventory = next((item for item in mock_user_inventory if item["user_id"] == user_id and item["gacha_id"] == gacha_id), None)
+    if inventory:
+        inventory["locked"] = status
+        return {"message": "Gacha status updated"}
+    return {"error": "Gacha status update failed"}
+
+def mock_update_gacha_owner(buyer_id, seller_id, gacha_id, status):
+    inventory = next((item for item in mock_user_inventory if item["user_id"] == seller_id and item["gacha_id"] == gacha_id), None)
+    if not inventory:
+        return {"error": "Gacha item not found in seller's inventory"}
+    inventory["user_id"] = buyer_id
+    inventory["locked"] = status
+    return {"message": "Gacha owner updated"}
+
+def mock_delete_gacha_item(gacha_id):
+    global mock_gacha_items
+    gacha_item = next((item for item in mock_gacha_items if item["gacha_id"] == int(gacha_id)), None)
+    if not gacha_item:
+        return {"error": "Gacha item not found"}
+    mock_gacha_items = [item for item in mock_gacha_items if item["gacha_id"] != int(gacha_id)]
+    return {"message": "Gacha item deleted successfully"}
+
+# Middleware Mocks
+def admin_required(f):
+    @functools.wraps(f)
+    def admin_wrapper(*args, **kwargs):
+        return f(*args, **kwargs)
+    return admin_wrapper
+
+def login_required_ret(f):
+    @functools.wraps(f)
+    def login_wrapper(*args, **kwargs):
+        user = mock_get_user(1)  # Mock user with ID 1
+        return f(user, *args, **kwargs)
+    
+    return login_wrapper
+
+def token_required_void(f):
+    @functools.wraps(f)
+    def token_wrapper(*args, **kwargs):
+        return f(*args, **kwargs)
+    return token_wrapper
+
+# Endpoints
+@app.post('/add')
+@admin_required
+def add():
+    data = request.form.to_dict()
+    name, rarity, status = data.get("name"), data.get("rarity"), data.get("status")
+    description = data.get("description")
+    image = request.files.get("image").read() if "image" in request.files else None
+
+    if not all([name, rarity, status]):
+         return jsonify({'error': 'Missing data to add gacha item'}, 400)
+
+    new_item = {
+        "gacha_id": len(mock_gacha_items) + 1,
+        "name": name,
+        "rarity": rarity,
+        "status": status,
+        "description": description,
+        "image": base64.b64encode(image).decode() if image else None,
     }
-    mock_gacha_items.append(new_gacha_item)
-    return jsonify(new_gacha_item), 201
+    mock_gacha_items.append(new_item)
+    return jsonify({"message": "Gacha item added", "gacha_id": new_item["gacha_id"]}), 201
 
-# Endpoint to roll gacha
-@app.route('/roll', methods=['POST'])
-def roll_gacha():
-    data = request.get_json()
-    user_id = data["user_id"]
-    roll_cost = 5
+@app.route('/all', methods=['GET'])
+def get_all():
+    # Optional offset for pagination
+    offset = int(request.args.get("offset", 0))
+    limit = 10
+    paginated_items = mock_gacha_items[offset:offset + limit]
 
-    # Mock user balance check
-    user_balance = 100
-    if user_balance < roll_cost:
-        return jsonify({"error": "Insufficient funds for gacha roll"}), 403
+    if not paginated_items:
+        return jsonify({"error": "No gacha items found"}), 404
 
-    # Perform the gacha roll by selecting a random item based on rarity
-    selected_item = mock_gacha_items[0]  # Simplified for mock
-    mock_user_inventory.setdefault(user_id, []).append(selected_item["gacha_id"])
+    result = [
+        {
+            "gacha_id": item["gacha_id"],
+            "name": item["name"],
+            "rarity": item["rarity"],
+            "status": item["status"],
+            "description": item["description"],
+            "image": base64.b64encode(item["image"]).decode() if item["image"] else None,
+        }
+        for item in paginated_items
+    ]
 
-    return jsonify({
-        'message': 'Gacha roll successful',
-        'gacha_id': selected_item['gacha_id'],
-        'name': selected_item['name'],
-        'rarity': selected_item['rarity'],
-    }), 200
+    return jsonify({"message": result}), 200
 
-# Endpoint to retrieve a user's gacha inventory
 @app.route('/inventory/<user_id>', methods=['GET'])
+@token_required_void
 def get_user_inventory(user_id):
-    inventory = mock_user_inventory.get(user_id, [])
-    items = [get_gacha_item_by_id(gacha_id) for gacha_id in inventory]
-    return jsonify(items), 200
+    inventory = [item for item in mock_user_inventory if item["user_id"] == int(user_id)]
+    if not inventory:
+        return jsonify({"error": "No gacha items found"}), 404
 
-# Endpoint to add a gacha item to a user's inventory
+    inventory_list = []
+    for item in inventory:
+        gacha = next((g for g in mock_gacha_items if g["gacha_id"] == int(item["gacha_id"])), {})
+        inventory_list.append({
+            "gacha_id": gacha.get("gacha_id"),
+            "name": gacha.get("name"),
+            "rarity": gacha.get("rarity"),
+            "status": gacha.get("status"),
+            "description": gacha.get("description"),
+            "acquired_date": item["acquired_date"],
+            "locked": item["locked"],
+        })
+
+    return jsonify({"inventory": inventory_list}), 200
+
+@app.route('/roll', methods=['POST'])
+@login_required_ret
+def roll_gacha(user):
+    roll_cost = 5
+    if user["currency_balance"] < roll_cost:
+        return jsonify({"error": "Insufficient balance"}), 403
+
+    mock_update_user_balance(user["user_id"], roll_cost, "roll_purchase")
+
+    rolled_item = mock_gacha_items[0]
+    mock_user_inventory.append({
+        "user_id": user["user_id"],
+        "gacha_id": rolled_item["gacha_id"],
+        "acquired_date": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "locked": "unlocked",
+    })
+
+    return jsonify({"message": "Roll successful", "gacha_id": rolled_item["gacha_id"]}), 200
+
 @app.route('/inventory/add', methods=['POST'])
+@admin_required
 def add_to_inventory():
     data = request.get_json()
-    user_id = data["user_id"]
-    gacha_id = data["gacha_id"]
-    mock_user_inventory.setdefault(user_id, []).append(gacha_id)
-    return jsonify({"message": "Gacha item successfully added to user's inventory"}), 201
+    user_id, gacha_id = data.get("user_id"), data.get("gacha_id")
 
-# Endpoint to update a gacha item
-@app.route('/update', methods=['PUT'])
-def update_gacha_item():
-    data = request.form
-    gacha_id = data.get("gacha_id")
-    gacha_item = get_gacha_item_by_id(gacha_id)
-    if not gacha_item:
-        return jsonify({"error": "Gacha item not found"}), 404
+    if not all([user_id, gacha_id]):
+        return jsonify({"error": "Missing data"}), 400
 
-    gacha_item["name"] = data.get("name", gacha_item["name"])
-    gacha_item["rarity"] = data.get("rarity", gacha_item["rarity"])
-    gacha_item["status"] = data.get("status", gacha_item["status"])
-    gacha_item["description"] = data.get("description", gacha_item["description"])
-    if data.get("image"):
-        gacha_item["image"] = base64.b64encode(data.get("image").read()).decode('utf-8')
+    gacha = next((g for g in mock_gacha_items if g["gacha_id"] == gacha_id and g["status"] == "available"), None)
+    if not gacha:
+        return jsonify({"error": "Gacha item not available"}), 404
 
-    return jsonify(gacha_item), 200
+    mock_user_inventory.append({
+        "user_id": int(user_id),
+        "gacha_id": gacha_id,
+        "acquired_date": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "locked": "unlocked",
+    })
 
-# Endpoint to retrieve information about a specific gacha item
-@app.route('/get/<gacha_id>', methods=['GET'])
-def get_gacha_item(gacha_id):
-    gacha_item = get_gacha_item_by_id(gacha_id)
-    if not gacha_item:
-        return jsonify({"error": "Gacha item not found"}), 404
-    return jsonify(gacha_item), 200
-
-# Endpoint to get detail of a specific gacha of a specific user
-@app.route('/get/<user_id>/<gacha_id>', methods=['GET'])
-def get_user_gacha_item(user_id, gacha_id):
-    inventory = mock_user_inventory.get(user_id, [])
-    if gacha_id not in inventory:
-        return jsonify({"error": "Gacha item not found in user's inventory"}), 404
-    gacha_item = get_gacha_item_by_id(gacha_id)
-    return jsonify(gacha_item), 200
-
-# Endpoint to check if the gacha is unlocked
-@app.route('/is_gacha_unlocked/<user_id>/<gacha_id>', methods=['GET'])
-def is_gacha_unlocked(user_id, gacha_id):
-    inventory = mock_user_inventory.get(user_id, [])
-    if gacha_id in inventory:
-        return jsonify({"status": "unlocked"}), 200
-    return jsonify({"status": "locked"}), 404
-
-# Endpoint to update gacha status
+    return jsonify({"message": "Gacha item added to inventory"}), 201
+    
 @app.route('/update_gacha_status', methods=['PUT'])
+@admin_required
 def update_gacha_status():
     data = request.get_json()
-    user_id = data["user_id"]
-    gacha_id = data["gacha_id"]
-    status = data["status"]
+    user_id = data.get("user_id")
+    gacha_id = data.get("gacha_id")
+    status = data.get("status")
 
-    gacha_item = get_gacha_item_by_id(gacha_id)
+    if not all([user_id, gacha_id, status]):
+        return jsonify({"error": "Missing data"}), 400
+
+    gacha_item = next((item for item in mock_user_inventory if item["user_id"] == int(user_id) and item["gacha_id"] == int(gacha_id)), None)
     if not gacha_item:
         return jsonify({"error": "Gacha item not found"}), 404
 
-    gacha_item["status"] = status
+    gacha_item["locked"] = status
     return jsonify({"message": "Gacha status updated successfully"}), 200
 
-# Endpoint to update gacha owner
 @app.route('/update_gacha_owner', methods=['PUT'])
+@admin_required
 def update_gacha_owner():
-    data = request.get_json()
-    buyer_id = data["buyer_id"]
-    seller_id = data["seller_id"]
-    gacha_id = data["gacha_id"]
-    status = data["status"]
+    data = request.json
+    buyer_id, seller_id, gacha_id, status = data.get("buyer_id"), data.get("seller_id"), data.get("gacha_id"), data.get("status")
 
-    if gacha_id not in mock_user_inventory.get(seller_id, []):
-        return jsonify({"error": "Gacha item not found in seller's inventory"}), 404
+    if not all([buyer_id, seller_id, gacha_id, status]):
+        return jsonify({"error": "Missing data"}), 400
 
-    mock_user_inventory[seller_id].remove(gacha_id)
-    mock_user_inventory.setdefault(buyer_id, []).append(gacha_id)
+    result = mock_update_gacha_owner(buyer_id, seller_id, gacha_id, status)
+    return jsonify(result), 200 if "message" in result else 500
 
-    return jsonify({"message": "Gacha owner updated successfully"}), 200
+@app.route('/get/<gacha_id>', methods=['GET'])
+def get_gacha_item(gacha_id):
+    """Retrieve information about a specific gacha item."""
+    gacha_item = next((item for item in mock_gacha_items if item["gacha_id"] == int(gacha_id)), None)
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    if not gacha_item:
+        return jsonify({"error": "Gacha item not found"}), 404
+
+    return jsonify({
+        "gacha_id": gacha_item["gacha_id"],
+        "name": gacha_item["name"],
+        "rarity": gacha_item["rarity"],
+        "status": gacha_item["status"],
+        "description": gacha_item["description"],
+        "image": base64.b64encode(gacha_item["image"]).decode('utf-8') if gacha_item["image"] else None,
+    }), 200
+
+@app.route('/update', methods=['PUT'])
+@admin_required
+def update_gacha_item():
+    """Update an existing gacha item."""
+    data = request.form.to_dict()
+    gacha_id = data.get("gacha_id")
+    name = data.get("name")
+    rarity = data.get("rarity")
+    status = data.get("status")
+    description = data.get("description")
+    image = request.files.get("image").read() if "image" in request.files else None
+
+    gacha_item = next((item for item in mock_gacha_items if item["gacha_id"] == int(gacha_id)), None)
+    if not gacha_item:
+        return jsonify({"error": "Gacha item not found"}), 404
+
+    # Update fields if provided
+    gacha_item["name"] = name if name else gacha_item["name"]
+    gacha_item["rarity"] = rarity if rarity else gacha_item["rarity"]
+    gacha_item["status"] = status if status else gacha_item["status"]
+    gacha_item["description"] = description if description else gacha_item["description"]
+    if image:
+        gacha_item["image"] = base64.b64encode(image).decode()
+
+    return jsonify({"message": "Gacha item updated successfully"}), 200
+
+
+@app.route('/delete/<gacha_id>', methods=['DELETE'])
+@admin_required
+def delete_gacha_item(gacha_id):
+    result = mock_delete_gacha_item(gacha_id)
+    if "error" in result:
+        return jsonify(result), 404
+    return jsonify(result), 200
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)
