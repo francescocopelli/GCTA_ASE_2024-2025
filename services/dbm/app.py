@@ -310,7 +310,7 @@ def update_balance_user(user_type):
 @app.route("/get_user/<user_id>", methods=["GET"])
 @login_required_void
 def get_users(user_id):
-    url = f"http://db-manager:5000/get_user/PLAYER/" + user_id
+    url = f"https://db-manager:5000/get_user/PLAYER/" + user_id
     response = requests.get(url, timeout=3, verify=False, headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
 

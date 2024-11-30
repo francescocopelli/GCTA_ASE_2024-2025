@@ -125,7 +125,7 @@ def get_my_transactions(user):
                   algorithms=["HS256"])['user_type'] == 'ADMIN':
         return send_response({"error": "You don't have a transaction history (as an ADMIN)"}, 403)
     user_id = str(user['user_id'])
-    req = requests.get(f"http://localhost:5000/get_user_transactions/{user_id}",  timeout=3, verify=False, 
+    req = requests.get(f"https://localhost:5000/get_user_transactions/{user_id}",  timeout=3, verify=False, 
                        headers=generate_session_token_system())
     return send_response(req.json(), req.status_code)
 

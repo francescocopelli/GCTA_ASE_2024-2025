@@ -46,7 +46,7 @@ admin_session_token = []
 admin_user_id = []
 admin_session_token_lock = Lock()
 
-admin_base = "http://localhost:8081"
+admin_base = "https://localhost:8081"
 admin_auth = admin_base + "/users/admin_auth"
 
 def create_admin_header(token):
