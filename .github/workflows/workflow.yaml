@@ -74,10 +74,19 @@ jobs:
       - name: Run Docker logs
         if: always()
         run: |
-          echo "Checking dbm logs:" 
-          docker logs --tail all gcta_ase_2024-2025_db-manager_1
-          docker logs --tail all gcta_ase_2024-2025_user_player_1 
-          docker logs --tail all gcta_ase_2024-2025_user_player_auth_1
+          echo "Checking dbm logs:"
+          docker logs --tail all gcta_ase_2024-2025_db-manager_1 > db_manager_logs.txt 
+          docker logs --tail all gcta_ase_2024-2025_user_player_1 > user_player_logs.txt 
+          docker logs --tail all gcta_ase_2024-2025_user_player_auth_1 > user_player_auth_logs.txt 
+      - name: Upload log files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-logs
+          path: |
+            db_manager_logs.txt
+            user_player_logs.txt
+            user_player_auth_logs.txt
 
       - name: Stop Docker services
         if: always()
