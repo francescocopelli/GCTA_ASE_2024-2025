@@ -55,7 +55,7 @@ jobs:
         id: docker-scout
         uses: docker/scout-action@v1
         with:
-          command: quickview,cves,recommendations
+          command: quickview,cves,recommendations,compare
           to-latest: true
           ignore-unchanged: false
           
