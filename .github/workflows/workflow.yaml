@@ -29,18 +29,18 @@ jobs:
 
       - name: Set up Docker
         uses: docker/setup-buildx-action@v2
-        
-      - name: Docker Scout
-        uses: docker/scout-action@v1.15.1
             
       - name: Install Docker Compose
         run: |
           sudo apt-get update
           sudo apt-get install -y docker-compose
-
+      
       - name: Build and start Docker services
         run: docker-compose up --build -d
-
+              
+      - name: Docker Scout
+        uses: docker/scout-action@v1.15.1
+        
       - name: Log running services and ports
         run: |
           echo "Listing running Docker services and their exposed ports:"
