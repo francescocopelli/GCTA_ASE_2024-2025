@@ -2,6 +2,7 @@ import base64
 import hashlib
 import logging
 import re
+import bcrypt
 
 
 from flask import Flask
@@ -19,12 +20,13 @@ app.config['SECRET_KEY'] = SECRET_KEY
 DATABASE = 'users'
 DB_HOST = 'users_db'
 
+def hash_password(password:str):
+    salt=bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode('utf-8'),salt).decode()
 
-# Funzione di connessione al database
 
-# Funzione di hashing della password
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+def check_hash(password:str,hashed_password:str):
+    return bcrypt.checkpw(password.encode('utf-8'),hashed_password.encode('utf-8'))
 
 
 # Funzione per generare un token di sessione unico
@@ -87,16 +89,15 @@ def login(user_type):
         data = request.get_json()
         username = data.get("username")
         password = data.get("password")
-        hashed_password = hash_password(password)
 
         # Verifica delle credenziali
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
-        query = f"SELECT * FROM {user_type} WHERE username = %s AND password =%s"
-        cursor.execute(query, (username, hashed_password))
+        query = f"SELECT * FROM {user_type} WHERE username = %s"
+        cursor.execute(query, (username, ))
         user = cursor.fetchone()
 
-        if user:
+        if user and check_hash(password,user["password"]):
             session_token = generate_session_token(user_id=user["user_id"], user_type=user_type)
             query = f"UPDATE {user_type} SET session_token = %s WHERE username =%s"
             cursor.execute(query, (session_token, username))

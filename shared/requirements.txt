@@ -3,3 +3,4 @@ requests
 pyjwt
 pybreaker
 mysql-connector-python
+bcrypt
