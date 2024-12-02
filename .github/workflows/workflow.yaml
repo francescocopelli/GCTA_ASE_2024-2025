@@ -85,8 +85,8 @@ jobs:
       - name: Login to Postman CLI
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
 
-      - name: Sleep for 30 seconds
-        run: sleep 30
+      - name: Sleep for 45 seconds
+        run: sleep 45
 
       - name: Run API tests
         run: |
