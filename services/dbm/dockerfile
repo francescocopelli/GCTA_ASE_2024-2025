@@ -10,4 +10,5 @@ COPY . /app/
 EXPOSE 5000
 # CMD ["flask","run", "--port=5000", "--host=0.0.0.0"]
 
-CMD ["/bin/bash","-c", "/app/shared/start.sh"]
+RUN pip install -r requirements.txt
+CMD ["flask","run", "--port=5000", "--host=0.0.0.0", "--cert=/run/secrets/cert.pem", "--key=/run/secrets/key.pem"]
