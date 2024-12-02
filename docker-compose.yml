@@ -11,6 +11,10 @@ services:
     volumes:
       - ./shared:/app/shared
     mem_limit: 256m
+    secrets:
+      - cert
+      - key
+      - novel
 
   gateway_admin:
     build: ./services/admin_gateway
@@ -24,6 +28,10 @@ services:
     volumes:
       - ./shared:/app/shared
     mem_limit: 256m
+    secrets:
+      - cert
+      - key
+      - novel
 
   user_admin:
     build: ./services/admin
@@ -33,6 +41,10 @@ services:
       - microservice-network
     volumes:
       - ./shared:/app/shared
+    secrets:
+      - cert
+      - key
+      - novel
 
   user_admin_auth:
     build: ./services/admin/auth
@@ -42,6 +54,10 @@ services:
       - microservice-network
     volumes:
       - ./shared:/app/shared
+    secrets:
+      - cert
+      - key
+      - novel
 
   user_player:
     build: ./services/player
@@ -51,6 +67,10 @@ services:
       - microservice-network
     volumes:
       - ./shared:/app/shared
+    secrets:
+      - cert
+      - key
+      - novel
 
   user_player_auth:
     build: ./services/player/auth
@@ -60,6 +80,10 @@ services:
       - microservice-network
     volumes:
       - ./shared:/app/shared
+    secrets:
+      - cert
+      - key
+      - novel
 
   transaction:
     build: ./services/transaction
@@ -69,6 +93,10 @@ services:
       - microservice-network
     volumes:
       - ./shared:/app/shared
+    secrets:
+      - cert
+      - key
+      - novel
 
   auction:
     build: ./services/auction
@@ -78,6 +106,10 @@ services:
       - microservice-network
     volumes:
       - ./shared:/app/shared
+    secrets:
+      - cert
+      - key
+      - novel
 
   gacha:
     build: ./services/gacha
@@ -87,6 +119,10 @@ services:
       - microservice-network
     volumes:
       - ./shared:/app/shared
+    secrets:
+      - cert
+      - key
+      - novel
 
   db-manager:
     build: ./services/dbm
@@ -96,6 +132,10 @@ services:
       - users_db
     volumes:
       - ./shared:/app/shared
+    secrets:
+      - cert
+      - key
+      - novel
 
 
   auctions_db:
@@ -142,3 +182,11 @@ services:
 networks:
   microservice-network:
     driver: bridge
+
+secrets:
+    cert:
+        file: ./cert.pem
+    key:
+        file: ./key.pem
+    novel:
+        file: ./poetry.txt
