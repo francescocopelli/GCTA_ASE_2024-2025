@@ -57,9 +57,6 @@ jobs:
         with:
           command: quickview,cves,recommendations
           to-latest: true
-          ignore-base: true
-          ignore-unchanged: true
-          only-fixed: true
           
       - name: Log running services and ports
         run: |
