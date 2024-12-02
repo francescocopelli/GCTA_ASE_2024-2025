@@ -1,16 +1,5 @@
-FROM golang:latest AS builder
-RUN go version
-
-FROM mysql:latest
-RUN rm -rf /usr/local/go || true
-
-COPY --from=builder /usr/local/go /usr/local/go
-ENV PATH=/usr/local/go/bin:$PATH
-
-RUN go version
-RUN go install std
-
-ENV MYSQL_ROOT_PASSWORD=123456
+FROM ubuntu/mysql:latest
+ENV MYSQL_ROOT_PASSWORD=/run/secrets/db_password
 ENV MYSQL_DATABASE=auctions
 
 

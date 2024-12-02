@@ -1,6 +1,6 @@
-FROM mysql:8.0
+FROM ubuntu/mysql:latest
 
-ENV MYSQL_ROOT_PASSWORD=123456
+ENV MYSQL_ROOT_PASSWORD=/run/secrets/db_password
 ENV MYSQL_DATABASE=gacha
 
 

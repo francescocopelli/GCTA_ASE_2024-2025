@@ -16,6 +16,7 @@ services:
       - key
       - novel
       - db_user
+      - db_password
 
   gateway_admin:
     build: ./services/admin_gateway
@@ -34,6 +35,7 @@ services:
       - key
       - novel
       - db_user
+      - db_password
 
   user_admin:
     build: ./services/admin
@@ -48,6 +50,7 @@ services:
       - key
       - novel
       - db_user
+      - db_password
 
   user_admin_auth:
     build: ./services/admin/auth
@@ -62,6 +65,7 @@ services:
       - key
       - novel
       - db_user
+      - db_password
 
   user_player:
     build: ./services/player
@@ -76,6 +80,7 @@ services:
       - key
       - novel
       - db_user
+      - db_password
 
   user_player_auth:
     build: ./services/player/auth
@@ -90,6 +95,7 @@ services:
       - key
       - novel
       - db_user
+      - db_password
 
   transaction:
     build: ./services/transaction
@@ -104,6 +110,7 @@ services:
       - key
       - novel
       - db_user
+      - db_password
 
   auction:
     build: ./services/auction
@@ -118,6 +125,7 @@ services:
       - key
       - novel
       - db_user
+      - db_password
 
   gacha:
     build: ./services/gacha
@@ -132,6 +140,7 @@ services:
       - key
       - novel
       - db_user
+      - db_password
 
   db-manager:
     build: ./services/dbm
@@ -146,6 +155,7 @@ services:
       - key
       - novel
       - db_user
+      - db_password
 
 
   auctions_db:
@@ -202,3 +212,5 @@ secrets:
     file: ./poetry.txt
   db_user:
     file: ./db_user.txt
+  db_password:
+    file: ./db_password.txt
