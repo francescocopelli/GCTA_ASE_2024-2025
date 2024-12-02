@@ -2,10 +2,10 @@
 from threading import Lock
 from locust import events
 
-#from services.player.auth.test_app import AuthUser
-#from services.player.test_app import UserPlayer
-#from services.transaction.test_app import GetTransactionTest
-#from services.gacha.test_app import GachaTest
+# from services.player.auth.test_app import AuthUser
+# from services.player.test_app import UserPlayer
+# from services.transaction.test_app import GetTransactionTest
+# from services.gacha.test_app import GachaTest
 from services.auction.test_app import GetAllAuctionsTest
 
 
@@ -31,7 +31,7 @@ def login(self):
     with session_token_lock:
         if len(session_token) == 0:
             for a in range(0,3):
-                response = self.client.post(f'{user_auth}/login', json={
+                response = self.client.post(f'{user_auth}/login', verify=False, json={
                     "username": "test_"+ str(a+1),
                     "password": "prova"
                 })
@@ -58,7 +58,7 @@ def admin_login(self):
     with admin_session_token_lock:
         if len(admin_session_token) == 0:
             for a in range(0, 3):
-                response = self.client.post(f'{admin_auth}/login', json={
+                response = self.client.post(f'{admin_auth}/login', verify=False, json={
                     "username": "admin_test_" + str(a + 1),
                     "password": "prova"
                 })

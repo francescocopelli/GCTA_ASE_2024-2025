@@ -25,7 +25,7 @@ class GachaBehavior(TaskSet):
         }
         
         # Perform the add gacha item action
-        response = self.client.post(f"{locustfile.admin_base}{locustfile.gacha_url}/add", data=data, headers=headers)
+        response = self.client.post(f"{locustfile.admin_base}{locustfile.gacha_url}/add", data=data, verify=False, headers=headers)
         
         # Check for possible errors
         if response.status_code == 201:
@@ -58,7 +58,7 @@ class GachaBehavior(TaskSet):
         }
         
         # Perform the update gacha item action
-        response = self.client.put(f"{locustfile.admin_base}{locustfile.gacha_url}/update", data=data, headers=headers)
+        response = self.client.put(f"{locustfile.admin_base}{locustfile.gacha_url}/update", data=data, verify=False, headers=headers)
         
         # Check for possible errors
         if response.status_code == 200:
@@ -80,7 +80,7 @@ class GachaBehavior(TaskSet):
         gacha_id = random.randint(1, 300)  # Assuming gacha_id ranges from 1 to 100
         
         # Perform the get gacha item action
-        response = self.client.get(f"{locustfile.gacha_url}/get/{gacha_id}", headers=headers)
+        response = self.client.get(f"{locustfile.gacha_url}/get/{gacha_id}", verify=False, headers=headers)
         
         # Check for possible errors
         if response.status_code == 200:
@@ -110,7 +110,7 @@ class GachaBehavior(TaskSet):
         gacha_id = random.randint(1, 300)  # Assuming gacha_id ranges from 1 to 100
         
         # Perform the get user gacha item action
-        with self.client.get(f"{locustfile.gacha_url}/get/{locustfile.user_id[usr]}/{gacha_id}", headers=headers, catch_response=True) as response:
+        with self.client.get(f"{locustfile.gacha_url}/get/{locustfile.user_id[usr]}/{gacha_id}", verify=False, headers=headers, catch_response=True) as response:
         
             # Check for possible errors
             if response.status_code == 200:
@@ -146,7 +146,7 @@ class GachaBehavior(TaskSet):
         gacha_id = random.randint(1, 100)  # Assuming gacha_id ranges from 1 to 100
         
         # Perform the is gacha unlocked action
-        with self.client.get(f"{locustfile.admin_base}{locustfile.gacha_url}/is_gacha_unlocked/{user_id}/{gacha_id}", headers=headers, catch_response=True) as response:
+        with self.client.get(f"{locustfile.admin_base}{locustfile.gacha_url}/is_gacha_unlocked/{user_id}/{gacha_id}", verify=False, headers=headers, catch_response=True) as response:
             # Check for possible errors
             if response.status_code == 200 or response.status_code == 403:
                 response.success()
@@ -168,7 +168,7 @@ class GachaBehavior(TaskSet):
         headers = create_header(token)
         
         # Perform the delete gacha item action
-        with self.client.delete(f"{locustfile.admin_base}{locustfile.gacha_url}/delete/{gacha_id}", headers=headers, catch_response=True) as response:
+        with self.client.delete(f"{locustfile.admin_base}{locustfile.gacha_url}/delete/{gacha_id}", verify=False, headers=headers, catch_response=True) as response:
         
             # Check for possible errors
             if response.status_code == 200:
@@ -197,7 +197,7 @@ class GachaBehavior(TaskSet):
         offset = random.randint(0, 100)  # Random offset for testing
         
         # Perform the get all gacha items action
-        response = self.client.get(f"{locustfile.gacha_url}/all?offset={offset}", headers=headers)
+        response = self.client.get(f"{locustfile.gacha_url}/all?offset={offset}", verify=False, headers=headers)
         
         # Check for possible errors
         if response.status_code == 200:
@@ -224,7 +224,7 @@ class GachaInventoryBehavior(TaskSet):
     def get_user_inventory(self):
         locustfile.login(self)
         usr = random.choice(range(0, 3))
-        response = self.client.get(f"{locustfile.gacha_url}/inventory/{locustfile.user_id[usr]}", headers=create_header(locustfile.session_token[usr]))
+        response = self.client.get(f"{locustfile.gacha_url}/inventory/{locustfile.user_id[usr]}", verify=False, headers=create_header(locustfile.session_token[usr]))
         
         # Check for possible errors
         if response.status_code == 200:
@@ -254,7 +254,7 @@ class GachaInventoryBehavior(TaskSet):
         with self.client.post(f"{locustfile.admin_base}{locustfile.gacha_url}/inventory/add", json={
             "user_id": user_id,
             "gacha_id": gacha_id
-        }, headers=headers, catch_response=True) as response:
+        }, verify=False, headers=headers, catch_response=True) as response:
         
             # Check for possible errors
             if response.status_code == 201:
@@ -284,7 +284,7 @@ class GachaRollBehavior(TaskSet):
         headers = create_header(token)
         
         # Perform the gacha roll
-        response = self.client.post(f"{locustfile.gacha_url}/roll", json={}, headers=headers)
+        response = self.client.post(f"{locustfile.gacha_url}/roll", json={}, verify=False, headers=headers)
         
         # Check for possible errors
         if response.status_code == 200:

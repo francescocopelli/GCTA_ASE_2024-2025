@@ -14,7 +14,7 @@ class UserBehavior(TaskSet):
     def my_gacha_list_logged(self):
         
         locustfile.login(self)
-        response = self.client.get(f"{locustfile.user_player}/my_gacha_list", headers=create_header(locustfile.session_token[random.choice(range(0,3))]))
+        response = self.client.get(f"{locustfile.user_player}/my_gacha_list", verify=False, headers=create_header(locustfile.session_token[random.choice(range(0,3))]))
         # if response.status_code != 200:
         #     print(f'my_gacha_list_logged response: {response}')
         #     exit(1)
@@ -29,7 +29,7 @@ class UserBehavior(TaskSet):
         locustfile.login(self)
         gacha_id = 25
         usr=random.choice(range(0,3))
-        response = self.client.get(f"{locustfile.user_player}/gacha/{locustfile.user_id[usr]}/{gacha_id}", headers=create_header(locustfile.session_token[usr]))
+        response = self.client.get(f"{locustfile.user_player}/gacha/{locustfile.user_id[usr]}/{gacha_id}", verify=False, headers=create_header(locustfile.session_token[usr]))
 
         assert response.status_code == 200
 
@@ -41,13 +41,13 @@ class UserBehavior(TaskSet):
         response = self.client.post(f"{locustfile.user_player}/real_money_transaction", json={
             "user_id": locustfile.session_token[usr],
             "amount": 100.0
-        }, headers=create_header(locustfile.session_token[usr]))
+        }, verify=False, headers=create_header(locustfile.session_token[usr]))
         assert response.status_code == 200
         assert response.json()["message"] == "Account topped up successfully"
     @task
     def get_user_balance(self):
         locustfile.login(self)
-        response = self.client.get(f"{locustfile.user_player}/get_user_balance", headers=create_header(locustfile.session_token[random.choice(range(0,3))]))
+        response = self.client.get(f"{locustfile.user_player}/get_user_balance", verify=False, headers=create_header(locustfile.session_token[random.choice(range(0,3))]))
         assert response.status_code == 200
         assert "currency_balance" in response.json()
 
@@ -55,7 +55,7 @@ class UserBehavior(TaskSet):
     def get_user(self):
         
         locustfile.login(self)
-        response = self.client.get(f"{locustfile.user_player}/get_user", headers=create_header(locustfile.session_token[random.choice(range(0,3))]))
+        response = self.client.get(f"{locustfile.user_player}/get_user", verify=False, headers=create_header(locustfile.session_token[random.choice(range(0,3))]))
         assert response.status_code == 200
         assert "user_id" in response.json()
 
@@ -67,7 +67,7 @@ class UserBehavior(TaskSet):
         response = self.client.put(f"{locustfile.user_player}/update", data={
             "email": f"temp_{''.join(random.choices('abcdefghijklmnopqrstuvwxyz' + '0123456789', k=10))}@email.com",
             "password":"prova"
-        }, headers=create_header(locustfile.session_token[usr]))
+        }, verify=False, headers=create_header(locustfile.session_token[usr]))
         assert response.status_code == 200
         assert response.json()["message"] == "Profile updated successfully"
 

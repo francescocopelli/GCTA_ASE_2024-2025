@@ -50,7 +50,7 @@ class UserAuthBehavior(TaskSet):
             })
             assert response.status_code == 200
             assert response.json()["message"] == "Login successful"
-            response = self.client.delete(f'{locustfile.user_auth}/logout', headers=create_header(response.json()["session_token"]))
+            response = self.client.delete(f'{locustfile.user_auth}/logout', verify=False, headers=create_header(response.json()["session_token"]))
             assert response.status_code == 200
 
     '''
@@ -59,7 +59,7 @@ class UserAuthBehavior(TaskSet):
     @task(1000)
     def logout(self):
         if not self.is_logged_in: self.login_success()
-        response = self.client.delete('/logout', headers=create_header(self.valid_session_token))
+        response = self.client.delete('/logout', verify=False, headers=create_header(self.valid_session_token))
         assert response.status_code == 200
         self.is_logged_in = False
     
@@ -85,7 +85,7 @@ class UserAuthBehavior(TaskSet):
         print(self.valid_session_token)
         response = self.client.delete('/delete', json={
             "session_token": self.valid_session_token
-        }, headers=create_header("valid_session_token"))
+        }, verify=False, headers=create_header("valid_session_token"))
         assert int(response.status_code) == 200
         assert response.json()["message"] == "Account deleted successfully"
         self.valid_session_token = None
@@ -105,7 +105,7 @@ class UserAuthBehavior(TaskSet):
             "username": "new_player13",
             "password": "securepassword",
             "email": "updated_email@example.com"
-        }, headers=create_header("valid_session_token"))
+        }, verify=False, headers=create_header("valid_session_token"))
         assert int(response.status_code) == 200
         assert response.json()["message"] == "Account updated successfully"
         self.valid_session_token = None

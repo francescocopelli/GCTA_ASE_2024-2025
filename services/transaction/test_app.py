@@ -16,7 +16,7 @@ class GetTransactionBehavior(TaskSet):
         transaction_id = random.randint(1, 100)  # Assuming transaction_id ranges from 1 to 100
         
         # Perform the get transaction action
-        response = self.client.get(f"{locustfile.user_player}/get_transaction?transaction_id={transaction_id}", headers=headers)
+        response = self.client.get(f"{locustfile.user_player}/get_transaction?transaction_id={transaction_id}", verify=False, headers=headers)
         
         # Check for possible errors
         if response.status_code == 200:
@@ -42,7 +42,7 @@ class GetTransactionBehavior(TaskSet):
         headers = create_header(token)
         
         # Perform the get user transactions action
-        response = self.client.get(f"{locustfile.user_player}/get_user_transactions", headers=headers)
+        response = self.client.get(f"{locustfile.user_player}/get_user_transactions", verify=False, headers=headers)
         
         # Check for possible errors
         if response.status_code == 200:
@@ -66,7 +66,7 @@ class GetTransactionBehavior(TaskSet):
         headers = create_header(token)
         
         # Perform the get user transactions action
-        response = self.client.get(f"{locustfile.user_player}/get_user_transactions", headers=headers)
+        response = self.client.get(f"{locustfile.user_player}/get_user_transactions", verify=False, headers=headers)
         
         # Check for possible errors
         if response.status_code == 200:
@@ -90,7 +90,7 @@ class GetTransactionBehavior(TaskSet):
         headers = create_header(token)
         
         # Perform the get all transactions action
-        response = self.client.get(f"{locustfile.user_player}/all", headers=headers)
+        response = self.client.get(f"{locustfile.user_player}/all", verify=False, headers=headers)
         
         # Check for possible errors
         if response.status_code == 200:
