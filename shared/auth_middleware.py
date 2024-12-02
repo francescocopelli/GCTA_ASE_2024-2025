@@ -50,10 +50,9 @@ from mysql.connector import *
 # Utilizzo della classe
 
 def get_db_connection(db_host,db_name):
-    username= "root"
-    password= "123456"
-    conn = connect(host=db_host, user=username, password=password, database=db_name)
-    return conn
+    with open("/run/secrets/db_user") as f:
+        username, password = f.read().splitlines()
+        return connect(host=db_host, user=username, password=password, database=db_name)
 
 def release_db_connection(conn, cursor=None):
     if cursor:

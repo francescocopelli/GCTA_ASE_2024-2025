@@ -4,8 +4,8 @@ services:
     ports:
       - 8080:443
     depends_on:
-        - user_player
-        - user_player_auth
+      - user_player
+      - user_player_auth
     networks:
       - microservice-network
     volumes:
@@ -15,6 +15,7 @@ services:
       - cert
       - key
       - novel
+      - db_user
 
   gateway_admin:
     build: ./services/admin_gateway
@@ -32,6 +33,7 @@ services:
       - cert
       - key
       - novel
+      - db_user
 
   user_admin:
     build: ./services/admin
@@ -45,6 +47,7 @@ services:
       - cert
       - key
       - novel
+      - db_user
 
   user_admin_auth:
     build: ./services/admin/auth
@@ -58,6 +61,7 @@ services:
       - cert
       - key
       - novel
+      - db_user
 
   user_player:
     build: ./services/player
@@ -71,6 +75,7 @@ services:
       - cert
       - key
       - novel
+      - db_user
 
   user_player_auth:
     build: ./services/player/auth
@@ -84,6 +89,7 @@ services:
       - cert
       - key
       - novel
+      - db_user
 
   transaction:
     build: ./services/transaction
@@ -97,6 +103,7 @@ services:
       - cert
       - key
       - novel
+      - db_user
 
   auction:
     build: ./services/auction
@@ -110,6 +117,7 @@ services:
       - cert
       - key
       - novel
+      - db_user
 
   gacha:
     build: ./services/gacha
@@ -123,6 +131,7 @@ services:
       - cert
       - key
       - novel
+      - db_user
 
   db-manager:
     build: ./services/dbm
@@ -136,6 +145,7 @@ services:
       - cert
       - key
       - novel
+      - db_user
 
 
   auctions_db:
@@ -184,9 +194,11 @@ networks:
     driver: bridge
 
 secrets:
-    cert:
-        file: ./cert.pem
-    key:
-        file: ./key.pem
-    novel:
-        file: ./poetry.txt
+  cert:
+    file: ./cert.pem
+  key:
+    file: ./key.pem
+  novel:
+    file: ./poetry.txt
+  db_user:
+    file: ./db_user.txt
