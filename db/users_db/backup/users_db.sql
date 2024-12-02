@@ -30,7 +30,7 @@ CREATE TABLE `ADMIN` (
   `currency_balance` int DEFAULT '0',
   `session_token` text,
   PRIMARY KEY (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -39,7 +39,6 @@ CREATE TABLE `ADMIN` (
 
 LOCK TABLES `ADMIN` WRITE;
 /*!40000 ALTER TABLE `ADMIN` DISABLE KEYS */;
-INSERT INTO `ADMIN` VALUES (1,'admin_test_1','$2b$12$64YVUDG5F0tMGGtjF7bWX.pe3lXxVYHfHkFbnBb938KjZsz1EaUPW','admin_test_1@test.com',0,'0'),(2,'admin_test_2','$2b$12$9M6IQoABYNhALGXgGTxGIuxZQiWJO95AeFHT4g6/0XaC5f2L4a8Sa','admin_test_2@test.com',0,'0'),(3,'admin_test_3','$2b$12$ApvBVuy/CThKVDNkpiMnV.MhcTzP0/IRPg93xfhpNDWvzxjDK4dKa','admin_test_3@test.com',0,'0'),(4,'admin_test_4','$2b$12$P4XxRrUt1jl6a5G.2QWgzetw.TbBx1wCnfnTb0MOZOD.jxmypXtv2','admin_test_4@test.com',0,'0');
 /*!40000 ALTER TABLE `ADMIN` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -59,7 +58,7 @@ CREATE TABLE `PLAYER` (
   `session_token` text,
   `image` mediumblob,
   PRIMARY KEY (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -68,7 +67,6 @@ CREATE TABLE `PLAYER` (
 
 LOCK TABLES `PLAYER` WRITE;
 /*!40000 ALTER TABLE `PLAYER` DISABLE KEYS */;
-INSERT INTO `PLAYER` VALUES (-1,'tresh','$2b$12$oLVN8TcwH5wQN0H0uSXsYO388fD1mSix5n.msaywlZ9wArSY8NgG.','tresh@system.sis',100,'0',NULL),(1,'test_1','$2b$12$oLVN8TcwH5wQN0H0uSXsYO388fD1mSix5n.msaywlZ9wArSY8NgG.','test_1@test.com',20,'0',NULL),(2,'test_2','$2b$12$WsqSbe53R8a.uUAIQ7JVRe4wB0AGH/bPr1aTtE6DsoD/VFnrDlwtS','test_2@test.com',20,'0',NULL),(3,'test_3','$2b$12$WHDLmtrs/5fx7PNra1NJOeJn/Zj9GW1gNKp7U1/sUH2eBhngf55e6','test_3@test.com',20,'0',NULL),(4,'test_4','$2b$12$gFo9xEtn.UeFuRS5Gg1EnOXhlCfFws8LTImPELV5SlHK3/L7A7XE6','test_4@test.com',20,'0',NULL);
 /*!40000 ALTER TABLE `PLAYER` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -81,4 +79,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-02 12:53:39
+-- Dump completed on 2024-12-02 13:33:55

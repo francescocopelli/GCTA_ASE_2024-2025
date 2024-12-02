@@ -6,7 +6,7 @@ from shared.auth_middleware import *
 
 app = Flask(__name__)
 
-print(SECRET_KEY)
+
 app.config['SECRET_KEY'] = SECRET_KEY
 DATABASE = 'gacha'
 DB_HOST = "gacha_db"
