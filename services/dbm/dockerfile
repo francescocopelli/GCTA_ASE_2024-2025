@@ -2,13 +2,13 @@ FROM python:3.8-slim
 
 WORKDIR /app
 COPY . /app/
+RUN pip install -r ./requirements.txt
 
 # RUN apt-get update && apt-get install -y gcc && apt install libsqlite3-dev -y
 
-# RUN pip install -r requirements.txt
+# RUN pip install -r ./requirements.txt
 
 EXPOSE 5000
 # CMD ["flask","run", "--port=5000", "--host=0.0.0.0"]
 
-RUN pip install -r requirements.txt
-CMD ["flask","run", "--port=5000", "--host=0.0.0.0", "--cert=/run/secrets/cert.pem", "--key=/run/secrets/key.pem"]
+CMD ["flask","run", "--port=5000", "--host=0.0.0.0", "--cert=/run/secrets/cert", "--key=/run/secrets/key"]
