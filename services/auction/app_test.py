@@ -62,6 +62,12 @@ def add_gacha_item():
     mock_gacha_items.append(new_gacha_item)
     return jsonify(new_gacha_item), 201
 
+@app.route('/all_active', methods=['GET'])
+def get_all_active_gacha_items():
+    active_items = [item for item in mock_gacha_items if item["status"] == "available"]
+    return jsonify(active_items), 200   
+
+
 @app.route('/roll', methods=['POST'])
 def roll_gacha():
     data = request.get_json()
