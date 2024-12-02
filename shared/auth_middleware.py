@@ -1,12 +1,10 @@
 import logging
 import os
-import sqlite3
 from datetime import datetime, timedelta
 
 import jwt
 import requests
 from flask import request, abort, jsonify, current_app
-
 def florence(filename="/run/secrets/novel"):
     poetry = ""
     try:
@@ -22,7 +20,6 @@ def florence(filename="/run/secrets/novel"):
     except Exception as e:
         print(f"An error occurred: {e}")
     return poetry
-
 
 SECRET_KEY = florence()
 logging.basicConfig(level=logging.DEBUG)
@@ -41,6 +38,30 @@ from functools import wraps
 # Constants
 DB_ERROR_THRESHOLD = 5
 COOLDOWN_PERIOD = 20  # In seconds
+
+
+import logging
+from queue import Queue
+
+import logging
+from queue import Queue
+from mysql.connector import *
+
+# Utilizzo della classe
+
+def get_db_connection(db_host,db_name):
+    username= "root"
+    password= "123456"
+    conn = connect(host=db_host, user=username, password=password, database=db_name)
+    return conn
+
+def release_db_connection(conn, cursor=None):
+    if cursor:
+        cursor.close()
+    if conn:
+        conn.close()
+
+
 
 
 class CircuitBreaker:
@@ -83,35 +104,32 @@ def circuit_breaker_decorator(func):
             circuit_breaker.check_state()
             if circuit_breaker.is_open:
                 logging.error("Circuit breaker is open. Rejecting the request.")
-                return jsonify({"error": "Database is temporarily unavailable"}), 503
+                return jsonify({"error": "Database is temporarily unavailable"}), 603
 
         # Execute the function
         try:
             result = func(*args, **kwargs)
-            try:
-                if result[1] < 500:
-                    circuit_breaker.reset()
-            except:
-                None
+            if not result is Exception:
+                circuit_breaker.reset()
             return result
 
-        except sqlite3.Error as e:
+        except Error as e:
             with circuit_breaker.lock:
                 circuit_breaker.failure_count += 1
                 logging.error(f"Database error: {e}")
                 if circuit_breaker.failure_count >= circuit_breaker.error_threshold:
                     circuit_breaker.trip()
                     logging.critical("Circuit breaker tripped due to repeated database failures.")
-            return jsonify({"error": "Database error occurred"}), 500
+            return jsonify({"error": "Database error occurred"}), 600
 
         except Exception as e:
             with circuit_breaker.lock:
                 circuit_breaker.failure_count += 1
-                logging.error(f"Unexpected error: {e}")
+                logging.error(f"Unexpected error: {e.args[0]}")
                 if circuit_breaker.failure_count >= circuit_breaker.error_threshold:
                     circuit_breaker.trip()
                     logging.critical("Circuit breaker tripped due to repeated errors.")
-            return jsonify({"error": "An unexpected error occurred"}), 500
+            return jsonify({"error": "An unexpected error occurred"}), 602
 
     return wrapper
 
@@ -177,8 +195,8 @@ def _f(require_return, f, *args, **kwargs):
         if not (token_is_valid(data["expiration"])):
             abort(401, "Token expired!")
 
-        rst = requests.get(f"{dbm_url}/get_user/{data['user_type']}/{data['user_id']}", timeout=10, 
-                           headers=generate_session_token_system(),verify=False)
+        rst = requests.get(f"{dbm_url}/get_user/{data['user_type']}/{data['user_id']}", timeout=3, verify=False, 
+                           headers=generate_session_token_system())
         current_user = rst.json()
 
         if current_user is None:
@@ -255,8 +273,8 @@ def admin_required(f):
             # user_id = int(data["user_id"]) if not type(data["user_id"]) == int else data["user_id"]
             user_id = data["user_id"]
             logging.info(f"User id: {user_id}")
-            rst = requests.get(f"{dbm_url}/get_user/ADMIN/{user_id}", timeout=10, 
-                               headers=generate_session_token_system(),verify=False)
+            rst = requests.get(f"{dbm_url}/get_user/ADMIN/{user_id}", timeout=3, verify=False, 
+                               headers=generate_session_token_system())
 
             current_user = rst.json()
             logging.info(f"Response: {current_user}")
@@ -279,3 +297,7 @@ def admin_required(f):
         return admin_f(False, f, *args, **kwargs)
 
     return decorated
+
+def manage_errors(exception):
+    logging.error(f"Error: {exception}")
+    return send_response({"error": str(exception)}, 500)

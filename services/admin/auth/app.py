@@ -4,13 +4,14 @@ from shared.auth_middleware import *
 
 app = Flask(__name__)
 
+print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 
 @app.route('/logout', methods=['DELETE'])
 @admin_required
 def logout():
     url = f"https://db-manager:5000/logout"
-    response = requests.delete(url,  timeout=10, headers=request.headers,verify=False)
+    response = requests.delete(url,  timeout=3, verify=False, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
 
@@ -23,7 +24,7 @@ def login():
         "username": username,
         "password": password
     }
-    response = requests.post(url,  timeout=10, json=data,verify=False)
+    response = requests.post(url,  timeout=3, verify=False, json=data)
     return send_response(response.json(), response.status_code)
 
 
@@ -39,7 +40,7 @@ def register():
         "password": password,
         "email": email
     }
-    response = requests.post(url,  timeout=10, data=data,verify=False)
+    response = requests.post(url,  timeout=3, verify=False, data=data)
     return send_response(response.json(), response.status_code)
 
 

@@ -1,4 +1,3 @@
-import sqlite3
 import uuid
 
 from flask import Flask
@@ -10,22 +9,11 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
+print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 
-DATABASE = "./transactions.db/transactions.db"
-
-
-def get_db_connection():
-    """
-    Helper function to connect to the database.
-
-    Returns:
-        sqlite3.Connection: A connection object to the SQLite database.
-    """
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
-
+DATABASE = "transactions"
+DB_HOST = "transactions_db"
 
 @app.route("/add_transaction", methods=["POST"])
 @admin_required
@@ -34,7 +22,7 @@ def add_transaction():
     Add a new transaction to the database.
 
     This endpoint handles POST requests to add a new transaction. The transaction type is derived based on the service
-    path in the request URL. The transaction details are then inserted into the TRANSACTIONS table in the database.
+    path in the request URL. The transaction details are then inserted into the Transactions table in the database.
 
     Returns:
         Response: JSON response with a success message and HTTP status code 200.
@@ -71,20 +59,24 @@ def add_transaction():
     elif "top_up" in data['type']:
         transaction_type = "top_up"
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO TRANSACTIONS (transaction_id, user_id, transaction_type, amount) VALUES (?, ?, ?, ?)",
-        (transaction_id, str(data["user_id"]), transaction_type, data["amount"]),
-    )
+    try:
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            "INSERT INTO Transactions (transaction_id, user_id, transaction_type, amount) VALUES (%s,%s,%s,%s)",
+            (transaction_id, str(data["user_id"]), transaction_type, data["amount"]),
+        )
 
-    # Log the derived transaction type
-    logging.debug(f"Derived transaction type: {transaction_type}")
-    conn.commit()
-    conn.close()
-    if cursor.rowcount == 0:
-        return send_response({"error": "Failed to add transaction"}, 500)
-    return send_response({"message": "Transaction added successfully"}, 200)
+        # Log the derived transaction type
+        logging.debug(f"Derived transaction type: {transaction_type}")
+        conn.commit()
+        if cursor.rowcount == 0:
+            return send_response({"error": "Failed to add transaction"}, 500)
+        return send_response({"message": "Transaction added successfully"}, 200)
+    except Exception as e:
+        return manage_errors(e)
+    finally:
+        release_db_connection(conn, cursor)
 
 
 @app.route("/get_transaction", methods=["GET"])
@@ -108,18 +100,22 @@ def get_transaction():
     transaction_id = request.args.get("transaction_id")
     if not transaction_id:
         return send_response({"error": "Missing transaction_id parameter"}, 400)
+    try:
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT * FROM Transactions WHERE transaction_id =%s", (transaction_id,)
+        )
+        transaction = cursor.fetchone()
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT * FROM TRANSACTIONS WHERE transaction_id = ?", (transaction_id,)
-    )
-    transaction = cursor.fetchone()
-    conn.close()
+        if transaction:
+            return send_response(dict(transaction), 200)
+        return send_response({"error": "Transaction not found"}, 404)
 
-    if transaction:
-        return send_response(dict(transaction), 200)
-    return send_response({"error": "Transaction not found"}, 404)
+    except Exception as e:
+        return manage_errors(e)
+    finally:
+        release_db_connection(conn, cursor)
 
 
 @app.route("/get_user_transactions", methods=["GET"])
@@ -129,8 +125,8 @@ def get_my_transactions(user):
                   algorithms=["HS256"])['user_type'] == 'ADMIN':
         return send_response({"error": "You don't have a transaction history (as an ADMIN)"}, 403)
     user_id = str(user['user_id'])
-    req = requests.get(f"https://localhost:5000/get_user_transactions/{user_id}",  timeout=10, 
-                       headers=generate_session_token_system(),verify=False)
+    req = requests.get(f"https://localhost:5000/get_user_transactions/{user_id}",  timeout=3, verify=False, 
+                       headers=generate_session_token_system())
     return send_response(req.json(), req.status_code)
 
 
@@ -156,17 +152,21 @@ def get_user_transactions(user_id):
     """
     if not user_id:
         return send_response({"error": "Missing user_id parameter"}, 400)
+    try:
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM Transactions WHERE user_id =%s", (user_id,))
+        transactions = cursor.fetchall()
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM TRANSACTIONS WHERE user_id = ?", (user_id,))
-    transactions = cursor.fetchall()
-    conn.close()
 
-    if transactions:
-        return send_response([dict(transaction) for transaction in transactions], 200)
-    return send_response({"error": "No transactions found for the user"}, 404)
+        if transactions:
+            return send_response([dict(transaction) for transaction in transactions], 200)
+        return send_response({"error": "No transactions found for the user"}, 404)
 
+    except Exception as e:
+        return manage_errors(e)
+    finally:
+        release_db_connection(conn, cursor)
 
 @app.get("/all")
 @login_required_void
@@ -181,17 +181,23 @@ def get_all_transactions():
     Returns:
         Response: A JSON response containing all transactions in the database with a 200 status code.
     """
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    if not is_admin:
-        cursor.execute("SELECT * FROM TRANSACTIONS WHERE user_id = ?", (str(user['user_id']),))
-    else:
-        cursor.execute("SELECT * FROM TRANSACTIONS")
-    transactions = cursor.fetchall()
-    conn.close()
-    if not transactions:
-        return send_response({"error": "No transactions found"}, 404)
-    return send_response([dict(transaction) for transaction in transactions], 200)
+    try:
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        if not is_admin:
+            cursor.execute("SELECT * FROM Transactions WHERE user_id =%s", (str(user['user_id']),))
+        else:
+            cursor.execute("SELECT * FROM Transactions")
+        transactions = cursor.fetchall()
+
+        if not transactions:
+            return send_response({"error": "No transactions found"}, 404)
+        return send_response([dict(transaction) for transaction in transactions], 200)
+
+    except Exception as e:
+        return manage_errors(e)
+    finally:
+        release_db_connection(conn, cursor)
 
 if __name__ == "__main__":
     app.run()

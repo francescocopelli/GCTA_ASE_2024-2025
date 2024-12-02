@@ -7,6 +7,7 @@ from shared.auth_middleware import *
 
 app = Flask(__name__)
 
+print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 logging.basicConfig(level=logging.DEBUG)
 
@@ -15,7 +16,7 @@ logging.basicConfig(level=logging.DEBUG)
 def get_all(user_type):
     logging.info(f"Get all users {user_type}")
     url = f"{dbm_url}/get_all/{user_type}"
-    response = requests.get(url,  timeout=10, headers=generate_session_token_system(),verify=False)
+    response = requests.get(url,  timeout=3, verify=False, headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
 
 
@@ -23,7 +24,7 @@ def get_all(user_type):
 @admin_required
 def get_user(user_id):
     url = f"{dbm_url}/get_user/" + user_id
-    response = requests.get(url,  timeout=10, headers=generate_session_token_system(),verify=False)
+    response = requests.get(url,  timeout=3, verify=False, headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
 
 @app.route('/update', methods=['PUT'])
@@ -38,7 +39,7 @@ def update_myself(user):
     if not user_id:
         return send_response({"error": "Missing user_id parameter"}, 400)
     if jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])["user_type"] != "PLAYER":
-        req = requests.get(f"{dbm_url}/get_user/{user_id}",  timeout=10, headers=generate_session_token_system(),verify=False)
+        req = requests.get(f"{dbm_url}/get_user/{user_id}",  timeout=3, verify=False, headers=generate_session_token_system())
         user = req.json()
         if not user:
             return send_response({"error": "User not found"}, 404)
@@ -54,14 +55,14 @@ def update_myself(user):
         "email": email,
         "password": password
     }
-    response = requests.put(url,  timeout=10, json=data, headers=request.headers,verify=False)
+    response = requests.put(url,  timeout=3, verify=False, json=data, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
 @app.route('/update/<user_id>', methods=['PUT'])
 @admin_required
 def update(user_id):
     user_type = request.args.get("user_type") or "PLAYER"
-    user = requests.get(f"{dbm_url}/get_user/{user_type}/{user_id}", timeout=10,  headers=generate_session_token_system(),verify=False).json()
+    user = requests.get(f"{dbm_url}/get_user/{user_type}/{user_id}", timeout=3, verify=False,  headers=generate_session_token_system()).json()
     if not user:
         return send_response({"error": "User not found"}, 404)
 
@@ -81,14 +82,14 @@ def update(user_id):
         "email": email,
         "password": password
     }
-    response = requests.put(url,  timeout=10, json=data, headers=generate_session_token_system(),verify=False)
+    response = requests.put(url,  timeout=3, verify=False, json=data, headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
 
 # function to get the user balance information
 @app.route("/get_user_balance/<user_id>")
 @admin_required
 def get_user_balance_admin(user_id):
-    response = requests.get(f"{dbm_url}/balance/PLAYER",  timeout=10,  params={"user_id": user_id}, headers=request.headers,verify=False)
+    response = requests.get(f"{dbm_url}/balance/PLAYER",  timeout=3, verify=False,  params={"user_id": user_id}, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
 # Esempio di utilizzo

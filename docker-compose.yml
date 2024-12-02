@@ -4,14 +4,13 @@ services:
     ports:
       - 8080:443
     depends_on:
-      - user_admin
-      - user_admin_auth
-      - user_player
-      - user_player_auth
+        - user_player
+        - user_player_auth
     networks:
       - microservice-network
     volumes:
       - ./shared:/app/shared
+    mem_limit: 256m
     secrets:
       - cert
       - key
@@ -24,12 +23,11 @@ services:
     depends_on:
       - user_admin
       - user_admin_auth
-      - user_player
-      - user_player_auth
     networks:
       - microservice-network
     volumes:
       - ./shared:/app/shared
+    mem_limit: 256m
     secrets:
       - cert
       - key
@@ -38,7 +36,7 @@ services:
   user_admin:
     build: ./services/admin
     depends_on:
-      - db-manager
+      - users_db
     networks:
       - microservice-network
     volumes:
@@ -51,7 +49,7 @@ services:
   user_admin_auth:
     build: ./services/admin/auth
     depends_on:
-      - db-manager
+      - users_db
     networks:
       - microservice-network
     volumes:
@@ -64,7 +62,7 @@ services:
   user_player:
     build: ./services/player
     depends_on:
-      - db-manager
+      - users_db
     networks:
       - microservice-network
     volumes:
@@ -77,7 +75,7 @@ services:
   user_player_auth:
     build: ./services/player/auth
     depends_on:
-      - db-manager
+      - users_db
     networks:
       - microservice-network
     volumes:
@@ -90,11 +88,10 @@ services:
   transaction:
     build: ./services/transaction
     depends_on:
-      - db-manager
+      - transactions_db
     networks:
       - microservice-network
     volumes:
-      - ./dbdata/transactions_db:/app/transactions.db
       - ./shared:/app/shared
     secrets:
       - cert
@@ -104,11 +101,10 @@ services:
   auction:
     build: ./services/auction
     depends_on:
-      - db-manager
+      - auctions_db
     networks:
       - microservice-network
     volumes:
-      - ./dbdata/auctions_db:/app/auction.db
       - ./shared:/app/shared
     secrets:
       - cert
@@ -118,11 +114,10 @@ services:
   gacha:
     build: ./services/gacha
     depends_on:
-      - db-manager
+      - gacha_db
     networks:
       - microservice-network
     volumes:
-      - ./dbdata/gacha_db:/app/gacha.db
       - ./shared:/app/shared
     secrets:
       - cert
@@ -133,27 +128,65 @@ services:
     build: ./services/dbm
     networks:
       - microservice-network
+    depends_on:
+      - users_db
     volumes:
-      - ./dbdata/users_db:/app/users.db
       - ./shared:/app/shared
     secrets:
       - cert
       - key
       - novel
 
-volumes:
-  dbdata:
-  user_db_data:
 
+  auctions_db:
+    build: db/auctions_db
+    networks:
+      - microservice-network
+    volumes:
+      - ./db/auctions_db/backup:/var/lib/auctions_db/backup:rw
+    stop_signal: SIGTERM
+    stop_grace_period: 30s
+    mem_limit: 1024m
+
+
+  transactions_db:
+    build: db/transactions_db
+    networks:
+      - microservice-network
+    volumes:
+      - ./db/transactions_db/backup:/var/lib/transactions_db/backup:rw
+    stop_signal: SIGTERM
+    stop_grace_period: 30s
+    mem_limit: 1024m
+
+  users_db:
+    build: db/users_db
+    networks:
+      - microservice-network
+    volumes:
+      - ./db/users_db/backup:/var/lib/users_db/backup:rw
+    stop_signal: SIGTERM
+    stop_grace_period: 30s
+    mem_limit: 1024m
+
+  gacha_db:
+    build: db/gacha_db
+    networks:
+      - microservice-network
+    volumes:
+      - ./db/gacha_db/backup:/var/lib/gacha_db/backup:rw
+    stop_signal: SIGTERM
+    stop_grace_period: 30s
+    mem_limit: 1024m
 
 networks:
   microservice-network:
     driver: bridge
 
 secrets:
-  cert:
-    file: ./cert.pem
-  key:
-    file: ./key.pem
-  novel:
-    file: ./poetry.txt
+    cert:
+        file: ./cert.pem
+    key:
+        file: ./key.pem
+    novel:
+        file: ./poetry.txt

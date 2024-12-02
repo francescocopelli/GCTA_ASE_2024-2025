@@ -1,8 +1,9 @@
 import base64
-#import hashlib
-import bcrypt
+import hashlib
+import logging
 import re
-import sqlite3
+import bcrypt
+
 
 from flask import Flask
 
@@ -13,18 +14,11 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
+print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 
-DATABASE = './users.db/user.db'
-
-
-# Funzione di connessione al database
-
-
-def get_db_connection():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
+DATABASE = 'users'
+DB_HOST = 'users_db'
 
 def hash_password(password:str):
     salt=bcrypt.gensalt()
@@ -33,11 +27,7 @@ def hash_password(password:str):
 
 def check_hash(password:str,hashed_password:str):
     return bcrypt.checkpw(password.encode('utf-8'),hashed_password.encode('utf-8'))
-'''
-# Funzione di hashing della password
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
-'''
+
 
 # Funzione per generare un token di sessione unico
 def generate_session_token(user_id, user_type):
@@ -54,8 +44,9 @@ def register(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         return send_response({"error": "Invalid user type"}, 401)
 
-    conn = get_db_connection()
     try:
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
         data = request.form
         logging.info(f'Se nel mondo esistesse un po\' di {data}')
         username = data.get("username")
@@ -68,30 +59,23 @@ def register(user_type):
         hashed_password = hash_password(password)
 
         # Inserimento nel database
-        cursor = conn.cursor()
         if "PLAYER" in user_type:
             image = base64.b64decode(data.get("image")) if data.get("image") else None
             query = (
-                "INSERT INTO PLAYER (username, password, email, image, session_token) VALUES (?, ?, ?, ?, 0)"
+                "INSERT INTO PLAYER (username, password, email, image, session_token) VALUES (%s,%s,%s,%s,%s)"
             )
-            cursor.execute(query, (username, hashed_password, email, image))
-        elif "ADMIN":
+            cursor.execute(query, (username, hashed_password, email, image,0))
+        elif "ADMIN" in user_type:
             query = (
-                "INSERT INTO ADMIN (username, password, email, session_token) VALUES (?, ?, ?, 0)"
+                "INSERT INTO ADMIN (username, password, email, session_token) VALUES (%s,%s,%s,%s)"
             )
-            cursor.execute(query, (username, hashed_password, email))
+            cursor.execute(query, (username, hashed_password, email,0))
         conn.commit()
         return send_response({"message": f"{user_type} registered successfully"}, 200)
-    except sqlite3.IntegrityError:
-        return send_response({"error": "Username or email already exists"}, 409)
-    except sqlite3.Error as e:
-        logging.error(f"Database error: {e}")
-        return send_response({"error": "Database error"}, 500)
     except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        return send_response({"error": "Unexpected error"}, 500)
+        return manage_errors(e)
     finally:
-        conn.close()
+        release_db_connection(conn, cursor)
 
 
 # Endpoint di login per USER e ADMIN
@@ -105,17 +89,17 @@ def login(user_type):
         data = request.get_json()
         username = data.get("username")
         password = data.get("password")
-        #logging.info("Password is " + password +"which is of type "+str(type(password)))
 
         # Verifica delle credenziali
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        query = f"SELECT user_id, password FROM {user_type} WHERE username = ?"
-        cursor.execute(query, (username,))
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        query = f"SELECT * FROM {user_type} WHERE username = %s"
+        cursor.execute(query, (username, ))
         user = cursor.fetchone()
+
         if user and check_hash(password,user["password"]):
             session_token = generate_session_token(user_id=user["user_id"], user_type=user_type)
-            query = f"UPDATE {user_type} SET session_token = ? WHERE username = ?"
+            query = f"UPDATE {user_type} SET session_token = %s WHERE username =%s"
             cursor.execute(query, (session_token, username))
             conn.commit()
             # response.set_cookie('session_token', session_token, httponly=True, secure=True)
@@ -125,21 +109,10 @@ def login(user_type):
         else:
             logging.warning(f"Invalid credentials for user: {username}")
             return send_response({"error": "Invalid credentials"}, 401)
-    except sqlite3.Error as e:
-        logging.error(f"Database error: {e}")
-        return send_response({"error": "Database error"}, 500)
     except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        return send_response({"error": "Unexpected error"}, 500)
+        return manage_errors(e)
     finally:
-        try:
-            cursor.close()
-        except Exception as e:
-            logging.error(f"Error closing cursor: {e}")
-        try:
-            conn.close()
-        except Exception as e:
-            logging.error(f"Error closing connection: {e}")
+        release_db_connection(conn, cursor)
 
 
 # Endpoint per il logout
@@ -150,37 +123,26 @@ def logout(user):
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")
         return send_response({"error": "Invalid user type"}, 401)
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    conn = get_db_connection(DB_HOST, DATABASE)
+    cursor = conn.cursor(dictionary=True)
     try:
 
         # Elimina il token dalla tabella PLAYER o ADMIN
-        query_delete = f"UPDATE {user_type} SET session_token = 0 WHERE user_id = ?"
+        query_delete = f"UPDATE {user_type} SET session_token = 0 WHERE user_id =%s"
         user_id = user["user_id"]
         cursor.execute(query_delete, (user_id,))
         conn.commit()
         logging.info(f"User with user_id {user_id} logged out successfully")
         return send_response({"message": "Logout successful"}, 200)
-    except sqlite3.Error as e:
-        logging.error(f"Database error: {e}")
-        return send_response({"error": "Database error"}, 500)
     except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        return send_response({"error": "Unexpected error"}, 500)
+        return manage_errors(e)
     finally:
-        try:
-            if cursor:
-                cursor.close()
-        except Exception as e:
-            logging.error(f"Error closing cursor: {e}")
-        try:
-            if conn: conn.close()
-        except Exception as e:
-            logging.error(f"Error closing connection: {e}")
+        release_db_connection(conn, cursor)
 
 
 # Endpoint per visualizzare il saldo della valuta di gioco
 @app.route("/balance/<user_type>", methods=["GET"])
+@login_required_void
 def get_balance(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")
@@ -192,33 +154,23 @@ def get_balance(user_type):
         return send_response({"error": "User ID is required"}, 400)
 
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        query = f"SELECT currency_balance FROM {user_type} WHERE user_id = ?"
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        query = f"SELECT currency_balance FROM {user_type} WHERE user_id =%s"
         cursor.execute(query, (user_id,))
         balance = cursor.fetchone()
-    except sqlite3.Error as e:
-        logging.error(f"Database error: {e}")
-        return send_response({"error": "Database error"}, 500)
-    except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        return send_response({"error": "Unexpected error"}, 500)
-    finally:
-        try:
-            cursor.close()
-        except Exception as e:
-            logging.error(f"Error closing cursor: {e}")
-        try:
-            conn.close()
-        except Exception as e:
-            logging.error(f"Error closing connection: {e}")
 
-    if balance:
-        logging.info(f"User ID {user_id} balance retrieved successfully")
-        return send_response({"currency_balance": balance["currency_balance"]}, 200)
-    else:
-        logging.warning(f"User not found: {user_id}")
-        return send_response({"error": "User not found"}, 408)
+        if balance:
+            logging.info(f"User ID {user_id} balance retrieved successfully")
+            return send_response({"currency_balance": balance["currency_balance"]}, 200)
+        else:
+            logging.warning(f"User not found: {user_id}")
+            return send_response({"error": "User not found"}, 408)
+
+    except Exception as e:
+        return manage_errors(e)
+    finally:
+        release_db_connection(conn, cursor)
 
 
 # Delete profile
@@ -234,17 +186,17 @@ def delete(user_type):
         return send_response({"error": "Session token is required"}, 400)
 
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
 
         # Verifica se il token si trova nella tabella PLAYER o ADMIN
-        query_player = f"SELECT * FROM {user_type} WHERE session_token = ?"
+        query_player = f"SELECT * FROM {user_type} WHERE session_token =%s"
         cursor.execute(query_player, (session_token,))
         token_found = cursor.fetchone()
 
         if token_found:
             # Elimina il token dalla tabella PLAYER o ADMIN
-            query_delete = f"DELETE FROM {user_type} WHERE session_token = ?"
+            query_delete = f"DELETE FROM {user_type} WHERE session_token =%s"
             cursor.execute(query_delete, (session_token,))
             conn.commit()
             logging.info(f"User with session token {session_token} deleted successfully")
@@ -252,27 +204,16 @@ def delete(user_type):
         else:
             logging.warning(f"Session token not found: {session_token}")
             return send_response({"error": "Session token not found"}, 408)
-    except sqlite3.Error as e:
-        logging.error(f"Database error: {e}")
-        return send_response({"error": "Database error"}, 500)
     except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        return send_response({"error": "Unexpected error"}, 500)
+        return manage_errors(e)
     finally:
-        try:
-            cursor.close()
-        except Exception as e:
-            logging.error(f"Error closing cursor: {e}")
-        try:
-            conn.close()
-        except Exception as e:
-            logging.error(f"Error closing connection: {e}")
+        release_db_connection(conn, cursor)
 
 
 def change_user_info(conn, cursor, user_type, request, column, identifier):
     logging.warning(f"Session token: {identifier}")
     # Verifica se il token si trova nella tabella PLAYER
-    query_player = "SELECT * FROM " + user_type + " WHERE " + column + " = ?"
+    query_player = "SELECT * FROM " + user_type + " WHERE " + column + " =%s"
     cursor.execute(query_player, (identifier,))
     token_found = cursor.fetchone()
 
@@ -280,12 +221,12 @@ def change_user_info(conn, cursor, user_type, request, column, identifier):
         # Update the player profile
         if request.json.get("username"):
             query_update = (
-                    "UPDATE " + user_type + " SET username = ? WHERE " + column + " = ?"
+                    "UPDATE " + user_type + " SET username = %s WHERE " + column + " =%s"
             )
             cursor.execute(query_update, (request.json.get("username"), identifier))
         if request.json.get("password"):
             query_update = (
-                    "UPDATE " + user_type + " SET password = ? WHERE " + column + " = ?"
+                    "UPDATE " + user_type + " SET password = %s WHERE " + column + " =%s"
             )
             cursor.execute(
                 query_update,
@@ -293,14 +234,14 @@ def change_user_info(conn, cursor, user_type, request, column, identifier):
             )
         if request.json.get("email"):
             query_update = (
-                    "UPDATE " + user_type + " SET email = ? WHERE " + column + " = ?"
+                    "UPDATE " + user_type + " SET email = %s WHERE " + column + " =%s"
             )
             cursor.execute(query_update, (request.json.get("email"), identifier))
         if request.json.get("image"):
             logging.warning("Image found in request" + request.json.get("image"))
             image = base64.b64decode(request.json.get("image"))
             query_update = (
-                    "UPDATE " + user_type + " SET image = ? WHERE " + column + " = ?"
+                    "UPDATE " + user_type + " SET image = %s WHERE " + column + " =%s"
             )
             cursor.execute(query_update, (image, identifier))
 
@@ -319,34 +260,17 @@ def update(user_type):
         return send_response({"error": "Invalid user type"}, 400)
 
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-    except sqlite3.Error as e:
-        logging.error(f"Database connection error: {e}")
-        return send_response({"error": "Database connection error"}, 500)
-    try:
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
         session_token = request.json.get("session_token") or request.headers["Authorization"].split(" ")[1]
 
         if jwt.decode(session_token, app.config['SECRET_KEY'], algorithms=["HS256"])["user_type"] != "PLAYER":
             return change_user_info(conn, cursor, user_type, request, "user_id", request.json.get("user_id"))
         return change_user_info(conn, cursor, user_type, request, "session_token", session_token)
-
-    except sqlite3.Error as e:
-        logging.error(f"Database error: {e}")
-        return send_response({"error": "Database error"}, 500)
-
     except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        return send_response({"error": "Unexpected error"}, 500)
+        return manage_errors(e)
     finally:
-        try:
-            cursor.close()
-        except Exception as e:
-            logging.error(f"Error closing cursor: {e}")
-        try:
-            conn.close()
-        except Exception as e:
-            logging.error(f"Error closing connection: {e}")
+        release_db_connection(conn, cursor)
 
 
 # Create a function that updates user balance of a given user_id with a given amount
@@ -367,50 +291,28 @@ def update_balance_user(user_type):
         return send_response({"error": "user_id, amount, and type are required"}, 400)
 
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        # Verify if the user_id exists in the table
-        query = f"SELECT * FROM {user_type} WHERE user_id = ?"
-        cursor.execute(query, (user_id,))
-        user = cursor.fetchone()
-        logging.debug(f"Received: user_id={user_id}, amount={amount}, type={transaction_type}")
-
-        if user:
-            if transaction_type == "credit":
-                query_update = f"UPDATE {user_type} SET currency_balance = currency_balance + ? WHERE user_id = ?"
-            else:
-                query_update = f"UPDATE {user_type} SET currency_balance = currency_balance - ? WHERE user_id = ?"
-
-            cursor.execute(query_update, (amount, user_id))
-            conn.commit()
-            logging.info(f"Balance updated successfully for user_id={user_id}")
-            return send_response({"message": "Balance updated successfully"}, 200)
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        if transaction_type == "credit":
+            query_update = f"UPDATE {user_type} SET currency_balance = currency_balance + %s WHERE user_id =%s"
         else:
-            logging.warning(f"User not found: user_id={user_id}")
-            return send_response({"error": "User not found"}, 404)
-    except sqlite3.Error as e:
-        logging.error(f"Database error: {e}")
-        return send_response({"error": "Database error"}, 500)
+            query_update = f"UPDATE {user_type} SET currency_balance = currency_balance - %s WHERE user_id =%s"
+
+        cursor.execute(query_update, (amount, user_id))
+        conn.commit()
+        logging.info(f"Balance updated successfully for user_id={user_id}")
+        return send_response({"message": "Balance updated successfully"}, 200)
     except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        return send_response({"error": "Unexpected error"}, 500)
+        return manage_errors(e)
     finally:
-        try:
-            cursor.close()
-        except Exception as e:
-            logging.error(f"Error closing cursor: {e}")
-        try:
-            conn.close()
-        except Exception as e:
-            logging.error(f"Error closing connection: {e}")
+        release_db_connection(conn, cursor)
 
 
 @app.route("/get_user/<user_id>", methods=["GET"])
 @login_required_void
 def get_users(user_id):
     url = f"https://db-manager:5000/get_user/PLAYER/" + user_id
-    response = requests.get(url,  timeout=10, headers=generate_session_token_system(),verify=False)
+    response = requests.get(url, timeout=3, verify=False, headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
 
 
@@ -422,12 +324,11 @@ def get_user(user_type, user_id):
         return send_response({"error": "Invalid user type"}, 400)
 
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        query = f"SELECT * FROM {user_type} WHERE user_id = ?"
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        query = f"SELECT * FROM {user_type} WHERE user_id =%s"
         cursor.execute(query, (user_id,))
         user = cursor.fetchone()
-        conn.close()
         if not user:
             logging.warning(f"User not found: {user_id}")
             return send_response({"error": "User not found"}, 404)
@@ -442,12 +343,10 @@ def get_user(user_type, user_id):
         }
         logging.info(f"User {user_id} retrieved successfully")
         return send_response(usr, 200)
-    except sqlite3.Error as e:
-        logging.error(f"Database error: {e}")
-        return send_response({"error": "Database error"}, 500)
     except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        return send_response({"error": "Unexpected error"}, 500)
+        return manage_errors(e)
+    finally:
+        release_db_connection(conn, cursor)
 
 
 @app.route("/get_all/<user_type>", methods=["GET"])
@@ -457,13 +356,12 @@ def get_all(user_type):
         return send_response({"error": "Invalid user type"}, 400)
 
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
         query = f"SELECT * FROM {user_type}"
         cursor.execute(query)
         users = cursor.fetchall()
         logging.info(f"Users retrieved successfully from {user_type} #{users.count}")
-        conn.close()
         if not users:
             logging.warning(f"No users found")
             return send_response({"error": "No users found"}, 404)
@@ -481,17 +379,16 @@ def get_all(user_type):
 
         logging.info(f"Users retrieved successfully")
         return send_response({"users": users_list}, 200)
-    except sqlite3.Error as e:
-        logging.error(f"Database error: {e}")
-        return send_response({"error": "Database error"}, 500)
+
     except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        return send_response({"error": "Unexpected error"}, 500)
+        return manage_errors(e)
+    finally:
+        release_db_connection(conn, cursor)
 
 
-#Make the function that delete the user from the database with the given session_token
+# Make the function that delete the user from the database with the given session_token
 @app.route('/delete/<user_type>/<session_token>', methods=['DELETE'])
-def delete_user(user_type,session_token):
+def delete_user(user_type, session_token):
     if user_type not in ['PLAYER', 'ADMIN']:
         logging.error(f"Invalid user type: {user_type}")
         return send_response({'error': 'Invalid user type'}, 400)
@@ -501,17 +398,17 @@ def delete_user(user_type,session_token):
         return send_response({"error": "Session token is required"}, 400)
 
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
 
         # Verify if the session_token exists in the table
-        query = f"SELECT * FROM {user_type} WHERE session_token = ?"
+        query = f"SELECT * FROM {user_type} WHERE session_token =%s"
         cursor.execute(query, (session_token,))
         user = cursor.fetchone()
 
         if user:
             # Delete the user from the table
-            query_delete = f"DELETE FROM {user_type} WHERE session_token = ?"
+            query_delete = f"DELETE FROM {user_type} WHERE session_token =%s"
             cursor.execute(query_delete, (session_token,))
             conn.commit()
             logging.info(f"User with session token {session_token} deleted successfully")
@@ -519,21 +416,11 @@ def delete_user(user_type,session_token):
         else:
             logging.warning(f"Session token not found: {session_token}")
             return send_response({"error": "Session token not found"}, 404)
-    except sqlite3.Error as e:
-        logging.error(f"Database error: {e}")
-        return send_response({"error": "Database error"}, 500)
     except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        return send_response({"error": "Unexpected error"}, 500)
+        return manage_errors(e)
     finally:
-        try:
-            cursor.close()
-        except Exception as e:
-            logging.error(f"Error closing cursor: {e}")
-        try:
-            conn.close()
-        except Exception as e:
-            logging.error(f"Error closing connection: {e}")
+        release_db_connection(conn, cursor)
+
 
 if __name__ == '__main__':
     app.run()

@@ -6,6 +6,7 @@ from shared.auth_middleware import *
 
 app = Flask(__name__)
 
+print(SECRET_KEY)
 app.config['SECRET_KEY'] = SECRET_KEY
 
 dbm_url = "https://db-manager:5000"
@@ -20,7 +21,7 @@ def login():
         "username": username,
         "password": password
     }
-    response = requests.post(url,  timeout=10, json=data,verify=False)
+    response = requests.post(url,  timeout=3, verify=False, json=data)
     return send_response(response.json(), response.status_code)
 
 
@@ -39,7 +40,7 @@ def register():
         "email": email,
         "image": base64.b64encode(image).decode('utf-8') if image else None
     }
-    response = requests.post(url,  timeout=10, data=data,verify=False)
+    response = requests.post(url,  timeout=3, verify=False, data=data)
     return send_response(response.json(), response.status_code)
 
 
@@ -47,7 +48,7 @@ def register():
 @token_required_void
 def logout():
     url = f"{dbm_url}/logout"
-    response = requests.delete(url,  timeout=10, headers=request.headers,verify=False)
+    response = requests.delete(url,  timeout=3, verify=False, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
 
@@ -58,7 +59,7 @@ def delete():
     url = f"{dbm_url}/delete/PLAYER"
     logging.debug("Session token: " + request.headers["Authorization"].split(" ")[1])
     session_token= (request.headers["Authorization"].split(" ")[1])
-    response = requests.delete(url+f"{session_token}", timeout=10,verify=False)
+    response = requests.delete(url+f"{session_token}", timeout=60)
     return send_response(response.json(), response.status_code)
 
 # Esempio di utilizzo
