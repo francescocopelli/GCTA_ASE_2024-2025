@@ -37,9 +37,7 @@ jobs:
       
       - name: Build and start Docker services
         run: docker-compose up --build -d
-              
-      - name: Docker Scout
-        uses: docker/scout-action@v1.15.1
+
         
       - name: Log running services and ports
         run: |
