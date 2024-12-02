@@ -45,7 +45,6 @@ def register(user_type):
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
         data = request.form
-        logging.info(f'Se nel mondo esistesse un po\' di {data}')
         username = data.get("username")
         password = data.get("password")
         email = data.get("email")

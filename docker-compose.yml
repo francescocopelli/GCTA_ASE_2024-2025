@@ -164,6 +164,8 @@ services:
       - microservice-network
     volumes:
       - ./db/auctions_db/backup:/var/lib/auctions_db/backup:rw
+    environment:
+      - MYSQL_ROOT_PASSWORD=/run/secrets/db_password
     stop_signal: SIGTERM
     stop_grace_period: 30s
     mem_limit: 1024m
@@ -178,6 +180,8 @@ services:
       - microservice-network
     volumes:
       - ./db/transactions_db/backup:/var/lib/transactions_db/backup:rw
+    environment:
+      - MYSQL_ROOT_PASSWORD=/run/secrets/db_password
     stop_signal: SIGTERM
     stop_grace_period: 30s
     mem_limit: 1024m
@@ -191,6 +195,8 @@ services:
       - microservice-network
     volumes:
       - ./db/users_db/backup:/var/lib/users_db/backup:rw
+    environment:
+      - MYSQL_ROOT_PASSWORD=/run/secrets/db_password
     stop_signal: SIGTERM
     stop_grace_period: 30s
     mem_limit: 1024m
@@ -204,6 +210,8 @@ services:
       - microservice-network
     volumes:
       - ./db/gacha_db/backup:/var/lib/gacha_db/backup:rw
+    environment:
+      - MYSQL_ROOT_PASSWORD=/run/secrets/db_password
     stop_signal: SIGTERM
     stop_grace_period: 30s
     mem_limit: 1024m

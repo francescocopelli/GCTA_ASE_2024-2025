@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #call the original entrypoint script
+MYSQL_ROOT_PASSWORD=$(cat /run/secrets/db_password)
 /usr/local/bin/docker-entrypoint.sh mysqld &
 MYSQL_PID=$!
 

@@ -1,6 +1,5 @@
 FROM ubuntu/mysql:latest
 
-ENV MYSQL_ROOT_PASSWORD=/run/secrets/db_password
 ENV MYSQL_DATABASE=transactions
 
 
