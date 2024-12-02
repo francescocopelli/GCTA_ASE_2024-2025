@@ -2,7 +2,7 @@
 
 [![CI Pipeline](http://github.com/francescocopelli/GCTA_ASE_2024-2025/actions/workflows/workflow.yaml/badge.svg?branch=main)](http://github.com/francescocopelli/GCTA_ASE_2024-2025/actions/workflows/workflow.yaml)
 [![License](http://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Language](http://img.shields.io/github/languages/top/francescocopelli/GCTA_ASE_2024-2025)
+[![Language](http://img.shields.io/github/languages/top/francescocopelli/GCTA_ASE_2024-2025)]
 ## Description
 This repository contains the code for GCTA ASE 2024-2025.
 
