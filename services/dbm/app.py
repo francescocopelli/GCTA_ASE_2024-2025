@@ -187,13 +187,13 @@ def delete(user_type):
         cursor = conn.cursor(dictionary=True)
 
         # Verifica se il token si trova nella tabella PLAYER o ADMIN
-        query_player = "SELECT * FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else f"SELECT * FROM ADMIN WHERE session
+        query_player = "SELECT * FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE session_token=%s"
         cursor.execute(query_player, (session_token,))
         token_found = cursor.fetchone()
 
         if token_found:
             # Elimina il token dalla tabella PLAYER o ADMIN
-            query_delete = "DELETE FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else f"DELETE FROM ADMIN WHERE session
+            query_delete = "DELETE FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else"DELETE FROM ADMIN WHERE session_token=%s"
             cursor.execute(query_delete, (session_token,))
             conn.commit()
             logging.info(f"User with session token {session_token} deleted successfully")
@@ -263,7 +263,7 @@ def change_user_info(conn, cursor, user_type, request, column, identifier):
             )
             if column == "session_token":
                 query_update = (
-                    "UPDATE PLAYER SET image = %s WHERE session_token =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET image = %s WHERE session_token
+                    "UPDATE PLAYER SET image = %s WHERE session_token =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET image = %s WHERE session_token=%s"
                 )
             cursor.execute(query_update, (image, identifier))
 
@@ -316,9 +316,9 @@ def update_balance_user(user_type):
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
         if transaction_type == "credit":
-            query_update = "UPDATE PLAYER SET currency_balance = currency_balance + %s WHERE user_id =%s" if "PLAYER" in user_type else f"UPDATE ADMIN SET currency_balance = currency_balance + %s WHERE user_id =%s"
+            query_update = "UPDATE PLAYER SET currency_balance = currency_balance + %s WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET currency_balance = currency_balance + %s WHERE user_id =%s"
         else:
-            query_update = "UPDATE PLAYER SET currency_balance = currency_balance - %s WHERE user_id =%s" if "PLAYER" in user_type else f"UPDATE ADMIN SET currency_balance = currency_balance - %s WHERE user_id =%s"
+            query_update = "UPDATE PLAYER SET currency_balance = currency_balance - %s WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET currency_balance = currency_balance - %s WHERE user_id =%s"
 
         cursor.execute(query_update, (amount, user_id))
         conn.commit()
@@ -348,7 +348,7 @@ def get_user(user_type, user_id):
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
-        query = "SELECT * FROM PLAYER WHERE user_id =%s" if "PLAYER" in user_type else f"SELECT * FROM ADMIN WHERE user_id =%s"
+        query = "SELECT * FROM PLAYER WHERE user_id =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE user_id =%s"
         cursor.execute(query, (user_id,))
         user = cursor.fetchone()
         if not user:
@@ -380,7 +380,7 @@ def get_all(user_type):
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
-        query = "SELECT * FROM PLAYER" if "PLAYER" in user_type else f"SELECT * FROM ADMIN"
+        query = "SELECT * FROM PLAYER" if "PLAYER" in user_type else "SELECT * FROM ADMIN"
         cursor.execute(query)
         users = cursor.fetchall()
         logging.info(f"Users retrieved successfully from {user_type} #{users.count}")
@@ -424,13 +424,13 @@ def delete_user(user_type, session_token):
         cursor = conn.cursor(dictionary=True)
 
         # Verify if the session_token exists in the table
-        query = "SELECT * FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else f"SELECT * FROM ADMIN WHERE session
+        query = "SELECT * FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE session_token=%s"
         cursor.execute(query, (session_token,))
         user = cursor.fetchone()
 
         if user:
             # Delete the user from the table
-            query_delete = "DELETE FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else f"DELETE FROM ADMIN WHERE session
+            query_delete = "DELETE FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else "DELETE FROM ADMIN WHERE session_token=%s"
             cursor.execute(query_delete, (session_token,))
             conn.commit()
             logging.info(f"User with session token {session_token} deleted successfully")
