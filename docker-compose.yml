@@ -167,6 +167,9 @@ services:
     stop_signal: SIGTERM
     stop_grace_period: 30s
     mem_limit: 1024m
+    secrets:
+      - db_user
+      - db_password
 
 
   transactions_db:
@@ -178,6 +181,9 @@ services:
     stop_signal: SIGTERM
     stop_grace_period: 30s
     mem_limit: 1024m
+    secrets:
+      - db_user
+      - db_password
 
   users_db:
     build: db/users_db
@@ -188,6 +194,9 @@ services:
     stop_signal: SIGTERM
     stop_grace_period: 30s
     mem_limit: 1024m
+    secrets:
+      - db_user
+      - db_password
 
   gacha_db:
     build: db/gacha_db
@@ -198,6 +207,9 @@ services:
     stop_signal: SIGTERM
     stop_grace_period: 30s
     mem_limit: 1024m
+    secrets:
+      - db_user
+      - db_password
 
 networks:
   microservice-network:
