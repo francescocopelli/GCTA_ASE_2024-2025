@@ -14,8 +14,6 @@ files[] = {"id":"39567640-95c28f0c-6fe2-406d-b0c2-bcfa9663b8cf","path":"GCTA Tes
 [config.relations.collections.metaData]
 
 [config.relations.apiDefinition]
-files[] = {"path":"openapi.yaml","metaData":{}}
 
 [config.relations.apiDefinition.metaData]
-rootFiles[] = openapi.yaml
 type = openapi:3

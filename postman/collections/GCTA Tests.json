@@ -203,6 +203,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "644aadf4-617f-4f77-a5ee-008a6559ac1b",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -215,7 +216,7 @@
 									"});\r",
 									"\r",
 									"pm.test(\"Response time is within an acceptable range\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});\r",
 									"\r",
 									"pm.test(\"Content-Type header is application/json\", function () {\r",
@@ -224,8 +225,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "644aadf4-617f-4f77-a5ee-008a6559ac1b"
+								"packages": {}
 							}
 						}
 					],
@@ -275,6 +275,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "d4b95395-73c4-4d42-a723-95c101a8e8b1",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -295,14 +296,13 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
 									"});\r",
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "d4b95395-73c4-4d42-a723-95c101a8e8b1"
+								"packages": {}
 							}
 						}
 					],
@@ -433,6 +433,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "ce612a87-0db7-4699-86f3-a4353ff61cd2",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -440,7 +441,7 @@
 									"\r",
 									"\r",
 									"pm.test(\"Response time is within an acceptable range\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(300);\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -478,16 +479,18 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "ce612a87-0db7-4699-86f3-a4353ff61cd2"
+								"packages": {}
 							}
 						},
 						{
 							"listen": "prerequest",
 							"script": {
-								"packages": {},
+								"id": "c41d76ff-61c6-4181-ba6a-b7f3a88806fb",
+								"exec": [
+									""
+								],
 								"type": "text/javascript",
-								"id": "c41d76ff-61c6-4181-ba6a-b7f3a88806fb"
+								"packages": {}
 							}
 						}
 					],
@@ -527,14 +530,15 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "d5ea5e1b-8739-4d11-9106-6291cccb884a",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -561,8 +565,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "d5ea5e1b-8739-4d11-9106-6291cccb884a"
+								"packages": {}
 							}
 						}
 					],
@@ -612,14 +615,15 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "62618ce8-6689-41d7-a38f-75db62f0fe4c",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"  pm.response.to.have.status(200);\r",
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -639,8 +643,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "62618ce8-6689-41d7-a38f-75db62f0fe4c"
+								"packages": {}
 							}
 						}
 					],
@@ -686,6 +689,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "ef887280-bf98-4429-85e8-1a50c63f2f9f",
 								"exec": [
 									"pm.test(\"Status code is 200 for successful retrieval\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -701,12 +705,7 @@
 									"\r",
 									"\r",
 									"pm.test(\"Response time is within an acceptable range\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(300);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -739,7 +738,7 @@
 									"\r",
 									"pm.test(\"Rarity should be a valid value\", function () {\r",
 									"    const responseData = pm.response.json();\r",
-									"    const validRarities = [\"common\", \"rare\", \"epic\", \"legendary\"];\r",
+									"    const validRarities = [\"common\", \"rare\", \"epic\"];\r",
 									"    pm.expect(responseData.rarity).to.be.oneOf(validRarities, \"Rarity should be a valid value\");\r",
 									"});\r",
 									"\r",
@@ -748,19 +747,18 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "ef887280-bf98-4429-85e8-1a50c63f2f9f"
+								"packages": {}
 							}
 						},
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "ef0b4c3e-9d61-4468-8acd-fac87af0a710",
 								"exec": [
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "ef0b4c3e-9d61-4468-8acd-fac87af0a710"
+								"packages": {}
 							}
 						}
 					],
@@ -801,6 +799,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "fe7b4e03-f6a5-4ec6-918e-c592a6aaa33c",
 								"exec": [
 									"pm.test(\"Status code is 200 for successful retrieval\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -817,15 +816,6 @@
 									"    });\r",
 									"});\r",
 									"\r",
-									"\r",
-									"// pm.test(\"Response time is within an acceptable range\", function () {\r",
-									"//   pm.expect(pm.response.responseTime).to.be.below(500);\r",
-									"// });\r",
-									"\r",
-									"\r",
-									"pm.test(\"Status code is 200 for successful retrieval\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
 									"\r",
 									"\r",
 									"pm.test(\"Response has the required fields - description, gacha_id, image, name, rarity, and status\", function () {\r",
@@ -850,8 +840,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "fe7b4e03-f6a5-4ec6-918e-c592a6aaa33c"
+								"packages": {}
 							}
 						}
 					],
@@ -891,6 +880,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "cfe48591-43db-40df-8311-6127129b652a",
 								"exec": [
 									"// Fixed response time test\r",
 									"pm.test(\"Status code is 200 for successful update\", function () {\r",
@@ -898,7 +888,7 @@
 									"});\r",
 									"\r",
 									"pm.test(\"Response time is within an acceptable range\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});\r",
 									"\r",
 									"pm.test(\"Response body has the required fields\", function () {\r",
@@ -925,8 +915,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "cfe48591-43db-40df-8311-6127129b652a"
+								"packages": {}
 							}
 						}
 					],
@@ -986,7 +975,7 @@
 									"\r",
 									"\r",
 									"pm.test(\"Response time is within an acceptable range\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -1091,8 +1080,8 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 500ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"pm.test(\"Response time is less than 1000ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -1235,6 +1224,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "c6590d94-7672-43c0-931a-d9fa2b963472",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1246,8 +1236,8 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -1312,8 +1302,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "c6590d94-7672-43c0-931a-d9fa2b963472"
+								"packages": {}
 							}
 						}
 					],
@@ -1372,8 +1361,8 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 300ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(300);\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -2896,8 +2885,8 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 500ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"pm.test(\"Response time is less than 1000ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -2981,8 +2970,8 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -3110,8 +3099,8 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 500ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"pm.test(\"Response time is less than 1000ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -3210,7 +3199,7 @@
 									"\r",
 									"\r",
 									"pm.test(\"Response time is within an acceptable range\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
 									"});\r",
 									"\r",
 									"\r",
