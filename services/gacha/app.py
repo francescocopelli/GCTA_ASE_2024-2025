@@ -206,13 +206,13 @@ def add_to_inventory():
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
 
+        cursor.execute("SELECT gacha_id FROM GachaItems WHERE status = 'available' AND gacha_id = %s", (gacha_id,))
+        result = cursor.fetchone()
+        if not result:
+            logging.debug("Gacha item not found or not available insert: gacha_id=%s", gacha_id)
+            return send_response({'error': 'Gacha item not found or not available'}, 404)
         # Add gacha item to user's inventory if it exists and is available
-        cursor.execute("""
-            INSERT INTO UserGachaInventory (user_id, gacha_id, acquired_date)
-            SELECT %s, gacha_id, NOW()
-            FROM GachaItems
-            WHERE gacha_id = %s AND status = 'available'
-        """, (user_id, gacha_id))
+        cursor.execute("INSERT INTO UserGachaInventory (user_id, gacha_id, acquired_date) VALUES(%s, %s, NOW())", (user_id, result['gacha_id']))
 
         if cursor.rowcount == 0:
             logging.debug("Gacha item not found or not available: gacha_id=%s", gacha_id)
@@ -454,14 +454,19 @@ def update_gacha_status():
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
-
-        # cursor.execute("UPDATE UserGachaInventory SET locked = %s WHERE user_id = %s AND gacha_id = %s LIMIT 1",
-        #                (status, user_id, gacha_id))
         not_status = "unlocked" if status == "locked" else "locked"
 
+        cursor.execute("SELECT inventory_id FROM gacha.UserGachaInventory WHERE user_id = %s AND gacha_id = %s AND locked=%s ORDER BY RAND() LIMIT 1", (user_id, gacha_id, not_status))
+        inventory_id = cursor.fetchone()
+        if not inventory_id:
+            logging.debug("Gacha item not found in user inventory: user_id=%s, gacha_id=%s", user_id, gacha_id)
+            return send_response({'error': 'Gacha item not found in user inventory'}, 404)
+        # cursor.execute("UPDATE UserGachaInventory SET locked = %s WHERE user_id = %s AND gacha_id = %s LIMIT 1",
+        #                (status, user_id, gacha_id))
+
         cursor.execute(
-            "UPDATE UserGachaInventory SET locked = %s WHERE user_id = %s AND gacha_id = %s AND locked= %s AND inventory_id = (SELECT inventory_id FROM gacha.UserGachaInventory WHERE user_id = %s AND gacha_id = %s AND locked=%s ORDER BY RAND() LIMIT 1)",
-            (status, user_id, gacha_id, not_status, user_id, gacha_id, not_status))
+            "UPDATE UserGachaInventory SET locked = %s WHERE user_id = %s AND gacha_id = %s AND locked= %s AND inventory_id =%s",
+            (status, user_id, gacha_id, not_status, inventory_id['inventory_id']))
 
         conn.commit()
         if cursor.rowcount:
