@@ -5,6 +5,10 @@ from datetime import datetime, timedelta
 import jwt
 import requests
 from flask import request, abort, jsonify, current_app
+
+def sanitize_input(data):
+    
+
 def florence(filename="/run/secrets/novel"):
     poetry = ""
     try:

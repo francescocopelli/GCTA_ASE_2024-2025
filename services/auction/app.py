@@ -189,6 +189,17 @@ def add_auction():
         if not all([gacha_id, base_price, seller_id]):
             logging.error("Missing data for new auction")
             return send_response({"error": "Missing data for new auction"}, 400)
+        
+        if not isinstance(base_price, int):
+            logging.error("Base price must be an integer")
+            return send_response({"error": "Base price must be an integer"}, 400)
+        if base_price < 0:
+            logging.error("Base price cannot be negative")
+            return send_response({"error": "Base price cannot be negative"}, 400)
+        
+        if base_price > 9999:
+            logging.error("Base price cannot be higher than 9999")
+            return send_response({"error": "Base price cannot be higher than 9999"}, 400)
 
         # Connect to the database
         conn = get_db_connection(DB_HOST, DATABASE)
@@ -358,6 +369,11 @@ def place_bid(user):
     if jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])['user_type'] == "ADMIN":
         return send_response({"error": "You cannot place a bid as an admin"}, 403)
     try:
+        if not isinstance(bid_amount, int):
+            return send_response({"error": "Bid amount must be an integer"}, 400)
+        if bid_amount < 0:
+            return send_response({"error": "Bid amount cannot be negative"}, 400)
+        
         # Connect to the database
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
@@ -371,6 +387,9 @@ def place_bid(user):
 
         if not auction:
             return send_response({"error": "Auction not found or already ended"}, 408)
+        
+        if user_id == auction['seller_id']:
+            return send_response({"error": "You cannot bid on your own auction"}, 400)
 
         # Check if the bid amount is higher than the current highest bid
         if int(bid_amount) <= auction["highest_bid"]:
