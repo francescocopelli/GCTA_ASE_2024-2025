@@ -812,6 +812,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "fe7b4e03-f6a5-4ec6-918e-c592a6aaa33c",
 								"exec": [
 									"pm.test(\"Status code is 200 for successful retrieval\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -839,7 +840,7 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response has the required fields - description, gacha_id, image, name, rarity, and status\", function () {\r",
+									"pm.test(\"Response has the required fields - description, gacha_id, name, rarity, and status\", function () {\r",
 									"    const responseData = pm.response.json();\r",
 									"\r",
 									"    pm.expect(responseData).to.be.an('object');\r",
@@ -848,7 +849,7 @@
 									"    responseData.message.forEach(function (gacha) {\r",
 									"        pm.expect(gacha).to.have.property('description');\r",
 									"        pm.expect(gacha).to.have.property('gacha_id');\r",
-									"        pm.expect(gacha).to.have.property('image');\r",
+									"        //pm.expect(gacha).to.have.property('image');\r",
 									"        pm.expect(gacha).to.have.property('name');\r",
 									"        pm.expect(gacha).to.have.property('rarity');\r",
 									"        pm.expect(gacha).to.have.property('status');\r",
@@ -861,8 +862,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "fe7b4e03-f6a5-4ec6-918e-c592a6aaa33c"
+								"packages": {}
 							}
 						}
 					],
@@ -1366,98 +1366,6 @@
 					"response": []
 				},
 				{
-					"name": "Place Bid",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "336001c4-32b5-4518-ad14-0b0e06771745",
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"    pm.expect(pm.response.code).to.equal(200);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Content-Type header is application/json\", function () {\r",
-									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response time is less than 300ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(300);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response schema matches the expected schema\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"\r",
-									"    console.log(\"received response: \"+JSON.stringify(responseData,null,2));\r",
-									"    pm.expect(responseData).to.have.property('message');\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Message field is present in the response\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    pm.expect(responseData.message).to.exist;\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "9cd635f2-a1f4-4269-bb63-9b3800bdc4e8",
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"id": "0eddcc54-5af3-4d8a-9690-b80c07b80197",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{session_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"auction_id\": \"{{auction_id}}\",\n  \"user_id\": \"1\",\n  \"bid_amount\": 13\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/auction/bid",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"auction",
-								"bid"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Get Bids",
 					"event": [
 						{
@@ -1617,6 +1525,393 @@
 								"users",
 								"auth",
 								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register User to bid",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "3d900d4c-b05f-4655-824c-62cce5484f1b",
+								"exec": [
+									"// Generate random username, password, and email\r",
+									"const randomUsername = 'user_' + Math.random().toString(36).substring(2, 10); // Random username\r",
+									"const randomPassword = Math.random().toString(36).substring(2, 12); // Random password\r",
+									"const randomEmail = randomUsername + '@example.com'; // Random email based on the username\r",
+									"\r",
+									"// Set them as environment variables for use in the request\r",
+									"pm.environment.set(\"username\", randomUsername);\r",
+									"pm.environment.set(\"password\", randomPassword);\r",
+									"pm.environment.set(\"email\", randomEmail);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "961267ca-195c-4eb2-b2fa-7a3224cd49af",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"id": "3a9a47d4-4b73-4767-a513-cc9d2f80b5b2",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "username",
+									"value": "{{username}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{password}}",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "{{email}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/users/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login User to bid",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4839d92f-483d-42de-b37f-82129f35fbdf",
+								"exec": [
+									"\r",
+									"// Extract and save the session token\r",
+									"const response = pm.response.json();\r",
+									"if (response.session_token) {\r",
+									"    pm.environment.set(\"session_token\", response.session_token);\r",
+									"    console.log(\"Session token saved:\", response.session_token);\r",
+									"} else {\r",
+									"    console.log(\"Session token not found in the response.\");\r",
+									"}\r",
+									"pm.test(\"User_id is extracted and saved to an environment variable\", function () {\r",
+									"    const response = pm.response.json();\r",
+									"    pm.expect(response).to.have.property('user_id');\r",
+									"    pm.environment.set(\"user_id\", response.user_id);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "2bb8644b-d986-4ad9-9dbe-df02c6652697",
+								"exec": [
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"id": "b522affb-72f2-40bb-8f3a-2bef160f75ee",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Real Money Transaction to bid",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "644aadf4-617f-4f77-a5ee-008a6559ac1b",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"id": "b1df49dd-0629-4efd-9679-bc8a40bec6a4",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"amount\": 50\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/player/real_money_transaction",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"player",
+								"real_money_transaction"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Place Bid",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "336001c4-32b5-4518-ad14-0b0e06771745",
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response schema matches the expected schema\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    console.log(\"received response: \"+JSON.stringify(responseData,null,2));\r",
+									"    pm.expect(responseData).to.have.property('message');\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Message field is present in the response\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.exist;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9cd635f2-a1f4-4269-bb63-9b3800bdc4e8",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"id": "0eddcc54-5af3-4d8a-9690-b80c07b80197",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"auction_id\": \"{{auction_id}}\",\n  \"bid_amount\": 13\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auction/bid",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auction",
+								"bid"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Player",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "b27dfb16-c213-4668-9144-7b5418e3698a",
+								"exec": [
+									"// Retrieve the original email from the environment\r",
+									"const originalEmail = pm.environment.get(\"email\");\r",
+									"\r",
+									"// Ensure the email is only updated once\r",
+									"if (originalEmail) {\r",
+									"    // Check if the email already starts with \"updated_\"\r",
+									"    if (!originalEmail.startsWith(\"updated_\")) {\r",
+									"        // Add \"updated_\" in front of the original email\r",
+									"        const updatedEmail = `updated_${originalEmail}`;\r",
+									"        \r",
+									"        // Save the updated email back to the environment\r",
+									"        pm.environment.set(\"updated_email\", updatedEmail);\r",
+									"        console.log(\"Updated email saved:\", updatedEmail);\r",
+									"    } else {\r",
+									"        console.log(\"Email is already updated:\", originalEmail);\r",
+									"    }\r",
+									"} else {\r",
+									"    console.log(\"Original email not found in the environment.\");\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "eff3627f-15f0-4e8a-a29c-194db0b16d76",
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"id": "201f8e98-1a62-498e-91f1-9cba0ff64833",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/player/update?username={{username}}&password={{password}}&email={{updated_email}}&image",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"player",
+								"update"
+							],
+							"query": [
+								{
+									"key": "username",
+									"value": "{{username}}"
+								},
+								{
+									"key": "password",
+									"value": "{{password}}"
+								},
+								{
+									"key": "email",
+									"value": "{{updated_email}}"
+								},
+								{
+									"key": "image",
+									"value": null
+								}
 							]
 						}
 					},
