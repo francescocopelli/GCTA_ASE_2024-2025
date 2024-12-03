@@ -2,11 +2,13 @@
 from threading import Lock
 from locust import events
 
-# from services.player.auth.test_app import AuthUser
-# from services.player.test_app import UserPlayer
-# from services.transaction.test_app import GetTransactionTest
-# from services.gacha.test_app import GachaTest
-from services.auction.test_app import GetAllAuctionsTest
+from test_locust.auction_test import GetAllAuctionsTest
+# from test_locust.auth_player_test import AuthUser
+from test_locust.dbm_test import WebsiteUser
+from test_locust.gacha_test import GachaTest
+from test_locust.player_test import UserPlayer
+from test_locust.transaction_test import GetTransactionTest
+
 
 
 #PLAYERS LOGIN
