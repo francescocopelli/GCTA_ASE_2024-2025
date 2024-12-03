@@ -64,7 +64,7 @@ class GetAllAuctionsBehavior(TaskSet):
         else:
             print(f"Unexpected status code {response.status_code}")
 
-    @task
+    @task(1)
     def add_auction(self):
         locustfile.login(self)
         token = locustfile.session_token[random.choice(range(0, 3))]
@@ -208,12 +208,10 @@ class GetAllAuctionsBehavior(TaskSet):
 
         token = locustfile.session_token[user]
         headers = locustfile.create_header(token)
-        with Lock():
             # if len(locustfile.all_auctions) == 0:
-            locustfile.admin_login(self)
-            response = self.client.get(f"{locustfile.admin_base}{locustfile.auction_url}/all?status=active",
-                                       verify=False, headers=locustfile.create_admin_header(
-                                           locustfile.admin_session_token[random.choice(range(0, 3))]))
+        with self.client.get(f"{locustfile.admin_base}{locustfile.auction_url}/all?status=active",
+                                   verify=False, headers=locustfile.create_admin_header(
+                                       locustfile.admin_session_token[random.choice(range(0, 3))]), catch_response=True) as response:
             auction_id = \
             [id.get("auction_id") for id in response.json().get("auctions", []) if id.get("seller_id") == usr_id]
             if auction_id is None or auction_id == []:
