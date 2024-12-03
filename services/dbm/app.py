@@ -58,7 +58,7 @@ def register(user_type):
         if "PLAYER" in user_type:
             image = base64.b64decode(data.get("image")) if data.get("image") else None
             query = (
-                "INSERT INTO PLAYER (username, password, email, image, session_token) VALUES (%s,%s,%s,%s,%s)"
+                "INSERT INTO \"PLAYER\" (username, password, email, image, session_token) VALUES (%s,%s,%s,%s,%s)"
             )
             cursor.execute(query, (username, hashed_password, email, image, 0))
         elif "ADMIN" in user_type:
@@ -89,13 +89,13 @@ def login(user_type):
         # Verifica delle credenziali
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
-        query = "SELECT * FROM PLAYER WHERE username = %s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE username = %s"
+        query = "SELECT * FROM \"PLAYER\" WHERE username = %s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE username = %s"
         cursor.execute(query, (username,))
         user = cursor.fetchone()
 
         if user and check_hash(password, user["password"]):
             session_token = generate_session_token(user_id=user["user_id"], user_type=user_type)
-            query = "UPDATE PLAYER SET session_token = %s WHERE username =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET session_token = %s WHERE username =%s"
+            query = "UPDATE \"PLAYER\" SET session_token = %s WHERE username =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET session_token = %s WHERE username =%s"
             cursor.execute(query, (session_token, username))
             conn.commit()
             # response.set_cookie('session_token', session_token, httponly=True, secure=True)
@@ -123,8 +123,8 @@ def logout(user):
     cursor = conn.cursor(dictionary=True)
     try:
 
-        # Elimina il token dalla tabella PLAYER o ADMIN
-        query_delete = "UPDATE PLAYER SET session_token = 0 WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET session_token = 0 WHERE user_id =%s"
+        # Elimina il token dalla tabella \"PLAYER\" o ADMIN
+        query_delete = "UPDATE \"PLAYER\" SET session_token = 0 WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET session_token = 0 WHERE user_id =%s"
         user_id = user["user_id"]
         cursor.execute(query_delete, (user_id,))
         conn.commit()
@@ -152,7 +152,7 @@ def get_balance(user_type):
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
-        query = "SELECT currency_balance FROM PLAYER WHERE user_id =%s" if "PLAYER" in user_type else "SELECT currency_balance FROM ADMIN WHERE user_id =%s"
+        query = "SELECT currency_balance FROM \"PLAYER\" WHERE user_id =%s" if "PLAYER" in user_type else "SELECT currency_balance FROM ADMIN WHERE user_id =%s"
         cursor.execute(query, (user_id,))
         balance = cursor.fetchone()
 
@@ -185,14 +185,14 @@ def delete(user_type):
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
 
-        # Verifica se il token si trova nella tabella PLAYER o ADMIN
-        query_player = "SELECT * FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE session_token=%s"
+        # Verifica se il token si trova nella tabella \"PLAYER\" o ADMIN
+        query_player = "SELECT * FROM \"PLAYER\" WHERE session_token =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE session_token=%s"
         cursor.execute(query_player, (session_token,))
         token_found = cursor.fetchone()
 
         if token_found:
-            # Elimina il token dalla tabella PLAYER o ADMIN
-            query_delete = "DELETE FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else"DELETE FROM ADMIN WHERE session_token=%s"
+            # Elimina il token dalla tabella \"PLAYER\" o ADMIN
+            query_delete = "DELETE FROM \"PLAYER\" WHERE session_token =%s" if "PLAYER" in user_type else"DELETE FROM ADMIN WHERE session_token=%s"
             cursor.execute(query_delete, (session_token,))
             conn.commit()
             logging.info(f"User with session token {session_token} deleted successfully")
@@ -209,11 +209,11 @@ def delete(user_type):
 def change_user_info(conn, cursor, user_type, request, column, identifier):
     logging.warning(f"Session token: {identifier}")
     # Verifica se il token si trova nella tabella PLAYER
-    query_player = "SELECT * FROM PLAYER WHERE user_id =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE user_id =%s"
+    query_player = "SELECT * FROM \"PLAYER\" WHERE user_id =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE user_id =%s"
     if column == "session_token":
-        query_player = "SELECT * FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE session_token =%s"
+        query_player = "SELECT * FROM \"PLAYER\" WHERE session_token =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE session_token =%s"
 
-    # query_player = "SELECT * FROM PLAYER WHERE " + column + " =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE  =%s"
+    # query_player = "SELECT * FROM \"PLAYER\" WHERE " + column + " =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE  =%s"
     cursor.execute(query_player, (identifier,))
     token_found = cursor.fetchone()
 
@@ -221,21 +221,21 @@ def change_user_info(conn, cursor, user_type, request, column, identifier):
         # Update the player profile
         if request.json.get("username"):
             query_update = (
-                "UPDATE PLAYER SET username = %s WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET username = %s WHERE user_id =%s"
+                "UPDATE \"PLAYER\" SET username = %s WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET username = %s WHERE user_id =%s"
             )
             if column == "session_token":
                 query_update = (
-                    "UPDATE PLAYER SET username = %s WHERE session_token =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET username = %s WHERE session_token =%s"
+                    "UPDATE \"PLAYER\" SET username = %s WHERE session_token =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET username = %s WHERE session_token =%s"
                 )
 
             cursor.execute(query_update, (request.json.get("username"), identifier))
         if request.json.get("password"):
             query_update = (
-                "UPDATE PLAYER SET password = %s WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET password = %s WHERE user_id =%s"
+                "UPDATE \"PLAYER\" SET password = %s WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET password = %s WHERE user_id =%s"
             )
             if column == "session_token":
                 query_update = (
-                    "UPDATE PLAYER SET password = %s WHERE session_token =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET password = %s WHERE session_token =%s"
+                    "UPDATE \"PLAYER\" SET password = %s WHERE session_token =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET password = %s WHERE session_token =%s"
                 )
             cursor.execute(
                 query_update,
@@ -245,12 +245,12 @@ def change_user_info(conn, cursor, user_type, request, column, identifier):
             if not re.match(r"[^@]+@[^@]+\.[^@]+", request.json.get("email")):
                 return send_response({"error": "Invalid email address"}, 400)
             query_update = (
-                "UPDATE PLAYER SET email = %s WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET email = %s WHERE user_id =%s"
+                "UPDATE \"PLAYER\" SET email = %s WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET email = %s WHERE user_id =%s"
 
             )
             if column == "session_token":
                 query_update = (
-                    "UPDATE PLAYER SET email = %s WHERE session_token =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET email = %s WHERE session_token =%s"
+                    "UPDATE \"PLAYER\" SET email = %s WHERE session_token =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET email = %s WHERE session_token =%s"
                 )
 
             cursor.execute(query_update, (request.json.get("email"), identifier))
@@ -258,11 +258,11 @@ def change_user_info(conn, cursor, user_type, request, column, identifier):
             logging.warning("Image found in request" + request.json.get("image"))
             image = base64.b64decode(request.json.get("image"))
             query_update = (
-                "UPDATE PLAYER SET image = %s WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET image = %s WHERE user_id =%s"
+                "UPDATE \"PLAYER\" SET image = %s WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET image = %s WHERE user_id =%s"
             )
             if column == "session_token":
                 query_update = (
-                    "UPDATE PLAYER SET image = %s WHERE session_token =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET image = %s WHERE session_token=%s"
+                    "UPDATE \"PLAYER\" SET image = %s WHERE session_token =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET image = %s WHERE session_token=%s"
                 )
             cursor.execute(query_update, (image, identifier))
 
@@ -315,9 +315,9 @@ def update_balance_user(user_type):
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
         if transaction_type == "credit":
-            query_update = "UPDATE PLAYER SET currency_balance = currency_balance + %s WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET currency_balance = currency_balance + %s WHERE user_id =%s"
+            query_update = "UPDATE \"PLAYER\" SET currency_balance = currency_balance + %s WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET currency_balance = currency_balance + %s WHERE user_id =%s"
         else:
-            query_update = "UPDATE PLAYER SET currency_balance = currency_balance - %s WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET currency_balance = currency_balance - %s WHERE user_id =%s"
+            query_update = "UPDATE \"PLAYER\" SET currency_balance = currency_balance - %s WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET currency_balance = currency_balance - %s WHERE user_id =%s"
 
         cursor.execute(query_update, (amount, user_id))
         conn.commit()
@@ -347,7 +347,7 @@ def get_user(user_type, user_id):
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
-        query = "SELECT * FROM PLAYER WHERE user_id =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE user_id =%s"
+        query = "SELECT * FROM \"PLAYER\" WHERE user_id =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE user_id =%s"
         cursor.execute(query, (user_id,))
         user = cursor.fetchone()
         if not user:
@@ -423,13 +423,13 @@ def delete_user(user_type, session_token):
         cursor = conn.cursor(dictionary=True)
 
         # Verify if the session_token exists in the table
-        query = "SELECT * FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE session_token=%s"
+        query = "SELECT * FROM \"PLAYER\" WHERE session_token =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE session_token=%s"
         cursor.execute(query, (session_token,))
         user = cursor.fetchone()
 
         if user:
             # Delete the user from the table
-            query_delete = "DELETE FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else "DELETE FROM ADMIN WHERE session_token=%s"
+            query_delete = "DELETE FROM \"PLAYER\" WHERE session_token =%s" if "PLAYER" in user_type else "DELETE FROM ADMIN WHERE session_token=%s"
             cursor.execute(query_delete, (session_token,))
             conn.commit()
             logging.info(f"User with session token {session_token} deleted successfully")
