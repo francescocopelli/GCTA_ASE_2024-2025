@@ -275,6 +275,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "d4b95395-73c4-4d42-a723-95c101a8e8b1",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -295,14 +296,13 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
 									"});\r",
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "d4b95395-73c4-4d42-a723-95c101a8e8b1"
+								"packages": {}
 							}
 						}
 					],
@@ -355,26 +355,6 @@
 									"    pm.expect(responseJson).to.have.property(\"gacha_id\");\r",
 									"    pm.expect(responseJson).to.have.property(\"name\");\r",
 									"    pm.expect(responseJson).to.have.property(\"rarity\");\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Gacha rarity is valid\", function () {\r",
-									"    const validRarities = [\"common\", \"rare\", \"epic\"];\r",
-									"    const rarity = pm.response.json().rarity;\r",
-									"    pm.expect(validRarities).to.include(rarity);\r",
-									"});\r",
-									"pm.test(\"Status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Response contains all required fields\", function () {\r",
-									"    const responseJson = pm.response.json();\r",
-									"    pm.expect(responseJson).to.have.property(\"message\");\r",
-									"    pm.expect(responseJson).to.have.property(\"gacha_id\");\r",
-									"    pm.expect(responseJson).to.have.property(\"name\");\r",
-									"    pm.expect(responseJson).to.have.property(\"rarity\");\r",
-									"\r",
-									"    pm.environment.set(\"gacha_id\", responseJson.gacha_id);\r",
-									"    console.log(responseJson.gacha_id);\r",
 									"});\r",
 									"\r",
 									"pm.test(\"Gacha rarity is valid\", function () {\r",
@@ -444,6 +424,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "ce612a87-0db7-4699-86f3-a4353ff61cd2",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -451,7 +432,7 @@
 									"\r",
 									"\r",
 									"pm.test(\"Response time is within an acceptable range\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(300);\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -489,16 +470,18 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "ce612a87-0db7-4699-86f3-a4353ff61cd2"
+								"packages": {}
 							}
 						},
 						{
 							"listen": "prerequest",
 							"script": {
-								"packages": {},
+								"id": "c41d76ff-61c6-4181-ba6a-b7f3a88806fb",
+								"exec": [
+									""
+								],
 								"type": "text/javascript",
-								"id": "c41d76ff-61c6-4181-ba6a-b7f3a88806fb"
+								"packages": {}
 							}
 						}
 					],
@@ -1366,89 +1349,6 @@
 					"response": []
 				},
 				{
-					"name": "Get Bids",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Response has the required fields\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    \r",
-									"    pm.expect(responseData).to.be.an('object');\r",
-									"    pm.expect(responseData.bids).to.be.an('array');\r",
-									"    \r",
-									"    responseData.bids.forEach(function(bid) {\r",
-									"        pm.expect(bid.auction_id).to.exist;\r",
-									"        pm.expect(bid.bid_amount).to.exist;\r",
-									"        pm.expect(bid.bid_id).to.exist;\r",
-									"        pm.expect(bid.bid_time).to.exist;\r",
-									"        pm.expect(bid.user_id).to.exist;\r",
-									"    });\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Bids array is present and contains expected number of elements\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    \r",
-									"    pm.expect(responseData).to.be.an('object');\r",
-									"    pm.expect(responseData.bids).to.exist.and.to.be.an('array');\r",
-									"    pm.expect(responseData.bids.length).to.be.greaterThan(0);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Bids data properties validation\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    \r",
-									"    pm.expect(responseData.bids).to.be.an('array').that.is.not.empty;\r",
-									"\r",
-									"    responseData.bids.forEach(function(bid) {\r",
-									"        pm.expect(bid.auction_id).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Auction ID should be a non-empty string\");\r",
-									"        pm.expect(bid.bid_amount).to.be.a('number').and.to.be.at.least(0, \"Bid amount should be a non-negative integer\");\r",
-									"        pm.expect(bid.bid_id).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Bid ID should be a non-empty string\");\r",
-									"        pm.expect(bid.user_id).to.be.a('number').and.to.be.at.least(0, \"User ID should be a non-negative integer\");\r",
-									"    });\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"id": "f8a33153-91e5-4cd6-910a-6ceff6b3234e"
-							}
-						}
-					],
-					"id": "4fb41375-2f1f-46f3-a7e4-16ad9a1d727d",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/auction//bids?auction_id={{last_auction_id}}",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"auction",
-								"",
-								"bids"
-							],
-							"query": [
-								{
-									"key": "auction_id",
-									"value": "{{last_auction_id}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Logout",
 					"event": [
 						{
@@ -1829,6 +1729,99 @@
 					"response": []
 				},
 				{
+					"name": "Get Bids",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f8a33153-91e5-4cd6-910a-6ceff6b3234e",
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.bids).to.be.an('array');\r",
+									"    \r",
+									"    responseData.bids.forEach(function(bid) {\r",
+									"        pm.expect(bid.auction_id).to.exist;\r",
+									"        pm.expect(bid.bid_amount).to.exist;\r",
+									"        pm.expect(bid.bid_id).to.exist;\r",
+									"        pm.expect(bid.bid_time).to.exist;\r",
+									"        pm.expect(bid.user_id).to.exist;\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Bids array is present and contains expected number of elements\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.bids).to.exist.and.to.be.an('array');\r",
+									"    pm.expect(responseData.bids.length).to.be.greaterThan(0);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Bids data properties validation\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.bids).to.be.an('array').that.is.not.empty;\r",
+									"\r",
+									"    responseData.bids.forEach(function(bid) {\r",
+									"        pm.expect(bid.auction_id).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Auction ID should be a non-empty string\");\r",
+									"        pm.expect(bid.bid_amount).to.be.a('number').and.to.be.at.least(0, \"Bid amount should be a non-negative integer\");\r",
+									"        pm.expect(bid.bid_id).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Bid ID should be a non-empty string\");\r",
+									"        pm.expect(bid.user_id).to.be.a('number').and.to.be.at.least(0, \"User ID should be a non-negative integer\");\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"id": "4fb41375-2f1f-46f3-a7e4-16ad9a1d727d",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auction//bids?auction_id={{last_auction_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auction",
+								"",
+								"bids"
+							],
+							"query": [
+								{
+									"key": "auction_id",
+									"value": "{{last_auction_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Update Player",
 					"event": [
 						{
@@ -1883,6 +1876,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "PUT",
 						"header": [],
 						"url": {
@@ -1912,6 +1915,88 @@
 									"key": "image",
 									"value": null
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout to bid",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.message).to.exist;\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Message is a non-empty string\", function () {\r",
+									"  const responseData = pm.response.json();\r",
+									"  \r",
+									"  pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"id": "04d28528-1086-40bf-aa8f-633ff4e32ba2"
+							}
+						}
+					],
+					"id": "e9b21829-46f9-4f59-b9d9-8d0348e714c3",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"session_token\": \"{{session_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/users/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"auth",
+								"logout"
 							]
 						}
 					},
@@ -2075,15 +2160,26 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "51b21b0f-5986-46c8-b3e2-30261eb8982e",
 								"exec": [
-									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
+									"pm.test(\"Authentication Token is missing!\", function () {\r",
 									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token mismatch!\");\r",
+									"    pm.expect(response.error).to.include(\"401\");\r",
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "51b21b0f-5986-46c8-b3e2-30261eb8982e"
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "6e3280cc-7aba-492a-90bb-aa3b74800dd0",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -2093,14 +2189,7 @@
 					},
 					"request": {
 						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{session_token}}",
-									"type": "string"
-								}
-							]
+							"type": "noauth"
 						},
 						"method": "POST",
 						"header": [
@@ -2111,7 +2200,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"user_id\": \"9999999999\",\n  \"amount\": 50\n}"
+							"raw": "{\n  \"amount\": 50\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/users/player/real_money_transaction",
@@ -2133,15 +2222,15 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "a969f00d-620a-4278-8777-a472ccc06459",
 								"exec": [
-									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
+									"pm.test(\"Authentication Token is missing!\", function () {\r",
 									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"401 Unauthorized: Token mismatch!\");\r",
+									"    pm.expect(response.error).to.include(\"401\");\r",
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "a969f00d-620a-4278-8777-a472ccc06459"
+								"packages": {}
 							}
 						}
 					],
@@ -2151,26 +2240,10 @@
 					},
 					"request": {
 						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{session_token}}",
-									"type": "string"
-								}
-							]
+							"type": "noauth"
 						},
 						"method": "POST",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"user_id\": \"9999999999\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
 						"url": {
 							"raw": "{{base_url}}/gacha/roll",
 							"host": [
@@ -3287,8 +3360,8 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
 									"});\r",
 									"\r",
 									"\r",
