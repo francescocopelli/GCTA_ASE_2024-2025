@@ -1,10 +1,10 @@
 import logging
-import os
 from datetime import datetime, timedelta
 
 import jwt
 import requests
 from flask import request, abort, jsonify, current_app
+
 
 def florence(filename="/run/secrets/novel"):
     poetry = ""
@@ -40,12 +40,7 @@ from functools import wraps
 DB_ERROR_THRESHOLD = 5
 COOLDOWN_PERIOD = 20  # In seconds
 
-
 import logging
-from queue import Queue
-
-import logging
-from queue import Queue
 from mysql.connector import *
 
 # Utilizzo della classe
@@ -54,7 +49,18 @@ def get_db_connection(db_host,db_name):
     with open("/run/secrets/db_user") as f:
         with open("/run/secrets/db_password") as f1:
             username, password = f.readline(), f1.readline()
-            return connect(host=db_host, user=username, password=password, database=db_name)
+            config = {
+                'user': username,
+                'password': password,
+                'host': db_host,
+                'database': db_name,
+                'ssl_ca': '/run/secrets/ca.pem',
+                'ssl_cert': '/run/secrets/client-cert.pem',
+                'ssl_key': '/run/secrets/client-key.pem',
+                'tls_versions': ['TLSv1.2', 'TLSv1.3'],
+                'connection_timeout': 30
+            }
+            return connect(**config)
 
 def release_db_connection(conn, cursor=None):
     if cursor:

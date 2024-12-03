@@ -12,7 +12,7 @@ PASSWORD=$MYSQL_ROOT_PASSWORD
 
 echo "Backup started for database - $DB_NAME"
 
-mysqldump --user=$MYSQL_USER --password=$PASSWORD $DB_NAME > $BACKUP_FILE
+mysqldump --user=$MYSQL_USER --password=$PASSWORD $DB_NAME --extended-insert=FALSE --complete-insert > $BACKUP_FILE
 
 echo "Backup finished for database - $DB_NAME"
 

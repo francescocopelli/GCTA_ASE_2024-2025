@@ -17,6 +17,9 @@ services:
       - novel
       - db_user
       - db_password
+      - client-cert.pem
+      - client-key.pem
+      - ca.pem
 
   gateway_admin:
     build: ./services/admin_gateway
@@ -36,6 +39,9 @@ services:
       - novel
       - db_user
       - db_password
+      - client-cert.pem
+      - client-key.pem
+      - ca.pem
 
   user_admin:
     build: ./services/admin
@@ -51,6 +57,9 @@ services:
       - novel
       - db_user
       - db_password
+      - client-cert.pem
+      - client-key.pem
+      - ca.pem
 
   user_admin_auth:
     build: ./services/admin/auth
@@ -66,6 +75,9 @@ services:
       - novel
       - db_user
       - db_password
+      - client-cert.pem
+      - client-key.pem
+      - ca.pem
 
   user_player:
     build: ./services/player
@@ -81,6 +93,9 @@ services:
       - novel
       - db_user
       - db_password
+      - client-cert.pem
+      - client-key.pem
+      - ca.pem
 
   user_player_auth:
     build: ./services/player/auth
@@ -96,6 +111,9 @@ services:
       - novel
       - db_user
       - db_password
+      - client-cert.pem
+      - client-key.pem
+      - ca.pem
 
   transaction:
     build: ./services/transaction
@@ -111,6 +129,9 @@ services:
       - novel
       - db_user
       - db_password
+      - client-cert.pem
+      - client-key.pem
+      - ca.pem
 
   auction:
     build: ./services/auction
@@ -126,6 +147,9 @@ services:
       - novel
       - db_user
       - db_password
+      - client-cert.pem
+      - client-key.pem
+      - ca.pem
 
   gacha:
     build: ./services/gacha
@@ -141,6 +165,9 @@ services:
       - novel
       - db_user
       - db_password
+      - client-cert.pem
+      - client-key.pem
+      - ca.pem
 
   db-manager:
     build: ./services/dbm
@@ -151,11 +178,14 @@ services:
     volumes:
       - ./shared:/app/shared
     secrets:
-      - cert
-      - key
       - novel
       - db_user
       - db_password
+      - client-cert.pem
+      - client-key.pem
+      - ca.pem
+      - cert
+      - key
 
 
   auctions_db:
@@ -172,7 +202,9 @@ services:
     secrets:
       - db_user
       - db_password
-
+      - ca.pem
+      - server-cert.pem
+      - server-key.pem
 
   transactions_db:
     build: db/transactions_db
@@ -188,6 +220,9 @@ services:
     secrets:
       - db_user
       - db_password
+      - ca.pem
+      - server-cert.pem
+      - server-key.pem
 
   users_db:
     build: db/users_db
@@ -203,6 +238,9 @@ services:
     secrets:
       - db_user
       - db_password
+      - ca.pem
+      - server-cert.pem
+      - server-key.pem
 
   gacha_db:
     build: db/gacha_db
@@ -218,6 +256,9 @@ services:
     secrets:
       - db_user
       - db_password
+      - ca.pem
+      - server-cert.pem
+      - server-key.pem
 
 networks:
   microservice-network:
@@ -228,6 +269,16 @@ secrets:
     file: ./cert.pem
   key:
     file: ./key.pem
+  ca.pem:
+    file: ./ca-cert.pem
+  server-cert.pem:
+    file: ./server-cert.pem
+  server-key.pem:
+    file: ./server-key.pem
+  client-cert.pem:
+    file: ./client-cert.pem
+  client-key.pem:
+    file: ./client-key.pem
   novel:
     file: ./poetry.txt
   db_user:

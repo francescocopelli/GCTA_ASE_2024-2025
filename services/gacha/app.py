@@ -233,9 +233,9 @@ def get_all():
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
-
+        d=request.args.get('offset') or 0
         # write another execute cursor to get all the gacha items with an arbitrary offset limit taken from request if present otherwise use a default one
-        cursor.execute("SELECT * FROM GachaItems LIMIT 10 OFFSET %s", (request.args.get('offset') or 0,))
+        cursor.execute("SELECT gacha_id, name, rarity, status, description FROM GachaItems", )
         rows = cursor.fetchall()
 
         if not rows:
@@ -250,7 +250,7 @@ def get_all():
                 "rarity": x['rarity'],
                 "status": x['status'],
                 "description": x['description'],
-                "image": base64.b64encode(x['image']).decode('utf-8') if x['image'] else None
+                # "image": base64.b64encode(x['image']).decode('utf-8') if x['image'] else None
             })
 
         logging.debug("Gacha items retrieved successfully")
