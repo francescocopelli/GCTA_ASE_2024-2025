@@ -67,14 +67,14 @@ def get_all_auctions():
 @app.route("/all_active", methods=["GET"])
 @login_required_void
 def get_all_auctions_restricted():
-    req = requests.get("https://localhost:5000/all?status=active",  timeout=3, verify=False, headers=generate_session_token_system())
+    req = requests.get("https://localhost:5000/all?status=active",  timeout=30, verify=False, headers=generate_session_token_system())
     return send_response(req.json(), req.status_code)
 
 
 # Function to check if the gacha is unlocked
 def is_gacha_unlocked(user_id, gacha_id):
     try:
-        response = requests.get(f"{gacha_url}/is_gacha_unlocked/{user_id}/{gacha_id}", timeout=3, verify=False, 
+        response = requests.get(f"{gacha_url}/is_gacha_unlocked/{user_id}/{gacha_id}", timeout=30, verify=False, 
                                 headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from gacha service: {response.json()}")
@@ -90,7 +90,7 @@ def is_gacha_unlocked(user_id, gacha_id):
 # Function to update gacha status
 def update_gacha_status(user_id, gacha_id, status):
     try:
-        response = requests.put(f"{gacha_url}/update_gacha_status", timeout=3, verify=False, 
+        response = requests.put(f"{gacha_url}/update_gacha_status", timeout=30, verify=False, 
                                 json={"user_id": user_id, "gacha_id": gacha_id, "status": status},
                                 headers=generate_session_token_system())
         response.raise_for_status()
@@ -107,7 +107,7 @@ def update_gacha_status(user_id, gacha_id, status):
 # Function to update gacha owner
 def update_gacha_owner(buyer_id, gacha_id, seller_id, status):
     try:
-        response = requests.put(f"{gacha_url}/update_gacha_owner", timeout=3, verify=False, 
+        response = requests.put(f"{gacha_url}/update_gacha_owner", timeout=30, verify=False, 
                                 json={"buyer_id": buyer_id, "seller_id": seller_id, "gacha_id": gacha_id,
                                       "status": status}, headers=generate_session_token_system())
         response.raise_for_status()
@@ -124,7 +124,7 @@ def update_gacha_owner(buyer_id, gacha_id, seller_id, status):
 # Function to create a transaction
 def create_transaction(user_id, amount, transaction_type):
     try:
-        response = requests.post(f"{transaction_url}/add_transaction", timeout=3, verify=False, 
+        response = requests.post(f"{transaction_url}/add_transaction", timeout=30, verify=False, 
                                  json={"user_id": user_id, "amount": amount, "type": transaction_type},
                                  headers=generate_session_token_system())
         response.raise_for_status()
@@ -140,7 +140,7 @@ def create_transaction(user_id, amount, transaction_type):
 
 def update_user_balance(user_id, amount, type):
     try:
-        response = requests.put(f"{user_url}/update_balance/PLAYER", headers=generate_session_token_system(), timeout=3, verify=False, 
+        response = requests.put(f"{user_url}/update_balance/PLAYER", headers=generate_session_token_system(), timeout=30, verify=False, 
                                 json={"user_id": user_id, "amount": amount, "type": type})
         response.raise_for_status()
         logging.debug(f"Response from user service: {response.json()}")
@@ -156,7 +156,7 @@ def update_user_balance(user_id, amount, type):
 # write a function that sends a get request to user service to get the user's balance if the user exists
 def get_user_balance(user_id):
     try:
-        response = requests.get(f"{admin_url}/get_user_balance/{user_id}", timeout=3, verify=False,  headers=generate_session_token_system())
+        response = requests.get(f"{admin_url}/get_user_balance/{user_id}", timeout=30, verify=False,  headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from user service: {response.json()}")
         return send_response(response.json(), 200)
@@ -454,7 +454,7 @@ def all_my_auction(user):
     user_id = user["user_id"]
     if jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])['user_type'] == "ADMIN":
         return send_response({"error": "Admins don't have auctions"}, 403)
-    req = requests.get("https://localhost:5000/get_auction?user_id=" + str(user_id), timeout=3, verify=False, 
+    req = requests.get("https://localhost:5000/get_auction?user_id=" + str(user_id), timeout=30, verify=False, 
                        headers=generate_session_token_system())
     return send_response(req.json(), req.status_code)
 

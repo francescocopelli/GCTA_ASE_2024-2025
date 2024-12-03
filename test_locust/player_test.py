@@ -61,7 +61,6 @@ class UserBehavior(TaskSet):
 
     @task
     def update_user(self):
-        
         locustfile.login(self)
         usr=random.choice(range(0,3))
         response = self.client.put(f"{locustfile.user_player}/update", data={

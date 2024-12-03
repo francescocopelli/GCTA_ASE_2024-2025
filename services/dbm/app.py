@@ -333,7 +333,7 @@ def update_balance_user(user_type):
 @login_required_void
 def get_users(user_id):
     url = "https://db-manager:5000/get_user/PLAYER/" + user_id
-    response = requests.get(url, timeout=3, verify=False, headers=generate_session_token_system())
+    response = requests.get(url, timeout=30, verify=False, headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
 
 
