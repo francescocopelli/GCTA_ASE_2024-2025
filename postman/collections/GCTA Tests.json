@@ -2163,8 +2163,8 @@
 								"id": "51b21b0f-5986-46c8-b3e2-30261eb8982e",
 								"exec": [
 									"pm.test(\"Authentication Token is missing!\", function () {\r",
-									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"401\");\r",
+									"    const response = pm.response.text();\r",
+									"    pm.expect(response).to.include(\"401\");\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -2225,8 +2225,8 @@
 								"id": "a969f00d-620a-4278-8777-a472ccc06459",
 								"exec": [
 									"pm.test(\"Authentication Token is missing!\", function () {\r",
-									"    const response = pm.response.json();\r",
-									"    pm.expect(response.error).to.include(\"401\");\r",
+									"    const response = pm.response.text();\r",
+									"    pm.expect(response).to.include(\"401\");\r",
 									"});"
 								],
 								"type": "text/javascript",
