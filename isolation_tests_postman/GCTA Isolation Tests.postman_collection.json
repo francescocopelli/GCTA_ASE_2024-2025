@@ -1,0 +1,1949 @@
+{
+	"info": {
+		"_postman_id": "6d751a3d-34ad-4ea5-bf18-b78cd9153b33",
+		"name": "GCTA Isolation Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39570797",
+		"_collection_link": "https://gcta11.postman.co/workspace/GCTA~e4883204-fa99-45fc-8245-f67cc6533c3b/collection/39570797-6d751a3d-34ad-4ea5-bf18-b78cd9153b33?action=share&source=collection_link&creator=39570797"
+	},
+	"item": [
+		{
+			"name": "Auctions",
+			"item": [
+				{
+					"name": "All Auctions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('array');\r",
+									"    responseData.forEach(function(item) {\r",
+									"        pm.expect(item.auction_id).to.exist;\r",
+									"        pm.expect(item.base_price).to.exist;\r",
+									"        // pm.expect(item.buyer_id).to.exist;\r",
+									"        pm.expect(item.end_time).to.exist;\r",
+									"        pm.expect(item.gacha_id).to.exist;\r",
+									"        // pm.expect(item.highest_bid).to.exist;\r",
+									"        pm.expect(item.seller_id).to.exist;\r",
+									"        pm.expect(item.status).to.exist;\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/all",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Active Auctions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//Fixed the response time to be less than 300ms\r",
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 300ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(300);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('array');\r",
+									"    \r",
+									"    responseData.forEach(function(item){\r",
+									"        pm.expect(item).to.include.all.keys('auction_id', 'base_price', 'highest_bid', 'buyer_id', 'end_time', 'gacha_id', 'seller_id', 'status');\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('array');\r",
+									"    responseData.forEach(function(item) {\r",
+									"        pm.expect(item.auction_id).to.exist;\r",
+									"        pm.expect(item.base_price).to.exist;\r",
+									"        // pm.expect(item.buyer_id).to.exist;\r",
+									"        pm.expect(item.end_time).to.exist;\r",
+									"        pm.expect(item.gacha_id).to.exist;\r",
+									"        // pm.expect(item.highest_bid).to.exist;\r",
+									"        pm.expect(item.seller_id).to.exist;\r",
+									"        pm.expect(item.status).to.contain(\"active\");\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/all_active",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"all_active"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Auction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Message is  successful'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.equal(\"Auction created successfully\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Auction_id is a non-empty string\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.auction_id).to.be.a('string')\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"// Stores the auctionId in a global variable\r",
+									"var auctionId = pm.response.json().auction_id;\r",
+									"pm.globals.set(\"auctionId\", auctionId)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"gacha_id\": 5,\r\n    \"seller_id\": 2,\r\n    \"base_price\": 15\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/add",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Place Bid",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Message is  successful'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.equal(\"Bid placed successfully\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"auction_id\": \"uuid1\",\r\n    \"user_id\": 1,\r\n    \"bid_amount\": 22\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/bid",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"bid"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Bids for a Specific Auction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('array'); // Changed to array as the response data is an array\r",
+									"    \r",
+									"    responseData.forEach(function(bid) {\r",
+									"        pm.expect(bid.auction_id).to.exist;\r",
+									"        pm.expect(bid.bid_amount).to.exist;\r",
+									"        pm.expect(bid.bid_id).to.exist;\r",
+									"        pm.expect(bid.bid_time).to.exist;\r",
+									"        pm.expect(bid.user_id).to.exist;\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content type is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/bids?auction_id=uuid1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"bids"
+							],
+							"query": [
+								{
+									"key": "auction_id",
+									"value": "uuid1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Auction Details",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData).to.include.all.keys('auction_id', 'base_price', 'buyer_id', 'end_time', 'gacha_id', 'seller_id', 'status');\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Status is a non-empty string\", function () {\r",
+									"  const responseData = pm.response.json();\r",
+									"  \r",
+									"  pm.expect(responseData).to.be.an('object');\r",
+									"  pm.expect(responseData.status).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Status should not be empty\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/get/uuid1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"get",
+								"uuid1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Auction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is  successful'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.equal(\"Auction updated successfully\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"auction_id\": \"uuid1\",\r\n    \"highest_bid\": 180,\r\n    \"buyer_id\": 4\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/update",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Auction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is  successful'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.equal(\"Auction deleted successfully\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/delete/uuid1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"delete",
+								"uuid1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Gachas",
+			"item": [
+				{
+					"name": "All Gachas",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(300);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields - description, gacha_id, image, name, rarity, and status\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.message).to.be.an('array');\r",
+									"    \r",
+									"    responseData.message.forEach(function(item) {\r",
+									"        pm.expect(item).to.have.property('description');\r",
+									"        pm.expect(item).to.have.property('gacha_id');\r",
+									"        pm.expect(item).to.have.property('image');\r",
+									"        pm.expect(item).to.have.property('name');\r",
+									"        pm.expect(item).to.have.property('rarity');\r",
+									"        pm.expect(item).to.have.property('status');\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"\r",
+									"pm.test(\"Image is either null or a valid image data type\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.message).to.be.an('array');\r",
+									"  \r",
+									"    responseData.message.forEach(function(item) {\r",
+									"        pm.expect(item.image).to.satisfy(function (value) {\r",
+									"            return value === null || typeof value === 'string';\r",
+									"        }, \"Image should be either null or a valid image data type\");\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/all",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Roll Gacha",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields - gacha_id and message\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData).to.have.property('gacha_id');\r",
+									"    pm.expect(responseData).to.have.property('message');\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(300);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Message is a non-empty string\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is 'Roll successful'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.equal(\"Gacha roll successful\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"user_id\": \"1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/roll",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"roll"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Gacha",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 201\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(201);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields - gacha_id and message\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData).to.have.property('gacha_id');\r",
+									"    pm.expect(responseData).to.have.property('message');\r",
+									"});\r",
+									"\r",
+									"\r",
+									"\r",
+									"pm.test(\"Message is a non-empty string\", function () {\r",
+									"  const responseData = pm.response.json();\r",
+									"  pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is  successful'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.equal(\"Gacha item added\");\r",
+									"});\r",
+									"\r",
+									"// Stores the gacha_id in an environment or global variable\r",
+									"var gachaId = pm.response.json().gacha_id;\r",
+									"pm.globals.set(\"gachaId\", gachaId);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "gacha_id",
+									"value": "2",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "name",
+									"value": "New Gacha Item",
+									"type": "text"
+								},
+								{
+									"key": "rarity",
+									"value": "rare",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "available",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "A new rare gacha item",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:5000/add",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Inventory",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 201\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(201);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.message).to.exist;\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is  successful'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.equal(\"Gacha item successfully added to user's inventory\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"user_id\": 1,\r\n    \"gacha_id\": {{gachaId}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/inventory/add",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"inventory",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Gacha",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.message).to.exist;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is  successful'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.equal(\"Gacha item updated successfully\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "gacha_id",
+									"value": "{{gachaId}}",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "Updated Gacha Item",
+									"type": "text"
+								},
+								{
+									"key": "rarity",
+									"value": "rare",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "available",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "A new rare gacha item that is updated",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:5000/update",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Gacha Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//Updated response time test to 300ms\r",
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 300ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(300);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"// Test to check if the response message is \"Gacha status updated successfully\"\r",
+									"pm.test(\"Response message is 'Gacha status updated successfully'\", function () {\r",
+									"    pm.expect(pm.response.json().message).to.equal(\"Gacha status updated successfully\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is  successful'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.equal(\"Gacha status updated successfully\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"user_id\": \"1\",\r\n    \"gacha_id\": \"{{gachaId}}\",\r\n    \"status\": \"locked\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/update_gacha_status",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"update_gacha_status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Gacha Owner",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.message).to.exist;\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is  successful'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.equal(\"Gacha owner updated successfully\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"buyer_id\": 2,\r\n  \"seller_id\": 1,\r\n  \"gacha_id\": 20,\r\n  \"status\": \"locked\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/update_gacha_owner",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"update_gacha_owner"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Inventory",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json().inventory[0];\r",
+									"    \r",
+									"    pm.expect(responseData).to.include.all.keys('acquired_date', 'description', 'gacha_id', 'locked', 'name', 'rarity', 'status');\r",
+									"});\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/inventory/1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"inventory",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "One Gacha",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(300);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData).to.have.property('description');\r",
+									"    pm.expect(responseData).to.have.property('gacha_id');\r",
+									"    pm.expect(responseData).to.have.property('image');\r",
+									"    pm.expect(responseData).to.have.property('name');\r",
+									"    pm.expect(responseData).to.have.property('rarity');\r",
+									"    pm.expect(responseData).to.have.property('status');\r",
+									"});\r",
+									"\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response JSON has the expected structure\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData).to.have.property('description');\r",
+									"    pm.expect(responseData).to.have.property('gacha_id');\r",
+									"    pm.expect(responseData).to.have.property('image');\r",
+									"    pm.expect(responseData).to.have.property('name');\r",
+									"    pm.expect(responseData).to.have.property('rarity');\r",
+									"    pm.expect(responseData).to.have.property('status');\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Gacha Item Name\",\r\n    \"rarity\": \"common\",\r\n    \"status\": \"available\",\r\n    \"description\": \"Description of the gacha item\",\r\n    \"image\": \"\" \r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/get/{{gachaId}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"get",
+								"{{gachaId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Gacha",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required field 'message'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.message).to.exist;\r",
+									"});\r",
+									"\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/delete/{{gachaId}}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"delete",
+								"{{gachaId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Transactions",
+			"item": [
+				{
+					"name": "Get All Transactions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(300);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('array');\r",
+									"    responseData.forEach(function (transaction) {\r",
+									"        pm.expect(transaction).to.have.property('amount');\r",
+									"        pm.expect(transaction).to.have.property('transaction_id');\r",
+									"        pm.expect(transaction).to.have.property('transaction_type');\r",
+									"        pm.expect(transaction).to.have.property('user_id');\r",
+									"    });\r",
+									"\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Amount is a non-negative number\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    responseData.forEach(function (transaction) {\r",
+									"        pm.expect(transaction.amount).to.be.a('number').and.to.be.at.least(0);\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/all",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Transaction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields - message and transaction_id\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.have.property('message');\r",
+									"    pm.expect(responseData).to.have.property('transaction_id');\r",
+									"});\r",
+									"\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"// Stores the transaction_id in an environment variable\r",
+									"var transactionId = pm.response.json().transaction_id;\r",
+									"pm.environment.set(\"transactionId\", transactionId);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"user_id\": 101,\r\n    \"amount\": 50\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/add_transaction",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"add_transaction"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Transaction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData).to.have.property('amount');\r",
+									"    pm.expect(responseData).to.have.property('transaction_id'); // Updated property name\r",
+									"    pm.expect(responseData).to.have.property('transaction_type'); // Updated property name\r",
+									"    pm.expect(responseData).to.have.property('user_id');\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Amount is a non-negative number\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.amount).to.be.a('number').and.to.be.at.least(0);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/get_transaction/uuid1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"get_transaction",
+								"uuid1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Transaction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+									"    pm.expect(responseData[0]).to.have.property('amount');\r",
+									"    pm.expect(responseData[0]).to.have.property('transaction_id');\r",
+									"    pm.expect(responseData[0]).to.have.property('transaction_type');\r",
+									"    pm.expect(responseData[0]).to.have.property('user_id');\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Amount is a non-negative number\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData[0].amount).to.be.a('number').and.to.be.at.least(0);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/get_user_transactions/101",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"get_user_transactions",
+								"101"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Player",
+			"item": [
+				{
+					"name": "Real Money Transaction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"  const responseData = pm.response.json();\r",
+									"  console.log(responseData.message)\r",
+									"  pm.expect(responseData.message).to.equal(\"Account topped up successfully\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_id\": 1,\n  \"amount\": 50\n}"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/real_money_transaction",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"real_money_transaction"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Balance",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required field - currency_balance\", function () {\r",
+									"  const responseData = pm.response.json();\r",
+									"  \r",
+									"  pm.expect(responseData).to.have.property('currency_balance');\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Currency balance is a non-negative integer\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.currency_balance).to.be.a('number').and.to.be.at.least(0);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/get_user_balance?user_id=1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"get_user_balance"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Player Gacha",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Fixed response time test\r",
+									"pm.test(\"Status code is 200 for successful update\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response body has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.acquired_date).to.exist;\r",
+									"    pm.expect(responseData.description).to.exist;\r",
+									"    pm.expect(responseData.gacha_id).to.exist;\r",
+									"    pm.expect(responseData.image).to.exist;\r",
+									"    pm.expect(responseData.locked).to.exist;\r",
+									"    pm.expect(responseData.name).to.exist;\r",
+									"    pm.expect(responseData.rarity).to.exist;\r",
+									"    pm.expect(responseData.status).to.exist;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Locked status is a boolean value\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.locked).to.be.a('boolean');\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/gacha/1/1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"gacha",
+								"1",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Player",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "username",
+									"value": "updateduser",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "updatedemail@example.com",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/update?user_id=1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"update"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Validate the response schema for required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData).to.have.property('currency_balance');\r",
+									"    pm.expect(responseData).to.have.property('email');\r",
+									"    pm.expect(responseData).to.have.property('image');\r",
+									"    pm.expect(responseData).to.have.property('user_id');\r",
+									"    pm.expect(responseData).to.have.property('username');\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/get_user/1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"get_user",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Balance",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"  pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.message).to.exist;\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Message is a non-empty string\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response message contains 'Balance updated successfully.'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.include('Balance updated successfully.');\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"user_id\": 1,\r\n    \"amount\": 20,\r\n    \"type\": \"debit\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/update_balance/PLAYER",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"update_balance",
+								"PLAYER"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
