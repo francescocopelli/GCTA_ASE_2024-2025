@@ -1890,8 +1890,38 @@
 						},
 						"method": "PUT",
 						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "username",
+									"value": "{{username}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{password}}",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "{{updated_email}}",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"value": null
+								}
+							],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "{{base_url}}/users/player/update?username={{username}}&password={{password}}&email={{updated_email}}&image",
+							"raw": "{{base_url}}/users/player/update",
 							"host": [
 								"{{base_url}}"
 							],
@@ -1899,24 +1929,6 @@
 								"users",
 								"player",
 								"update"
-							],
-							"query": [
-								{
-									"key": "username",
-									"value": "{{username}}"
-								},
-								{
-									"key": "password",
-									"value": "{{password}}"
-								},
-								{
-									"key": "email",
-									"value": "{{updated_email}}"
-								},
-								{
-									"key": "image",
-									"value": null
-								}
 							]
 						}
 					},
