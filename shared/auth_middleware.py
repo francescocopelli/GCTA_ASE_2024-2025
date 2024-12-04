@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timedelta
+from uuid import uuid4
 
 import jwt
 import requests
@@ -22,6 +23,7 @@ def florence(filename="/run/secrets/novel"):
         print(f"An error occurred: {e}")
     return poetry
 
+
 SECRET_KEY = florence()
 logging.basicConfig(level=logging.DEBUG)
 
@@ -43,9 +45,10 @@ COOLDOWN_PERIOD = 20  # In seconds
 import logging
 from mysql.connector import *
 
+
 # Utilizzo della classe
 
-def get_db_connection(db_host,db_name):
+def get_db_connection(db_host, db_name):
     with open("/run/secrets/db_user") as f:
         with open("/run/secrets/db_password") as f1:
             username, password = f.readline(), f1.readline()
@@ -62,13 +65,12 @@ def get_db_connection(db_host,db_name):
             }
             return connect(**config)
 
+
 def release_db_connection(conn, cursor=None):
     if cursor:
         cursor.close()
     if conn:
         conn.close()
-
-
 
 
 class CircuitBreaker:
@@ -149,23 +151,66 @@ def send_response(message, status_code):
     return jsonify(message), status_code
 
 
-
 def is_system_call(token):
     logging.warning("Checking if system call token: " + token)
     try:
-        data = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
+        data = decode_session_token(token)
         logging.warning(f"Data: {data}")
-        return data["user_id"] == "SYSTEM" and data["user_type"] == "SYSTEM" and token_is_valid(data["expiration"])
+        return data["user_id"] == "SYSTEM" and data["user_type"] == "SYSTEM" and token_is_valid(data["exp"])
     except Exception as e:
         logging.error(f"Error: {e}")
         return False
 
+def decode_session_token(token):
+    return jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
+
+def generate_session_token(user_id, user_type, expiration_hours=1):
+    """
+    Genera un JWT per un utente basato sul suo tipo.    :param user_id: ID univoco dell'utente
+    :param user_type: Tipo di utente ('PLAYER', 'ADMIN', 'SYSTEM')    :param expiration_hours: Ore di validità del token
+    :return: Dizionario con l'header Authorization    """
+    if user_type not in ["PLAYER", "ADMIN", "SYSTEM"]:
+        raise ValueError("Tipo di utente non valido. Deve essere 'PLAYER', 'ADMIN' o 'SYSTEM'.")
+
+    headers = {
+        "alg": "HS256",
+        "typ": "JWT"  # Tipo di token
+    }
+    current_datetime = datetime.now() - timedelta(minutes=1)
+    payload = {
+        "jti": uuid4().hex,
+        "iss": "GCTA_24_25",  # Issuer
+        "sub": f"{user_type}_access",  # Subject (es. PLAYER_access, ADMIN_access)
+        "iat": current_datetime,  # Data di creazione
+        "nbf": current_datetime,  # Not Before
+        "exp": (current_datetime + timedelta(hours=expiration_hours, minutes=1)),  # Expiration time
+        # TODO: Aggiungere tag aud nel token
+        # Public claims
+        "user_id": user_id,
+        "user_type": user_type}
+    # Aggiunta di claim specifici per tipo di utente
+    if user_type == "PLAYER":
+        payload["scope"] = "game_access"
+        payload["metadata"] = {"role": "player"}
+    elif user_type == "ADMIN":
+        payload["scope"] = "admin_panel"
+        payload["metadata"] = {"role": "admin"}
+    elif user_type == "SYSTEM":
+        payload["scope"] = "system_operations"
+        payload["metadata"] = {"role": "system"}
+    # Generazione del token JWT
+    token = jwt.encode(
+        payload=payload,
+        key=current_app.config["SECRET_KEY"],
+        algorithm="HS256",
+        headers=headers
+    )
+    return token
 
 def generate_session_token_system():
-    data = jwt.encode(
-        {"user_id": "SYSTEM", "user_type": "SYSTEM", "expiration": str(datetime.now() + timedelta(hours=1, minutes=1))},
-        current_app.config["SECRET_KEY"], algorithm="HS256")
-    return {"Authorization": f"Bearer {data}"}
+    token = generate_session_token("SYSTEM", "SYSTEM")
+    return {"Authorization": f"Bearer {token}"}
+
 
 
 def check_header():
@@ -177,9 +222,8 @@ def check_header():
     return False
 
 
-def token_is_valid(expiration_date_str):
-    expiration_date = datetime.strptime(expiration_date_str, "%Y-%m-%d %H:%M:%S.%f")
-    return expiration_date > datetime.now()
+def token_is_valid(expiration_date):
+    return datetime.now() < datetime.fromtimestamp(expiration_date)
 
 
 def _f(require_return, f, *args, **kwargs):
@@ -196,13 +240,13 @@ def _f(require_return, f, *args, **kwargs):
         return f(*args, **kwargs)
     logging.debug(f"Token: {token}")
     try:
-        data = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
-        logging.debug("Expiration time: " + str(data["expiration"]))
+        data = decode_session_token(token)
+        logging.debug("Expiration time: " + str(data["exp"]))
 
-        if not (token_is_valid(data["expiration"])):
+        if not (token_is_valid(data["exp"])):
             abort(401, "Token expired!")
 
-        rst = requests.get(f"{dbm_url}/get_user/{data['user_type']}/{data['user_id']}", timeout=30, verify=False, 
+        rst = requests.get(f"{dbm_url}/get_user/{data['user_type']}/{data['user_id']}", timeout=30, verify=False,
                            headers=generate_session_token_system())
         current_user = rst.json()
 
@@ -272,15 +316,15 @@ def admin_required(f):
         logging.info("Admin required check")
 
         try:
-            data = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
+            data = decode_session_token(token)
 
-            if not (token_is_valid(data["expiration"])):
+            if not (token_is_valid(data["exp"])):
                 abort(401, "Token expired!")
             logging.info(f"Data: {data}")
             # user_id = int(data["user_id"]) if not type(data["user_id"]) == int else data["user_id"]
             user_id = data["user_id"]
             logging.info(f"User id: {user_id}")
-            rst = requests.get(f"{dbm_url}/get_user/ADMIN/{user_id}", timeout=30, verify=False, 
+            rst = requests.get(f"{dbm_url}/get_user/ADMIN/{user_id}", timeout=30, verify=False,
                                headers=generate_session_token_system())
 
             current_user = rst.json()
@@ -304,6 +348,7 @@ def admin_required(f):
         return admin_f(False, f, *args, **kwargs)
 
     return decorated
+
 
 def manage_errors(exception):
     logging.error(f"Error: {exception}")
