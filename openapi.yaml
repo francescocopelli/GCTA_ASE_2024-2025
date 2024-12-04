@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: API for managing gacha rolls, user inventories, auctions, transactions, and user authentication.
 servers:
-  - url: http://localhost:8080
+  - url: https://localhost:8080/
     description: Local development server
 tags:
   - name: PLAYER
