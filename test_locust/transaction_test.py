@@ -1,10 +1,9 @@
 import random
+
 from locust import HttpUser, TaskSet, task, between
-from locustfile import *
+
 import locustfile
 
-def create_header(token):
-    return {"Authorization": f"Bearer {token}"}
 
 class GetTransactionBehavior(TaskSet):
 
@@ -12,7 +11,7 @@ class GetTransactionBehavior(TaskSet):
     def get_transaction(self):
         locustfile.login(self)
         token = locustfile.session_token[random.choice(range(0, 3))]
-        headers = create_header(token)
+        headers = locustfile.create_header(token)
         transaction_id = random.randint(1, 10)  # Assuming transaction_id ranges from 1 to 100
         
         # Perform the get transaction action
@@ -39,7 +38,7 @@ class GetTransactionBehavior(TaskSet):
     def get_user_transactions(self):
         locustfile.login(self)
         token = locustfile.session_token[random.choice(range(0, 3))]
-        headers = create_header(token)
+        headers = locustfile.create_header(token)
         
         # Perform the get user transactions action
         response = self.client.get(f"{locustfile.user_player}/get_user_transactions", verify=False, headers=headers)
@@ -63,7 +62,7 @@ class GetTransactionBehavior(TaskSet):
     def get_all_transactions(self):
         locustfile.login(self)
         token = locustfile.session_token[random.choice(range(0, 3))]
-        headers = create_header(token)
+        headers = locustfile.create_header(token)
         
         # Perform the get all transactions action
         response = self.client.get(f"{locustfile.user_player}/all", verify=False, headers=headers)

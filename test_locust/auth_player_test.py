@@ -1,12 +1,11 @@
-from locust import HttpUser, TaskSet, task, between
-import random,string
+import random
+import string
+
+from locust import HttpUser, TaskSet, between
+
 import locustfile
 
 
-def create_header(token):
-    return {"Authorization": f"Bearer {token}"}
-
-from shared.auth_middleware import *
 def gen():
     alph=string.ascii_letters+string.digits
     return ''.join(random.choice(alph) for i in range(random.randint(5,32)))
@@ -50,7 +49,7 @@ class UserAuthBehavior(TaskSet):
             })
             assert response.status_code == 200
             assert response.json()["message"] == "Login successful"
-            response = self.client.delete(f'{locustfile.user_auth}/logout', verify=False, headers=create_header(response.json()["session_token"]))
+            response = self.client.delete(f'{locustfile.user_auth}/logout', verify=False, headers=locustfile.create_header(response.json()["session_token"]))
             assert response.status_code == 200
 
     '''

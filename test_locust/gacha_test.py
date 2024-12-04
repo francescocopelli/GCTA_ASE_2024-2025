@@ -1,20 +1,17 @@
 import random
+
 from locust import HttpUser, TaskSet, task, between
 
-from locustfile import *
 import locustfile
-
-def create_header(token):
-    return {"Authorization": f"Bearer {token}"}
 
 
 class GachaBehavior(TaskSet):
     
-    @task()
+    @task
     def add_gacha_item(self):
         locustfile.admin_login(self)
         token = locustfile.admin_session_token[random.choice(range(0, 3))]
-        headers = create_header(token)
+        headers = locustfile.create_header(token)
         
         # Prepare data for adding a gacha item
         data = {
@@ -46,7 +43,7 @@ class GachaBehavior(TaskSet):
         gacha_id = self.add_gacha_item() or random.randint(1, 100)
             
         token = locustfile.admin_session_token[random.choice(range(0, 3))]
-        headers = create_header(token)
+        headers = locustfile.create_header(token)
         
         # Prepare data for updating a gacha item
         data = {
@@ -76,7 +73,7 @@ class GachaBehavior(TaskSet):
     def get_gacha_item(self):
         locustfile.login(self)
         token = locustfile.session_token[random.choice(range(0, 3))]
-        headers = create_header(token)
+        headers = locustfile.create_header(token)
         gacha_id = random.randint(1, 300)  # Assuming gacha_id ranges from 1 to 100
         
         # Perform the get gacha item action
@@ -106,7 +103,7 @@ class GachaBehavior(TaskSet):
         locustfile.login(self)
         usr = random.choice(range(0, 3))
         token = locustfile.session_token[usr]
-        headers = create_header(token)
+        headers = locustfile.create_header(token)
         gacha_id = random.randint(1, 300)  # Assuming gacha_id ranges from 1 to 100
         
         # Perform the get user gacha item action
@@ -141,7 +138,7 @@ class GachaBehavior(TaskSet):
     def is_gacha_unlocked(self):
         locustfile.admin_login(self)
         token = locustfile.admin_session_token[random.choice(range(0, 3))]
-        headers = create_header(token)
+        headers = locustfile.create_header(token)
         user_id = random.choice(locustfile.user_id)
         gacha_id = random.randint(1, 100)  # Assuming gacha_id ranges from 1 to 100
         
@@ -165,7 +162,7 @@ class GachaBehavior(TaskSet):
         locustfile.admin_login(self)
         gacha_id = self.add_gacha_item() or random.randint(396, 430)
         token = locustfile.admin_session_token[random.choice(range(0, 3))]
-        headers = create_header(token)
+        headers = locustfile.create_header(token)
         
         # Perform the delete gacha item action
         with self.client.delete(f"{locustfile.admin_base}{locustfile.gacha_url}/delete/{gacha_id}", verify=False, headers=headers, catch_response=True) as response:
@@ -193,7 +190,7 @@ class GachaBehavior(TaskSet):
     @task
     def get_all_gacha_items(self):
         token = locustfile.session_token[random.choice(range(0, 3))]
-        headers = create_header(token)
+        headers = locustfile.create_header(token)
         offset = random.randint(0, 100)  # Random offset for testing
         
         # Perform the get all gacha items action
@@ -224,7 +221,7 @@ class GachaInventoryBehavior(TaskSet):
     def get_user_inventory(self):
         locustfile.login(self)
         usr = random.choice(range(0, 3))
-        response = self.client.get(f"{locustfile.gacha_url}/inventory/{locustfile.user_id[usr]}", verify=False, headers=create_header(locustfile.session_token[usr]))
+        response = self.client.get(f"{locustfile.gacha_url}/inventory/{locustfile.user_id[usr]}", verify=False, headers=locustfile.create_header(locustfile.session_token[usr]))
         
         # Check for possible errors
         if response.status_code == 200:
@@ -248,7 +245,7 @@ class GachaInventoryBehavior(TaskSet):
         user_id = random.choice(locustfile.admin_user_id)
         gacha_id = random.randint(1, 100)  # Assuming gacha_id ranges from 1 to 100
         token = locustfile.admin_session_token[random.choice(range(0, 3))]
-        headers = create_header(token)
+        headers = locustfile.create_header(token)
         
         # Perform the add to inventory action
         with self.client.post(f"{locustfile.admin_base}{locustfile.gacha_url}/inventory/add", json={
@@ -281,7 +278,7 @@ class GachaRollBehavior(TaskSet):
         locustfile.login(self)
         user_id = random.choice(locustfile.user_id)
         token = locustfile.session_token[random.choice(range(0, 3))]
-        headers = create_header(token)
+        headers = locustfile.create_header(token)
         
         # Perform the gacha roll
         response = self.client.post(f"{locustfile.gacha_url}/roll", json={}, verify=False, headers=headers)

@@ -1,12 +1,12 @@
 
 from threading import Lock
+
 from locust import events
 
-from test_locust.auction_test import GetAllAuctionsTest
-# from test_locust.auth_player_test import AuthUser
 from test_locust.gacha_test import GachaTest
+from test_locust.auction_test import GetAllAuctionsTest
 from test_locust.player_test import UserPlayer
-#from test_locust.transaction_test import GetTransactionTest
+
 
 
 

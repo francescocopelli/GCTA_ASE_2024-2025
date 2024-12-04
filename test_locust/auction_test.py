@@ -1,10 +1,10 @@
 import datetime
 import random
+from threading import Lock
 
 from locust import HttpUser, TaskSet, task, between
 
 import locustfile
-from locustfile import *
 
 
 class GetAllAuctionsBehavior(TaskSet):
@@ -84,13 +84,13 @@ class GetAllAuctionsBehavior(TaskSet):
 
             # Check for possible errors
             if response.status_code == 201:
-                print(f"Auction created successfully: {response.json()}")
+                print(f"Auction locustfile.created successfully: {response.json()}")
             elif response.status_code == 400:
                 print(f"Error: Missing data for new auction or failed to lock gacha")
             elif response.status_code == 403:
                 error_message = response.json().get('error', '')
-                if error_message == 'Only players can create auctions':
-                    print(f"Error: Only players can create auctions")
+                if error_message == 'Only players can locustfile.create auctions':
+                    print(f"Error: Only players can locustfile.create auctions")
                 elif error_message == 'Unauthorized access':
                     print(f"Error: Unauthorized access")
                 else:
