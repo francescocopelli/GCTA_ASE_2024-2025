@@ -15,6 +15,28 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+DROP TABLE IF EXISTS `AUTH_CODES`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `AUTH_CODES` (
+  `auth_code` varchar(300) NOT NULL,
+  `user_id` int NOT NULL,
+  `user_type` varchar(50) NOT NULL,
+  `expires_at` timestamp NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`auth_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `AUTH_CODES`
+--
+
+LOCK TABLES `AUTH_CODES` WRITE;
+/*!40000 ALTER TABLE `AUTH_CODES` DISABLE KEYS */;
+/*!40000 ALTER TABLE `AUTH_CODES` ENABLE KEYS */;
+UNLOCK TABLES;
+
 --
 -- Table structure for table `ADMIN`
 --
