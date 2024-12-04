@@ -121,8 +121,7 @@ def get_transaction():
 @app.route("/get_user_transactions", methods=["GET"])
 @login_required_ret
 def get_my_transactions(user):
-    if jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"],
-                  algorithms=["HS256"])['user_type'] == 'ADMIN':
+    if decode_session_token(request.headers["Authorization"].split(" ")[1])['user_type'] == 'ADMIN':
         return send_response({"error": "You don't have a transaction history (as an ADMIN)"}, 403)
     user_id = str(user['user_id'])
     req = requests.get(f"https://localhost:5000/get_user_transactions/{user_id}",  timeout=30, verify=False, 
@@ -171,7 +170,7 @@ def get_user_transactions(user_id):
 @app.get("/all")
 @login_required_void
 def get_all_transactions():
-    user = jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])
+    user = decode_session_token(request.headers["Authorization"].split(" ")[1])
     is_admin = not user['user_type'] == 'PLAYER'
     """
     Retrieve all transactions from the database.

@@ -173,7 +173,7 @@ def get_user_balance(user_id):
 @login_required_void
 def add_auction():
 
-    user = jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])
+    user = decode_session_token(request.headers["Authorization"].split(" ")[1])
     if user['user_type'] != "PLAYER":
         return send_response({"error": "Only players can create auctions"}, 403)
     if check_header() is True and user["user_type"] == "PLAYER":
@@ -366,7 +366,7 @@ def place_bid(user):
         return send_response({"error": "Missing data for bid"}, 400)
 
     conn = None
-    if jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])['user_type'] == "ADMIN":
+    if decode_session_token(request.headers["Authorization"].split(" ")[1])['user_type'] == "ADMIN":
         return send_response({"error": "You cannot place a bid as an admin"}, 403)
     try:
         if not isinstance(bid_amount, int):
@@ -471,7 +471,7 @@ def get_bids():
 @login_required_ret
 def all_my_auction(user):
     user_id = user["user_id"]
-    if jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])['user_type'] == "ADMIN":
+    if decode_session_token(request.headers["Authorization"].split(" ")[1])['user_type'] == "ADMIN":
         return send_response({"error": "Admins don't have auctions"}, 403)
     req = requests.get("https://localhost:5000/get_auction?user_id=" + str(user_id), timeout=30, verify=False, 
                        headers=generate_session_token_system())

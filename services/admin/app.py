@@ -38,7 +38,7 @@ def update_myself(user):
     user_id = user['user_id']
     if not user_id:
         return send_response({"error": "Missing user_id parameter"}, 400)
-    if jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])["user_type"] != "PLAYER":
+    if decode_session_token(request.headers["Authorization"].split(" ")[1])["user_type"] != "PLAYER":
         req = requests.get(f"{dbm_url}/get_user/{user_id}",  timeout=30, verify=False, headers=generate_session_token_system())
         user = req.json()
         if not user:

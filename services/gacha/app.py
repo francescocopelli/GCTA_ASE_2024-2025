@@ -108,8 +108,7 @@ def roll_gacha(user):
     user_id = user['user_id']
     roll_cost = 5
 
-    if check_header() or jwt.decode(request.headers.get("Authorization").split(" ")[1], app.config['SECRET_KEY'],
-                                    algorithms=["HS256"])['user_type'] == 'ADMIN':
+    if check_header() or decode_session_token(request.headers.get("Authorization").split(" ")[1])['user_type'] == 'ADMIN':
         return send_response({'error': 'Admins cannot roll gacha'}, 403)
 
     # Check for required fields
@@ -356,8 +355,7 @@ def get_gacha_item(gacha_id):
 @token_required_void
 def get_user_gacha_item(user_id, gacha_id):
     logging.debug("User ID: %s", user_id)
-    token_user = jwt.decode(request.headers.get("Authorization").split(" ")[1], app.config['SECRET_KEY'],
-                            algorithms=["HS256"])
+    token_user = decode_session_token(request.headers.get("Authorization").split(" ")[1])
     logging.debug("JWT Dec User ID: %s", token_user['user_id'])
     if token_user['user_type'] == 'PLAYER' and str(token_user['user_id']) != str(user_id):
         return send_response({'error': 'You are not authorized to view this page'}, 403)

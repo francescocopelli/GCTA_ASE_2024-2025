@@ -24,9 +24,7 @@ def create_transaction(user_id, amount, transaction_type):
 @app.get("/my_gacha_list")
 @token_required_void
 def my_gacha_list():
-    user_id = str(
-        jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])[
-            "user_id"])
+    user_id = str(decode_session_token(request.headers["Authorization"].split(" ")[1])[            "user_id"])
     response = requests.get(f"{gacha_url}/inventory/" + user_id,  timeout=30, verify=False, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
@@ -88,7 +86,7 @@ def real_money_transaction(user):
 @app.get("/get_user_balance")
 @token_required_ret
 def get_user_balance(current_user):
-    user_type=jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])['user_type']
+    user_type=decode_session_token(request.headers["Authorization"].split(" ")[1])['user_type']
     logging.debug("Current user: %s", current_user)
     if user_type != 'PLAYER':
         return send_response({"error": "Only players can view their balance"}, 403)
@@ -99,7 +97,7 @@ def get_user_balance(current_user):
 @app.get("/get_user")
 @token_required_ret
 def get_user(user):
-    if jwt.decode(request.headers["Authorization"].split(" ")[1], app.config["SECRET_KEY"], algorithms=["HS256"])['user_type'] != 'PLAYER':
+    if decode_session_token(request.headers["Authorization"].split(" ")[1])['user_type'] != 'PLAYER':
         return send_response({"error": "Only players can view their information"}, 403)
     url = f"{dbm_url}/get_user/" + str(user['user_id'])
     response = requests.get(url,  timeout=30, verify=False, headers=request.headers)

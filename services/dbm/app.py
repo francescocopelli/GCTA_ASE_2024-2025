@@ -26,15 +26,6 @@ def check_hash(password: str, hashed_password: str):
     return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 
-# Funzione per generare un token di sessione unico
-def generate_session_token(user_id, user_type):
-    logging.debug(user_type)
-    exp = datetime.now() + timedelta(hours=6)
-    return jwt.encode({'user_id': user_id, "user_type": user_type, "expiration": str(exp)}, app.config['SECRET_KEY'],
-                      algorithm='HS256')
-    # return str(uuid.uuid4())
-
-
 # Endpoint di registrazione per USER e ADMIN
 @app.route("/register/<user_type>", methods=["POST"])
 def register(user_type):
@@ -115,7 +106,7 @@ def login(user_type):
 @app.route("/logout", methods=["DELETE"])
 @login_required_ret
 def logout(user):
-    user_type = jwt.decode(user["session_token"], app.config['SECRET_KEY'], algorithms=["HS256"])["user_type"]
+    user_type = decode_session_token(user["session_token"])["user_type"]
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")
         return send_response({"error": "Invalid user type"}, 401)
@@ -285,7 +276,7 @@ def update(user_type):
         cursor = conn.cursor(dictionary=True)
         session_token = request.json.get("session_token") or request.headers["Authorization"].split(" ")[1]
 
-        if jwt.decode(session_token, app.config['SECRET_KEY'], algorithms=["HS256"])["user_type"] != "PLAYER":
+        if decode_session_token(session_token)["user_type"] != "PLAYER":
             return change_user_info(conn, cursor, user_type, request, "user_id", request.json.get("user_id"))
         return change_user_info(conn, cursor, user_type, request, "session_token", session_token)
     except Exception as e:
