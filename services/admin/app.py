@@ -46,12 +46,12 @@ def update_myself(user):
 
     username = data.get("username") or user['username']
     email = data.get("email") or user['email']
-    password = data.get("password") or user['password']
+    password = data.get("password") or None
 
     url = f"{admin_url}/update/{user_id}?user_type=ADMIN"
     data = {
         "user_id": user_id,
-        "username": username,
+        "username": sanitize(username),
         "email": email,
         "password": password
     }
@@ -78,7 +78,7 @@ def update(user_id):
     url = f"{dbm_url}/update/{user_type}"
     data = {
         "user_id": user_id,
-        "username": username,
+        "username": sanitize(username),
         "email": email,
         "password": password
     }

@@ -18,7 +18,7 @@ def login():
     password = request.json['password']
     url = f"{dbm_url}/login/PLAYER"
     data = {
-        "username": username,
+        "username": sanitize(username),
         "password": password
     }
     response = requests.post(url,  timeout=30, verify=False, json=data)
@@ -35,7 +35,7 @@ def register():
         image = image.read()
     url = f"{dbm_url}/register/PLAYER"
     data = {
-        "username": username,
+        "username": sanitize(username),
         "password": password,
         "email": email,
         "image": base64.b64encode(image).decode('utf-8') if image else None

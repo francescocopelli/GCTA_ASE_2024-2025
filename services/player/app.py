@@ -33,6 +33,7 @@ def my_gacha_list():
 @app.get("/gacha/<user_id>/<gacha_id>")
 @token_required_void
 def gacha_info(user_id, gacha_id):
+    gacha_id=sanitize(gacha_id)
     response = requests.get(f"{gacha_url}/get/" + str(user_id) + "/" + str(gacha_id), timeout=30, verify=False, 
                             headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
@@ -154,7 +155,7 @@ def update(user):
     data = {
         "session_token": request.headers["Authorization"].split(" ")[1],
         "user_id": user_id,
-        "username": username,
+        "username": sanitize(username),
         "email": email,
         "image": image,
         "password": password

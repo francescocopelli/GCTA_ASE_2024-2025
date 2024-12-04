@@ -4,8 +4,13 @@ from uuid import uuid4
 
 import jwt
 import requests
+import re
 from flask import request, abort, jsonify, current_app
 
+def sanitize(user_input):
+    if type(user_input) is not str:
+        return user_input
+    return re.sub(r'[^_\-a-zA-Z0-9]', '', user_input)
 
 def florence(filename="/run/secrets/novel"):
     poetry = ""

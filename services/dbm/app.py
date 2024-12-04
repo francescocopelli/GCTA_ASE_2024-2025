@@ -36,7 +36,7 @@ def register(user_type):
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
         data = request.form
-        username = data.get("username")
+        username = sanitize(data.get("username"))
         password = data.get("password")
         email = data.get("email")
         if not all([username, password, email]):
@@ -123,7 +123,7 @@ def login(user_type):
         return send_response({"error": "Invalid user type"}, 400)
 
     data = request.get_json()
-    username = data.get("username")
+    username = sanitize(data.get("username"))
     password = data.get("password")
 
     auth_code, status_code = authorize(username, password, user_type)
@@ -240,7 +240,7 @@ def change_user_info(conn, cursor, user_type, request, column, identifier):
 
     if token_found:
         # Update the player profile
-        if request.json.get("username"):
+        if sanitize(request.json.get("username")):
             query_update = (
                 "UPDATE PLAYER SET username = %s WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET username = %s WHERE user_id =%s"
             )

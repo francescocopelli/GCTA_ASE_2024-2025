@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.DEBUG)
 def add():
     # if not check_header(): return send_response({'error': 'Admin authorization required'}, 401)
 
-    name = request.form.get('name')
+    name = sanitize(request.form.get('name'))
     rarity = request.form.get('rarity')
     status = request.form.get('status')
     description = request.form.get('description')
@@ -186,7 +186,7 @@ def add_to_inventory():
     # Extract inventory details from request JSON
     data = request.get_json()
     user_id = str(data.get('user_id'))
-    gacha_id = data.get('gacha_id')
+    gacha_id = sanitize(data.get('gacha_id'))
 
     # Check for required fields
     if not all([user_id, gacha_id]):
@@ -232,7 +232,6 @@ def get_all():
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
-        d=request.args.get('offset') or 0
         # write another execute cursor to get all the gacha items with an arbitrary offset limit taken from request if present otherwise use a default one
         cursor.execute("SELECT gacha_id, name, rarity, status, description FROM GachaItems", )
         rows = cursor.fetchall()
@@ -266,8 +265,8 @@ def get_all():
 @admin_required
 def update_gacha_item():
     # Extract gacha item details from request JSON
-    gacha_id = request.form.get('gacha_id')
-    name = request.form.get('name')
+    gacha_id = sanitize(request.form.get('gacha_id'))
+    name = sanitize(request.form.get('name'))
     rarity = request.form.get('rarity')
     status = request.form.get('status')
     description = request.form.get('description')
@@ -432,7 +431,7 @@ def is_gacha_unlocked(user_id, gacha_id):
 @admin_required
 def update_gacha_status():
     user_id = str(request.json['user_id'])
-    gacha_id = str(request.json['gacha_id'])
+    gacha_id = sanitize(str(request.json['gacha_id']))
     status = request.json['status']
 
     if not all([user_id, gacha_id, status]):
@@ -486,8 +485,8 @@ def update_gacha_status():
 def update_gacha_owner():
     buyer_id = request.json['buyer_id']
     seller_id = request.json['seller_id']
-    gacha_id = request.json['gacha_id']
-    status = request.json['status']
+    gacha_id = sanitize(request.json['gacha_id'])
+    status = sanitize(request.json['status'])
 
     if not all([buyer_id, seller_id, gacha_id, status]):
         logging.debug("Missing data to update gacha owner: buyer_id=%s, seller_id=%s, gacha_id=%s, status=%s", buyer_id,
@@ -539,6 +538,7 @@ def exist_auction(gacha_id):
 @admin_required
 def delete_gacha_item(gacha_id):
     # Connect to the database
+    gacha_id = sanitize(gacha_id)
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)

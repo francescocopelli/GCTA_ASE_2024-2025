@@ -17,8 +17,8 @@ def logout():
 
 @app.route('/login', methods=['POST'])
 def login():
-    username = request.json['username']
-    password = request.json['password']
+    username = sanitize(request.json['username'])
+    password = (request.json['password'])
     url = f"https://db-manager:5000/login/ADMIN"
     data = {
         "username": username,
@@ -31,8 +31,8 @@ def login():
 @app.route('/register', methods=['POST'])
 def register():
     logging.info(f"Registering new user {request}")
-    username = request.form.get('username')
-    password = request.form.get('password')
+    username = sanitize(request.form.get('username'))
+    password = (request.form.get('password'))
     email = request.form.get('email')
     url = f"https://db-manager:5000/register/ADMIN"
     data = {

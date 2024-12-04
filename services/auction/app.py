@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.DEBUG)
 # Endpoint to retrieve all auction
 def get_all_auctions():
     check_auction_status()
-    status = request.args.get("status") or "all"
+    status = sanitize(request.args.get("status")) or "all"
     """
     Retrieve all auctions or filter by auction status.
     This endpoint retrieves all auctions from the database. Optionally, it can filter
@@ -181,7 +181,7 @@ def add_auction():
     try:
         # Extract auction details from the request JSON
         data = request.get_json()
-        gacha_id = data.get("gacha_id")
+        gacha_id = sanitize(data.get("gacha_id"))
         seller_id = user["user_id"]
         base_price = data.get("base_price")
 
@@ -324,7 +324,7 @@ def get_gacha_auctions():
     Returns:
         Response: JSON response containing the list of auctions or an error message with the appropriate HTTP status code.
     """
-    gacha_id = request.args.get('gacha_id')
+    gacha_id = sanitize(request.args.get('gacha_id'))
     if not gacha_id:
         logging.error("Missing gacha_id parameter")
         return send_response({'error': 'Missing gacha_id parameter'}, 400)
@@ -634,7 +634,7 @@ def delete_auction():
     Returns:
         Response: A JSON response indicating that the auction was deleted successfully.
     """
-    gacha_id = request.args.get("gacha_id") or None
+    gacha_id = sanitize(request.args.get("gacha_id")) or None
     if not gacha_id:
         return send_response({"error": "Missing gacha_id parameter"}, 400)
     try:
