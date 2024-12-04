@@ -15,11 +15,6 @@ services:
       - cert
       - key
       - novel
-      - db_user
-      - db_password
-      - client-cert.pem
-      - client-key.pem
-      - ca.pem
 
   gateway_admin:
     build: ./services/admin_gateway
@@ -37,11 +32,6 @@ services:
       - cert
       - key
       - novel
-      - db_user
-      - db_password
-      - client-cert.pem
-      - client-key.pem
-      - ca.pem
 
   user_admin:
     build: ./services/admin
@@ -52,14 +42,11 @@ services:
     volumes:
       - ./shared:/app/shared
     secrets:
-      - cert
-      - key
+      - users_cert
+      - users_key
       - novel
       - db_user
       - db_password
-      - client-cert.pem
-      - client-key.pem
-      - ca.pem
 
   user_admin_auth:
     build: ./services/admin/auth
@@ -70,14 +57,11 @@ services:
     volumes:
       - ./shared:/app/shared
     secrets:
-      - cert
-      - key
+      - users_cert
+      - users_key
       - novel
       - db_user
       - db_password
-      - client-cert.pem
-      - client-key.pem
-      - ca.pem
 
   user_player:
     build: ./services/player
@@ -88,14 +72,11 @@ services:
     volumes:
       - ./shared:/app/shared
     secrets:
-      - cert
-      - key
+      - users_cert
+      - users_key
       - novel
       - db_user
       - db_password
-      - client-cert.pem
-      - client-key.pem
-      - ca.pem
 
   user_player_auth:
     build: ./services/player/auth
@@ -106,14 +87,11 @@ services:
     volumes:
       - ./shared:/app/shared
     secrets:
-      - cert
-      - key
+      - users_cert
+      - users_key
       - novel
       - db_user
       - db_password
-      - client-cert.pem
-      - client-key.pem
-      - ca.pem
 
   transaction:
     build: ./services/transaction
@@ -126,14 +104,14 @@ services:
     volumes:
       - ./shared:/app/shared
     secrets:
-      - cert
-      - key
+      - transactions_cert
+      - transactions_key
       - novel
       - db_user
       - db_password
-      - client-cert.pem
       - client-key.pem
       - ca.pem
+      - client-cert.pem
 
   auction:
     build: ./services/auction
@@ -146,14 +124,14 @@ services:
     volumes:
       - ./shared:/app/shared
     secrets:
-      - cert
-      - key
+      - auction_cert
+      - auction_key
       - novel
       - db_user
       - db_password
-      - client-cert.pem
       - client-key.pem
       - ca.pem
+      - client-cert.pem
 
   gacha:
     build: ./services/gacha
@@ -166,14 +144,16 @@ services:
     volumes:
       - ./shared:/app/shared
     secrets:
-      - cert
-      - key
       - novel
       - db_user
       - db_password
-      - client-cert.pem
+      - gacha_cert
+      - gacha_key
       - client-key.pem
       - ca.pem
+      - client-cert.pem
+
+
 
   db-manager:
     build: ./services/dbm
@@ -192,8 +172,8 @@ services:
       - client-cert.pem
       - client-key.pem
       - ca.pem
-      - cert
-      - key
+      - users_cert
+      - users_key
 
 
   auctions_db:
@@ -281,26 +261,42 @@ networks:
     driver: bridge
   admin-network:
     driver: bridge
-  
+
 
 secrets:
   cert:
-    file: ./cert.pem
+    file: ./certificates/cert.pem
   key:
-    file: ./key.pem
+    file: ./certificates/key.pem
   ca.pem:
-    file: ./ca-cert.pem
+    file: ./certificates/ca-cert.pem
   server-cert.pem:
-    file: ./server-cert.pem
+    file: ./certificates/server-cert.pem
   server-key.pem:
-    file: ./server-key.pem
+    file: ./certificates/server-key.pem
   client-cert.pem:
-    file: ./client-cert.pem
+    file: ./certificates/client-cert.pem
   client-key.pem:
-    file: ./client-key.pem
+    file: ./certificates/client-key.pem
   novel:
     file: ./poetry.txt
   db_user:
     file: ./db_user.txt
   db_password:
     file: ./db_password.txt
+  users_cert:
+    file: ./certificates/users_cert.pem
+  users_key:
+    file: ./certificates/users_key.pem
+  transactions_cert:
+    file: ./certificates/transactions_cert.pem
+  transactions_key:
+    file: ./certificates/transactions_key.pem
+  gacha_cert:
+    file: ./certificates/gacha_cert.pem
+  gacha_key:
+    file: ./certificates/gacha_key.pem
+  auction_cert:
+    file: ./certificates/auction_cert.pem
+  auction_key:
+    file: ./certificates/auction_key.pem
