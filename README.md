@@ -79,5 +79,5 @@ This issue occurs because Windows uses `\r\n` (carriage return and line feed) fo
 
 ## Bandit
 ```sh
-bandit -r . -x ./.venv/*,./test/* -s=B501
+bandit -r . -x ./.venv,./test -s=B501
 ```
