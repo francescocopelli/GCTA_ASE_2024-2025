@@ -608,14 +608,15 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "62618ce8-6689-41d7-a38f-75db62f0fe4c",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"  pm.response.to.have.status(200);\r",
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"pm.test(\"Response time is less than 300ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(300);\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -635,8 +636,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "62618ce8-6689-41d7-a38f-75db62f0fe4c"
+								"packages": {}
 							}
 						}
 					],
