@@ -2,6 +2,7 @@ FROM ubuntu/mysql:latest
 
 
 ENV MYSQL_DATABASE=gacha
+ENV TZ="Europe/Rome"
 
 
 COPY ./backup/gacha_db.sql /docker-entrypoint-initdb.d/gacha_db.sql

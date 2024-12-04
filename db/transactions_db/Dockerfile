@@ -1,7 +1,7 @@
 FROM ubuntu/mysql:latest
 
 ENV MYSQL_DATABASE=transactions
-
+ENV TZ="Europe/Rome"
 
 COPY ./backup/transactions_db.sql /docker-entrypoint-initdb.d/transactions_db.sql
 

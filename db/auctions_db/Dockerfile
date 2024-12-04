@@ -1,6 +1,7 @@
 FROM ubuntu/mysql:latest
 
 ENV MYSQL_DATABASE=auctions
+ENV TZ="Europe/Rome"
 
 
 COPY ./backup/auctions_db.sql /docker-entrypoint-initdb.d/auctions_db.sql
