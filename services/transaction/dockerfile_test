@@ -1,0 +1,15 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY app*.py .
+COPY requirements.txt .
+
+RUN pip install -r requirements.txt
+
+EXPOSE 5000
+
+CMD python app_test.py
+
+# docker build -t transaction-mock -f dockerfile_test .
+# docker run -p 5000:5000 transaction-mock
