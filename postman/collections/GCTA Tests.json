@@ -3247,11 +3247,6 @@
 									"key": "description",
 									"value": "{{gacha_description}}",
 									"type": "text"
-								},
-								{
-									"key": "image",
-									"type": "file",
-									"value": null
 								}
 							]
 						},
