@@ -81,3 +81,9 @@ This issue occurs because Windows uses `\r\n` (carriage return and line feed) fo
 ```sh
 bandit -r . -x ./.venv,./test -s=B501
 ```
+
+##Postman tests
+```sh
+sudo npm install -g newman
+newman run ./postman/collections/GCTA\ Tests.json -e ./postman_tests/gcta_env.postman_environment.json --insecure
+```
