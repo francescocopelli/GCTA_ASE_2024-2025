@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.40, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.39, for Linux (x86_64)
 --
 -- Host: localhost    Database: users
 -- ------------------------------------------------------
--- Server version	8.0.40
+-- Server version	8.0.39-0ubuntu0.22.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -14,28 +14,6 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
-DROP TABLE IF EXISTS `AUTH_CODES`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `AUTH_CODES` (
-  `auth_code` varchar(300) NOT NULL,
-  `user_id` int NOT NULL,
-  `user_type` varchar(50) NOT NULL,
-  `expires_at` timestamp NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`auth_code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `AUTH_CODES`
---
-
-LOCK TABLES `AUTH_CODES` WRITE;
-/*!40000 ALTER TABLE `AUTH_CODES` DISABLE KEYS */;
-/*!40000 ALTER TABLE `AUTH_CODES` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `ADMIN`
@@ -64,6 +42,33 @@ LOCK TABLES `ADMIN` WRITE;
 INSERT INTO `ADMIN` VALUES (1,'admin_test_1','$2b$12$64YVUDG5F0tMGGtjF7bWX.pe3lXxVYHfHkFbnBb938KjZsz1EaUPW','admin_test_1@test.com',0,'0'),(2,'admin_test_2','$2b$12$9M6IQoABYNhALGXgGTxGIuxZQiWJO95AeFHT4g6/0XaC5f2L4a8Sa','admin_test_2@test.com',0,'0'),(3,'admin_test_3','$2b$12$ApvBVuy/CThKVDNkpiMnV.MhcTzP0/IRPg93xfhpNDWvzxjDK4dKa','admin_test_3@test.com',0,'0'),(4,'admin_test_4','$2b$12$P4XxRrUt1jl6a5G.2QWgzetw.TbBx1wCnfnTb0MOZOD.jxmypXtv2','admin_test_4@test.com',0,'0');
 /*!40000 ALTER TABLE `ADMIN` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `AUTH_CODES`
+--
+
+DROP TABLE IF EXISTS `AUTH_CODES`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `AUTH_CODES` (
+  `auth_code` varchar(300) NOT NULL,
+  `user_id` int NOT NULL,
+  `user_type` varchar(50) NOT NULL,
+  `expires_at` timestamp NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`auth_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `AUTH_CODES`
+--
+
+LOCK TABLES `AUTH_CODES` WRITE;
+/*!40000 ALTER TABLE `AUTH_CODES` DISABLE KEYS */;
+/*!40000 ALTER TABLE `AUTH_CODES` ENABLE KEYS */;
+UNLOCK TABLES;
+
 --
 -- Table structure for table `PLAYER`
 --
@@ -102,4 +107,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-02 12:53:39
+-- Dump completed on 2024-12-04 17:52:01
