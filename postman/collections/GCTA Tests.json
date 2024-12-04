@@ -355,6 +355,8 @@
 									"    pm.expect(responseJson).to.have.property(\"gacha_id\");\r",
 									"    pm.expect(responseJson).to.have.property(\"name\");\r",
 									"    pm.expect(responseJson).to.have.property(\"rarity\");\r",
+									"    pm.environment.set(\"gacha_id\", responseJson.gacha_id);\r",
+									"    console.log(responseJson.gacha_id);\r",
 									"});\r",
 									"\r",
 									"pm.test(\"Gacha rarity is valid\", function () {\r",
@@ -398,7 +400,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"user_id\": \"{{user_id}}\"\r\n}",
+							"raw": "{\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
