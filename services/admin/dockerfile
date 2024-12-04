@@ -11,4 +11,4 @@ RUN pip install -r ./requirements.txt
 EXPOSE 5000
 # CMD ["flask","run", "--port=5000", "--host=0.0.0.0"]
 
-CMD ["flask","run", "--port=5000", "--host=0.0.0.0", "--cert=/run/secrets/cert", "--key=/run/secrets/key"]
+CMD ["flask","run", "--port=5000", "--host=0.0.0.0", "--cert=/run/secrets/users_cert", "--key=/run/secrets/users_key"]
