@@ -203,6 +203,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "644aadf4-617f-4f77-a5ee-008a6559ac1b",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -224,8 +225,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "644aadf4-617f-4f77-a5ee-008a6559ac1b"
+								"packages": {}
 							}
 						}
 					],
@@ -253,7 +253,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"amount\": 50\n}"
+							"raw": "{\n  \"amount\": 50\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/users/player/real_money_transaction",
@@ -400,7 +400,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n}",
+							"raw": "",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1135,7 +1135,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"gacha_id\": \"{{gacha_id}}\",\n  \"seller_id\": \"{{user_id}}\",\n  \"base_price\": 7\n}"
+							"raw": "{\n  \"gacha_id\": \"{{gacha_id}}\",\n  \"base_price\": 7\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auction/add",
@@ -1151,7 +1151,7 @@
 					"response": []
 				},
 				{
-					"name": "Get All Auctions",
+					"name": "Get All Active Auctions",
 					"event": [
 						{
 							"listen": "test",
@@ -1356,6 +1356,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "04d28528-1086-40bf-aa8f-633ff4e32ba2",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -1387,8 +1388,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "04d28528-1086-40bf-aa8f-633ff4e32ba2"
+								"packages": {}
 							}
 						}
 					],
@@ -1416,7 +1416,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"session_token\": \"{{session_token}}\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{base_url}}/users/auth/logout",
@@ -1940,6 +1940,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "04d28528-1086-40bf-aa8f-633ff4e32ba2",
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(200);\r",
@@ -1971,8 +1972,7 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "04d28528-1086-40bf-aa8f-633ff4e32ba2"
+								"packages": {}
 							}
 						}
 					],
@@ -2000,7 +2000,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"session_token\": \"{{session_token}}\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{base_url}}/users/auth/logout",
@@ -2109,6 +2109,7 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "75dfb32c-ec39-4c1d-9f3e-a553b87f01f6",
 								"exec": [
 									"pm.test(\"Response status code is 401 for incorrect credentials\", function () {\r",
 									"    pm.expect(pm.response.code).to.equal(401);\r",
@@ -2121,20 +2122,19 @@
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "75dfb32c-ec39-4c1d-9f3e-a553b87f01f6"
+								"packages": {}
 							}
 						},
 						{
 							"listen": "prerequest",
 							"script": {
+								"id": "5cc4d1cc-e117-4cbe-8755-6e4c8e1b676c",
 								"exec": [
 									"\r",
 									""
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "5cc4d1cc-e117-4cbe-8755-6e4c8e1b676c"
+								"packages": {}
 							}
 						}
 					],
@@ -2526,14 +2526,14 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "726a0840-913a-4269-8ba5-fdec4cb6371d",
 								"exec": [
 									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
 									"  pm.expect(pm.response.text()).to.include(\"Gacha is locked or does not exist\");\r",
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "726a0840-913a-4269-8ba5-fdec4cb6371d"
+								"packages": {}
 							}
 						}
 					],
@@ -2561,7 +2561,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"gacha_id\": \"noexistentgacha\",\n  \"seller_id\": \"{{user_id}}\",\n  \"base_price\": 7\n}"
+							"raw": "{\n  \"gacha_id\": \"noexistentgacha\",\n  \"base_price\": 7\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auction/add",
@@ -2851,7 +2851,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"auction_id\": \"99999999\",\n  \"user_id\": \"1\",\n  \"bid_amount\": 13\n}"
+							"raw": "{\n  \"auction_id\": \"99999999\",\n  \"bid_amount\": 13\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auction/bid",
@@ -2915,14 +2915,14 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "e2731d71-8142-44c5-84b9-d6774fab1fc4",
 								"exec": [
 									"pm.test(\"Error message indicates unauthorized access\", function () {\r",
 									"  pm.expect(pm.response.text()).to.include(\"401 Unauthorized\");\r",
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "e2731d71-8142-44c5-84b9-d6774fab1fc4"
+								"packages": {}
 							}
 						}
 					],
@@ -2943,7 +2943,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"session_token\": \"nosession\"\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "{{base_url}}/users/auth/logout",
@@ -3250,8 +3250,8 @@
 								},
 								{
 									"key": "image",
-									"value": "",
-									"type": "text"
+									"type": "file",
+									"value": null
 								}
 							]
 						},
@@ -3470,7 +3470,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"user_id\": \"{{a_user_id}}\"\r\n}",
+							"raw": "",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -3561,13 +3561,7 @@
 						"header": [],
 						"body": {
 							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "",
-									"value": "",
-									"type": "text"
-								}
-							]
+							"formdata": []
 						},
 						"url": {
 							"raw": "{{a_base_url}}/users/admin/get_all/PLAYER",
