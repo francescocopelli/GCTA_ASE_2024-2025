@@ -11,5 +11,5 @@ EXPOSE 5000
 
 CMD python app_test.py
 
-# docker build -t gacha-mock -f dockerfile_test .
-# docker run -p 5000:5000 gacha-mock
+# docker build -t player-mock -f dockerfile_test .
+# docker run -p 5000:5000 player-mock

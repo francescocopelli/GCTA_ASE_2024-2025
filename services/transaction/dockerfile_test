@@ -11,3 +11,5 @@ EXPOSE 5000
 
 CMD python app_test.py
 
+# docker build -t transaction-mock -f dockerfile_test .
+# docker run -p 5000:5000 transaction-mock

@@ -5,24 +5,24 @@ from datetime import datetime
 import functools
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'test_secret_key'
+app.config['SECRET_KEY'] = 'mock_secret_key'
 
 # Mock Data
 mock_gacha_items = [
     {
         "gacha_id": 20,
-        "name": "Sword",
+        "name": "Car1",
         "rarity": "common",
         "status": "available",
-        "description": "A basic sword.",
+        "description": "A basic car.",
         "image": None,
     },
     {
         "gacha_id": 21,
-        "name": "Shield",
+        "name": "Cool Car",
         "rarity": "rare",
         "status": "available",
-        "description": "A sturdy shield.",
+        "description": "A sturdy car.",
         "image": None,
     },
 ]
@@ -71,7 +71,7 @@ def mock_update_gacha_owner(buyer_id, seller_id, gacha_id, status):
         return {"error": "Gacha item not found in seller's inventory"}
     inventory["user_id"] = buyer_id
     inventory["locked"] = status
-    return {"message": "Gacha owner updated"}
+    return {"message": "Gacha owner updated successfully"}
 
 def mock_delete_gacha_item(gacha_id):
     global mock_gacha_items
@@ -165,7 +165,7 @@ def roll_gacha(user):
         "locked": "unlocked",
     })
 
-    return jsonify({"message": "Roll successful", "gacha_id": rolled_item["gacha_id"]}), 200
+    return jsonify({"message": "Gacha roll successful", "gacha_id": rolled_item["gacha_id"], "name":rolled_item["name"], "rarity":rolled_item["rarity"]}), 200
 
 @app.route('/inventory/add', methods=['POST'])
 @admin_required
@@ -187,7 +187,7 @@ def add_to_inventory():
         "locked": "unlocked",
     })
 
-    return jsonify({"message": "Gacha item added to inventory"}), 201
+    return jsonify({"message": "Gacha item successfully added to user's inventory"}), 201
   
 
 @app.route('/all', methods=['GET'])

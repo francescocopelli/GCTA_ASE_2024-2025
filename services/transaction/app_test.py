@@ -7,13 +7,13 @@ app.config['SECRET_KEY'] = 'test_secret_key'
 # Mock Data
 mock_transactions = [
     {
-        "transaction_id": 1,
+        "transaction_id": "uuid1",
         "user_id": 101,
         "transaction_type": "roll_purchase",
         "amount": 10.0,
     },
     {
-        "transaction_id": 2,
+        "transaction_id": "uuid2",
         "user_id": 102,
         "transaction_type": "auction_credit",
         "amount": 50.0,
@@ -60,7 +60,7 @@ def add_transaction():
         return jsonify({"error": "Missing transaction data"}), 400
 
     new_transaction = {
-        "transaction_id": len(mock_transactions) + 1,  # Incremental ID
+        "transaction_id": "uuid" + str(len(mock_transactions) + 1),  # Incremental ID
         "user_id": user_id,
         "transaction_type": transaction_type,
         "amount": amount,
@@ -68,7 +68,7 @@ def add_transaction():
     mock_transactions.append(new_transaction)
     return jsonify({"message": "Transaction added successfully", "transaction_id": new_transaction["transaction_id"]}), 200
 
-@app.route("/get_transaction/<int:transaction_id>", methods=["GET"])
+@app.route("/get_transaction/<transaction_id>", methods=["GET"])
 @login_required_void
 def get_transaction(transaction_id):
     """Retrieve a transaction by its ID."""

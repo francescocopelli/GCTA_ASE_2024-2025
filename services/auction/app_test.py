@@ -1,177 +1,194 @@
 from flask import Flask, request, jsonify
-import uuid
-import base64
 from datetime import datetime, timedelta
+import functools
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'test_secret_key'
+app.config['SECRET_KEY'] = 'mock_secret_key'
 
 # Mock Data
-mock_gacha_items = [
+mock_auctions = [
     {
-        "gacha_id": str(uuid.uuid4()),
-        "name": "Gacha Item 1",
-        "rarity": "common",
-        "status": "available",
-        "description": "A common gacha item",
-        "image": None
+        "auction_id": "uuid1",
+        "seller_id": 1,
+        "gacha_id": 1,
+        "end_time": (datetime.now() + timedelta(days=1)).isoformat(),
+        "status": "active",
+        "base_price": 10,
+        "highest_bid": 10,
+        "buyer_id": None
     },
     {
-        "gacha_id": str(uuid.uuid4()),
-        "name": "Gacha Item 2",
-        "rarity": "rare",
-        "status": "available",
-        "description": "A rare gacha item",
-        "image": None
-    }
+        "auction_id": "uuid2",
+        "seller_id": 2,
+        "gacha_id": 2,
+        "end_time": (datetime.now() + timedelta(days=1)).isoformat(),
+        "status": "active",
+        "base_price": 20,
+        "highest_bid": 20,
+        "buyer_id": None
+    },
+    {
+        "auction_id": "uuid3",
+        "seller_id": 2,
+        "gacha_id": 5,
+        "end_time": (datetime.now() - timedelta(days=1)).isoformat(),
+        "status": "completed",
+        "base_price": 25,
+        "highest_bid": 50,
+        "buyer_id": 1
+    },
+    {
+    "auction_id": "uuid4",
+    "seller_id": 2,
+    "gacha_id": 10,
+    "end_time": (datetime.now() - timedelta(days=1)).isoformat(),
+    "status": "expired",
+    "base_price": 10,
+    "highest_bid": 10,
+    "buyer_id": None
+}
 ]
 
-mock_user_inventory = {
-    "1": [mock_gacha_items[0]["gacha_id"], mock_gacha_items[1]["gacha_id"]]
+mock_bids = {
+    "bids": []  
 }
+mock_users = {1: {"user_id": 1, "username": "User1", "balance": 100}, 2: {"user_id": 2, "username": "User2", "balance": 50}}
 
-# Mock Helper Functions
-def get_gacha_item_by_id(gacha_id):
-    return next((item for item in mock_gacha_items if item["gacha_id"] == gacha_id), None)
+# Middleware Mocks
+def admin_required(f):
+    @functools.wraps(f)
+    def admin_wrapper(*args, **kwargs):
+        return f(*args, **kwargs)
+    return admin_wrapper
 
-def mock_get_user(user_id):
-    return {"user_id": user_id, "username": "testuser"}
+def login_required_void(f):
+    @functools.wraps(f)
+    def login_wrapper(*args, **kwargs):
+        return f(*args, **kwargs)
+    
+    return login_wrapper
 
-def mock_update_user_balance(user_id, amount, type):
-    return {"status": "success"}
+def token_required_void(f):
+    @functools.wraps(f)
+    def token_wrapper(*args, **kwargs):
+        return f(*args, **kwargs)
+    return token_wrapper
 
-def mock_create_transaction(user_id, amount, transaction_type):
-    return {"transaction_id": str(uuid.uuid4()), "status": "success"}
+# Helper Functions
+def get_auction_by_id(auction_id):
+    return next((auction for auction in mock_auctions if auction["auction_id"] == auction_id), None)
+
+def get_user_by_id(user_id):
+    return mock_users.get(user_id)
 
 # Endpoints
 @app.route('/all', methods=['GET'])
-def get_all_gacha_items():
-    return jsonify(mock_gacha_items), 200
+@login_required_void
+def get_all_auctions():
+    return jsonify(mock_auctions), 200
 
 @app.route('/add', methods=['POST'])
-def add_gacha_item():
-    data = request.form
-    new_gacha_item = {
-        "gacha_id": str(uuid.uuid4()),
-        "name": data.get("name"),
-        "rarity": data.get("rarity"),
-        "status": data.get("status"),
-        "description": data.get("description"),
-        "image": base64.b64encode(data.get("image").read()).decode('utf-8') if data.get("image") else None
+@login_required_void
+def add_auction():
+    data = request.json
+    if "base_price" not in data:
+        return jsonify({"error": "Missing base_price parameter"}), 400
+
+    new_auction = {
+        "auction_id": "uuid" + str(len(mock_auctions) + 1),
+        "seller_id": data["seller_id"],
+        "gacha_id": data["gacha_id"],
+        "end_time": (datetime.now() + timedelta(hours=6)).isoformat(),
+        "status": "active",
+        "base_price": data["base_price"],
+        "highest_bid": data["base_price"],
+        "buyer_id": None
     }
-    mock_gacha_items.append(new_gacha_item)
-    return jsonify(new_gacha_item), 201
+    mock_auctions.append(new_auction)
+    return jsonify({"message": "Auction created successfully", "auction_id": new_auction["auction_id"]}), 201
+
+@app.route('/bid', methods=['POST'])
+@login_required_void
+def place_bid():
+    data = request.json
+    auction = get_auction_by_id(data["auction_id"])
+    user = get_user_by_id(data["user_id"])
+
+    if not auction:
+        return jsonify({"error": "Auction not found"}), 404
+
+    if auction["status"] != "active":
+        return jsonify({"error": "Auction is not active"}), 400
+
+    if data["bid_amount"] <= auction["highest_bid"]:
+        return jsonify({"error": "Bid must be higher than the current bid"}), 400
+
+    if user["balance"] < data["bid_amount"]:
+        return jsonify({"error": "Insufficient funds"}), 403
+
+    user["balance"] -= data["bid_amount"]
+    auction["highest_bid"] = data["bid_amount"]
+    auction["user_id"] = data["user_id"]
+
+    bid = {
+        "bid_id": len(mock_bids["bids"]) + 1,  # Use integers for IDs
+        "auction_id": data["auction_id"],
+        "user_id": data["user_id"],
+        "bid_amount": data["bid_amount"],
+        "bid_time": datetime.now().isoformat()
+    }
+    mock_bids["bids"].append(bid)
+
+    return jsonify({"message": "Bid placed successfully"}), 200
+
+@app.route('/bids', methods=['GET'])
+def get_bids():
+    auction_id = request.args.get("auction_id")
+    if not auction_id:
+        return jsonify({"error": "Missing auction_id parameter"}), 400
+    
+    bids = [bid for bid in mock_bids["bids"] if bid["auction_id"] == auction_id]
+    return jsonify(bids), 200
+
+@app.route('/delete/<auction_id>', methods=['DELETE'])
+@admin_required
+def delete_auction(auction_id):
+    auction = get_auction_by_id(auction_id)
+    if not auction:
+        return jsonify({"error": "Auction not found"}), 404
+
+    mock_auctions.remove(auction)
+    return jsonify({"message": "Auction deleted successfully"}), 200
+
+@app.route('/get/<auction_id>', methods=['GET'])
+@admin_required
+def get_auction(auction_id):
+    auction = get_auction_by_id(auction_id)
+    if not auction:
+        return jsonify({"error": "Auction not found"}), 404
+    return jsonify(auction), 200
 
 @app.route('/all_active', methods=['GET'])
-def get_all_active_gacha_items():
-    active_items = [item for item in mock_gacha_items if item["status"] == "available"]
-    return jsonify(active_items), 200   
-
-
-@app.route('/roll', methods=['POST'])
-def roll_gacha():
-    data = request.get_json()
-    user_id = data["user_id"]
-    roll_cost = 5
-
-    # Mock user balance check
-    user_balance = 100
-    if user_balance < roll_cost:
-        return jsonify({"error": "Insufficient funds for gacha roll"}), 403
-
-    # Perform the gacha roll by selecting a random item based on rarity
-    selected_item = mock_gacha_items[0]  # Simplified for mock
-    mock_user_inventory.setdefault(user_id, []).append(selected_item["gacha_id"])
-
-    return jsonify({
-        'message': 'Gacha roll successful',
-        'gacha_id': selected_item['gacha_id'],
-        'name': selected_item['name'],
-        'rarity': selected_item['rarity'],
-    }), 200
-
-@app.route('/inventory/<user_id>', methods=['GET'])
-def get_user_inventory(user_id):
-    inventory = mock_user_inventory.get(user_id, [])
-    items = [get_gacha_item_by_id(gacha_id) for gacha_id in inventory]
-    return jsonify(items), 200
-
-@app.route('/inventory/add', methods=['POST'])
-def add_to_inventory():
-    data = request.get_json()
-    user_id = data["user_id"]
-    gacha_id = data["gacha_id"]
-    mock_user_inventory.setdefault(user_id, []).append(gacha_id)
-    return jsonify({"message": "Gacha item successfully added to user's inventory"}), 201
+def get_active_auctions():
+    active_auctions = [auction for auction in mock_auctions if auction["status"] == "active"]
+    return jsonify(active_auctions), 200
 
 @app.route('/update', methods=['PUT'])
-def update_gacha_item():
-    data = request.form
-    gacha_id = data.get("gacha_id")
-    gacha_item = get_gacha_item_by_id(gacha_id)
-    if not gacha_item:
-        return jsonify({"error": "Gacha item not found"}), 404
+@admin_required
+def update_auction():
+    data = request.json
+    auction_id = data.get("auction_id")
+    auction = get_auction_by_id(auction_id)
 
-    gacha_item["name"] = data.get("name", gacha_item["name"])
-    gacha_item["rarity"] = data.get("rarity", gacha_item["rarity"])
-    gacha_item["status"] = data.get("status", gacha_item["status"])
-    gacha_item["description"] = data.get("description", gacha_item["description"])
-    if data.get("image"):
-        gacha_item["image"] = base64.b64encode(data.get("image").read()).decode('utf-8')
+    if not auction:
+        return jsonify({"error": "Auction not found"}), 404
 
-    return jsonify(gacha_item), 200
+    if auction["status"] != "active":
+        return jsonify({"error": "Cannot update a completed or expired auction"}), 400
 
-@app.route('/get/<gacha_id>', methods=['GET'])
-def get_gacha_item(gacha_id):
-    gacha_item = get_gacha_item_by_id(gacha_id)
-    if not gacha_item:
-        return jsonify({"error": "Gacha item not found"}), 404
-    return jsonify(gacha_item), 200
-
-@app.route('/get/<user_id>/<gacha_id>', methods=['GET'])
-def get_user_gacha_item(user_id, gacha_id):
-    inventory = mock_user_inventory.get(user_id, [])
-    if gacha_id not in inventory:
-        return jsonify({"error": "Gacha item not found in user's inventory"}), 404
-    gacha_item = get_gacha_item_by_id(gacha_id)
-    return jsonify(gacha_item), 200
-
-@app.route('/is_gacha_unlocked/<user_id>/<gacha_id>', methods=['GET'])
-def is_gacha_unlocked(user_id, gacha_id):
-    inventory = mock_user_inventory.get(user_id, [])
-    if gacha_id in inventory:
-        return jsonify({"status": "unlocked"}), 200
-    return jsonify({"status": "locked"}), 404
-
-@app.route('/update_gacha_status', methods=['PUT'])
-def update_gacha_status():
-    data = request.get_json()
-    user_id = data["user_id"]
-    gacha_id = data["gacha_id"]
-    status = data["status"]
-
-    gacha_item = get_gacha_item_by_id(gacha_id)
-    if not gacha_item:
-        return jsonify({"error": "Gacha item not found"}), 404
-
-    gacha_item["status"] = status
-    return jsonify({"message": "Gacha status updated successfully"}), 200
-
-@app.route('/update_gacha_owner', methods=['PUT'])
-def update_gacha_owner():
-    data = request.get_json()
-    buyer_id = data["buyer_id"]
-    seller_id = data["seller_id"]
-    gacha_id = data["gacha_id"]
-    status = data["status"]
-
-    if gacha_id not in mock_user_inventory.get(seller_id, []):
-        return jsonify({"error": "Gacha item not found in seller's inventory"}), 404
-
-    mock_user_inventory[seller_id].remove(gacha_id)
-    mock_user_inventory.setdefault(buyer_id, []).append(gacha_id)
-
-    return jsonify({"message": "Gacha owner updated successfully"}), 200
+    auction["end_time"] = (datetime.now() + timedelta(hours=data.get("end_time", 6))).isoformat()
+    auction["base_price"] = data.get("base_price", auction["base_price"])
+    return jsonify({"message": "Auction updated successfully"}), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
