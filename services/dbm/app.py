@@ -65,6 +65,56 @@ def register(user_type):
         release_db_connection(conn, cursor)
 
 
+def authorize(username, password, user_type):
+    conn = get_db_connection(DB_HOST, DATABASE)
+    cursor = conn.cursor(dictionary=True)
+    try:
+        query = "SELECT * FROM PLAYER WHERE username = %s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE username = %s"
+        cursor.execute(query, (username,))
+        user = cursor.fetchone()
+
+        if user and check_hash(password, user["password"]):
+            auth_code = uuid4().hex
+            # query = "UPDATE PLAYER SET session_token = %s WHERE username =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET session_token = %s WHERE username =%s"
+            query = "INSERT INTO AUTH_CODES(auth_code, user_id, user_type, expires_at) VALUES (%s, %s, %s, %s)"
+            expiration = datetime.now() + timedelta(minutes=30)
+            cursor.execute(query, (auth_code, user["user_id"], user_type, expiration))
+            conn.commit()
+            # response.set_cookie('session_token', session_token, httponly=True, secure=True)
+            return ({'auth_code': auth_code}), 200
+        return ({"error": "Invalid credentials"}), 401
+
+    except Exception as e:
+        return manage_errors(e)
+    finally:
+        release_db_connection(conn, cursor)
+
+def token_release(auth_code, username, user_type):
+    conn = get_db_connection(DB_HOST, DATABASE)
+    cursor = conn.cursor(dictionary=True)
+    try:
+        query = "SELECT * FROM AUTH_CODES WHERE auth_code = %s AND user_type = %s"
+        cursor.execute(query, (auth_code,user_type))
+        auth = cursor.fetchone()
+        if auth and auth["expires_at"] > datetime.now():
+            logging.info(f"User {username} logged in successfully")
+            token = generate_session_token(auth["user_id"], user_type)
+            query = "UPDATE PLAYER SET session_token = %s WHERE username =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET session_token = %s WHERE username =%s"
+            cursor.execute(query, (token, username))
+            query = "DELETE FROM AUTH_CODES WHERE auth_code = %s AND user_type = %s"
+            cursor.execute(query, (auth_code, user_type))
+            conn.commit()
+            return ({"message": "Login successful",
+                            "session_token": token,
+                            "user_id": auth["user_id"]}), 200
+
+        return ({"error": "Invalid credentials"}), 401
+    except Exception as e:
+        return manage_errors(e)
+    finally:
+        release_db_connection(conn, cursor)
+
+
 # Endpoint di login per USER e ADMIN
 @app.route("/login/<user_type>", methods=["POST"])
 def login(user_type):
@@ -72,34 +122,14 @@ def login(user_type):
         logging.error(f"Invalid user type: {user_type}")
         return send_response({"error": "Invalid user type"}, 400)
 
-    try:
-        data = request.get_json()
-        username = data.get("username")
-        password = data.get("password")
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
 
-        # Verifica delle credenziali
-        conn = get_db_connection(DB_HOST, DATABASE)
-        cursor = conn.cursor(dictionary=True)
-        query = "SELECT * FROM PLAYER WHERE username = %s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE username = %s"
-        cursor.execute(query, (username,))
-        user = cursor.fetchone()
-
-        if user and check_hash(password, user["password"]):
-            session_token = generate_session_token(user_id=user["user_id"], user_type=user_type)
-            query = "UPDATE PLAYER SET session_token = %s WHERE username =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET session_token = %s WHERE username =%s"
-            cursor.execute(query, (session_token, username))
-            conn.commit()
-            # response.set_cookie('session_token', session_token, httponly=True, secure=True)
-            logging.info(f"User {username} logged in successfully")
-            return send_response(({"message": "Login successful", "session_token": session_token,
-                                   'user_id': user["user_id"]}), 200)
-        else:
-            logging.warning(f"Invalid credentials for user: {username}")
-            return send_response({"error": "Invalid credentials"}, 401)
-    except Exception as e:
-        return manage_errors(e)
-    finally:
-        release_db_connection(conn, cursor)
+    auth_code, status_code = authorize(username, password, user_type)
+    if not status_code == 200:
+        return send_response({"error": "Invalid credentials"}, status_code)
+    return token_release(auth_code['auth_code'], username, user_type)
 
 
 # Endpoint per il logout
@@ -183,7 +213,7 @@ def delete(user_type):
 
         if token_found:
             # Elimina il token dalla tabella PLAYER o ADMIN
-            query_delete = "DELETE FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else"DELETE FROM ADMIN WHERE session_token=%s"
+            query_delete = "DELETE FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else "DELETE FROM ADMIN WHERE session_token=%s"
             cursor.execute(query_delete, (session_token,))
             conn.commit()
             logging.info(f"User with session token {session_token} deleted successfully")
