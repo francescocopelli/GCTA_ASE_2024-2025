@@ -7,7 +7,7 @@ services:
       - user_player
       - user_player_auth
     networks:
-      - microservice-network
+      - users-network
     volumes:
       - ./shared:/app/shared
     mem_limit: 256m
@@ -29,7 +29,7 @@ services:
       - user_admin
       - user_admin_auth
     networks:
-      - microservice-network
+      - admin-network
     volumes:
       - ./shared:/app/shared
     mem_limit: 256m
@@ -48,7 +48,7 @@ services:
     depends_on:
       - users_db
     networks:
-      - microservice-network
+      - admin-network
     volumes:
       - ./shared:/app/shared
     secrets:
@@ -66,7 +66,7 @@ services:
     depends_on:
       - users_db
     networks:
-      - microservice-network
+      - admin-network
     volumes:
       - ./shared:/app/shared
     secrets:
@@ -84,7 +84,7 @@ services:
     depends_on:
       - users_db
     networks:
-      - microservice-network
+      - users-network
     volumes:
       - ./shared:/app/shared
     secrets:
@@ -102,7 +102,7 @@ services:
     depends_on:
       - users_db
     networks:
-      - microservice-network
+      - users-network
     volumes:
       - ./shared:/app/shared
     secrets:
@@ -120,7 +120,9 @@ services:
     depends_on:
       - transactions_db
     networks:
-      - microservice-network
+      - users-network
+      - admin-network
+      - transaction_db-network
     volumes:
       - ./shared:/app/shared
     secrets:
@@ -138,7 +140,9 @@ services:
     depends_on:
       - auctions_db
     networks:
-      - microservice-network
+      - users-network
+      - admin-network
+      - auction_db-network
     volumes:
       - ./shared:/app/shared
     secrets:
@@ -156,7 +160,9 @@ services:
     depends_on:
       - gacha_db
     networks:
-      - microservice-network
+      - users-network
+      - admin-network
+      - gacha_db-network
     volumes:
       - ./shared:/app/shared
     secrets:
@@ -172,7 +178,9 @@ services:
   db-manager:
     build: ./services/dbm
     networks:
-      - microservice-network
+      - users-network
+      - admin-network
+      - user_db-network
     depends_on:
       - users_db
     volumes:
@@ -191,7 +199,7 @@ services:
   auctions_db:
     build: db/auctions_db
     networks:
-      - microservice-network
+      - auction_db-network
     volumes:
       - ./db/auctions_db/backup:/var/lib/auctions_db/backup:rw
     environment:
@@ -209,7 +217,7 @@ services:
   transactions_db:
     build: db/transactions_db
     networks:
-      - microservice-network
+      - transaction_db-network
     volumes:
       - ./db/transactions_db/backup:/var/lib/transactions_db/backup:rw
     environment:
@@ -227,7 +235,7 @@ services:
   users_db:
     build: db/users_db
     networks:
-      - microservice-network
+      - user_db-network
     volumes:
       - ./db/users_db/backup:/var/lib/users_db/backup:rw
     environment:
@@ -245,7 +253,7 @@ services:
   gacha_db:
     build: db/gacha_db
     networks:
-      - microservice-network
+      - gacha_db-network
     volumes:
       - ./db/gacha_db/backup:/var/lib/gacha_db/backup:rw
     environment:
@@ -259,10 +267,21 @@ services:
       - ca.pem
       - server-cert.pem
       - server-key.pem
-
+#make 1 network per db
 networks:
-  microservice-network:
+  user_db-network:
     driver: bridge
+  gacha_db-network:
+    driver: bridge
+  auction_db-network:
+    driver: bridge
+  transaction_db-network:
+    driver: bridge
+  users-network:
+    driver: bridge
+  admin-network:
+    driver: bridge
+  
 
 secrets:
   cert:
