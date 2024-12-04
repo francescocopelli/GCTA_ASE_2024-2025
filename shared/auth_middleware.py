@@ -162,7 +162,7 @@ def is_system_call(token):
         return False
 
 def decode_session_token(token):
-    return jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
+    return jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"], audience="ALL")
 
 def generate_session_token(user_id, user_type, expiration_hours=1):
     """
@@ -184,7 +184,7 @@ def generate_session_token(user_id, user_type, expiration_hours=1):
         "iat": current_datetime,  # Data di creazione
         "nbf": current_datetime,  # Not Before
         "exp": (current_datetime + timedelta(hours=expiration_hours, minutes=1)),  # Expiration time
-        # TODO: Aggiungere tag aud nel token
+        "aud": "ALL",  # Audience
         # Public claims
         "user_id": user_id,
         "user_type": user_type}
