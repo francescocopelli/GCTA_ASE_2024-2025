@@ -6,9 +6,6 @@
 ## Description
 This repository contains the code for GCTA ASE 2024-2025.
 
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## Introduction
 The GCTA project is a backend system for a gacha game. It uses microservices architecture with Flask and Docker.
 
@@ -33,7 +30,7 @@ The system is designed to be scalable and maintainable, leveraging the benefits 
 
 ## Preliminary step
 
-For compatibility reasons you will have to run a script in order to make sure that the project can run without any issues even if you are using Windows or Linux. See the explanation section below for more information. Follow these steps:
+For compatibility reasons you will have to run a script in order to make sure that the project can run without any issues if you are using either Windows or Linux. See the explanation section below for more information. Follow these steps:
 
 1. **Run the `tool.py` script**:
    This script will automatically convert all `.sh` files in the project from `CRLF` to `LF`.
@@ -100,13 +97,13 @@ bandit -r . -x ./.venv,./test -s=B501
 Newman is a command-line tool to run Postman collections. This command will run the tests defined in the GCTA_Tests.postman_collection.json collection using the gcta_env.postman_environment.json environment. The --insecure option allows ignoring SSL certificate issues.
 To run the tests with Postman, use the following commands:
 1. First, make sure that you have installed newman on your system:
-```sh
-sudo npm install -g newman
-```
+    ```sh
+    sudo npm install -g newman
+    ```
 2. Once you have installed newman run the following command to use the collections for testing:
-```sh
-newman run ./postman_tests/GCTA_Tests.postman_collection.json -e ./postman_tests/gcta_env.postman_environment.json --insecure
-```
+    ```sh
+    newman run ./postman_tests/GCTA_Tests.postman_collection.json -e ./postman_tests/gcta_env.postman_environment.json --insecure
+    ```
 
 ## Locust tests
 
@@ -129,3 +126,6 @@ To run Locust tests, follow these steps:
     This is going to make at most 20 concurrent users spawned 5 every seconds. If you want to spawn more users you have to change the 2 values.
 3. **Start the tests**: 
     You should now see on http://localhost:8089 the locust webpage where you can start the tests and see the results in terms of performance on different loads.
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
