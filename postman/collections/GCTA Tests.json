@@ -3173,6 +3173,74 @@
 					"response": []
 				},
 				{
+					"name": "Update Auction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e9e8993e-27d8-49ff-991f-537dae6d9983",
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.message).to.contain(\"Auction updated successfully\")\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"id": "0bb78581-8080-4423-a044-278b5a090393",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"base_price\":10\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{a_base_url}}/auction/update?auction_id={{auction_id}}",
+							"host": [
+								"{{a_base_url}}"
+							],
+							"path": [
+								"auction",
+								"update"
+							],
+							"query": [
+								{
+									"key": "auction_id",
+									"value": "{{auction_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Add Gacha",
 					"event": [
 						{
