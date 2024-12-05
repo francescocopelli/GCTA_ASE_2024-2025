@@ -13,9 +13,9 @@ def convert_crlf_to_lf(file_path):
         with open(file_path, 'wb') as f:
             f.write(new_content)
 
-        print(f"[SUCCESS] Convertito CRLF in LF per: {file_path}")
+        print(f"[SUCCESS] Converted CRLF to LF for: {file_path}")
     except Exception as e:
-        print(f"[ERROR] Errore nel convertire {file_path}: {e}")
+        print(f"[ERROR] there was an error during convertion of {file_path}: {e}")
 
 def process_directory(directory):
     for root, dirs, files in os.walk(directory):
