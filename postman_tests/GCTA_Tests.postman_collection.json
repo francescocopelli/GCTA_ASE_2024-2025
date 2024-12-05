@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "989c4d01-945a-4e15-bb03-7e09e6b53be4",
+		"_postman_id": "ddcc208b-fc54-4bac-8c07-9d788fb373cb",
 		"name": "GCTA Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "39572674",
-		"_collection_link": "https://gcta11.postman.co/workspace/GCTA~e4883204-fa99-45fc-8245-f67cc6533c3b/collection/39572674-989c4d01-945a-4e15-bb03-7e09e6b53be4?action=share&source=collection_link&creator=39572674"
+		"_collection_link": "https://gcta11.postman.co/workspace/GCTA~e4883204-fa99-45fc-8245-f67cc6533c3b/collection/39572674-ddcc208b-fc54-4bac-8c07-9d788fb373cb?action=share&source=collection_link&creator=39572674"
 	},
 	"item": [
 		{
@@ -2949,6 +2949,69 @@
 								"users",
 								"admin_auth",
 								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Auction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.message).to.contain(\"Auction updated successfully\")\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"base_price\":10\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{a_base_url}}/auction/update?auction_id={{auction_id}}",
+							"host": [
+								"{{a_base_url}}"
+							],
+							"path": [
+								"auction",
+								"update"
+							],
+							"query": [
+								{
+									"key": "auction_id",
+									"value": "{{auction_id}}"
+								}
 							]
 						}
 					},
