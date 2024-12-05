@@ -2015,6 +2015,39 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Delete user",
+					"id": "be595483-f839-4b7e-b8e1-fb4280ebac19",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/auth/delete",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"auth",
+								"delete"
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"id": "e65c8a6e-541c-42f4-a246-efee388eda11"
