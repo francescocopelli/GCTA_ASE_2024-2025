@@ -5,6 +5,12 @@ on:
     branches:
       - main
 
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: ${{ github.repository }}
+  SHA: ${{ github.event.pull_request.head.sha || github.event.after }}
+  
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
@@ -12,17 +18,47 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
+      - name: Set custom workspace for main branch
+        if: ${{ github.ref_name == 'main' }}
+        run: |
+          CUSTOM_WORKSPACE="/tmp/main_branch_workspace"
+          mkdir -p $CUSTOM_WORKSPACE
+          cp -r $GITHUB_WORKSPACE/* $CUSTOM_WORKSPACE/
+          export GITHUB_WORKSPACE=$CUSTOM_WORKSPACE
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+
+      - name: Verify custom workspace
+        run: |
+          echo "Using workspace: $GITHUB_WORKSPACE"
+          ls -al $GITHUB_WORKSPACE
+
       - name: Set up Docker
         uses: docker/setup-buildx-action@v2
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PAT }}
 
       - name: Install Docker Compose
         run: |
           sudo apt-get update
           sudo apt-get install -y docker-compose
-
+      
       - name: Build and start Docker services
         run: docker-compose up --build -d
 
+      - name: Docker Scout
+        id: docker-scout
+        uses: docker/scout-action@v1
+        with:
+          command: quickview,cves,recommendations
+          to-latest: true
+          ignore-unchanged: false
+          
       - name: Log running services and ports
         run: |
           echo "Listing running Docker services and their exposed ports:"
@@ -42,42 +78,36 @@ jobs:
           done
           echo "Service is ready!"
 
-
-      - name: Run Docker logs 
+      - name: Install Postman CLI
         run: |
-          echo "Checking dbm logs:" 
+          curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+
+      - name: Login to Postman CLI
+        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+
+      - name: Sleep for 25 seconds
+        run: sleep 25
+
+      - name: Run API tests
+        run: |
+          postman collection run "${GITHUB_WORKSPACE}/postman/collections/GCTA Tests.json" -e "39572674-595d61b8-a2f9-4c18-a8a3-5ac4a64987fe" --integration-id "171433-${{ github.run_id }}" --insecure
+
+      - name: Run Docker logs
+        if: always()
+        run: |
+          echo "Checking dbm logs:"
           docker logs gcta_ase_2024-2025_db-manager_1 > db_manager_logs.txt 
           docker logs gcta_ase_2024-2025_user_player_1 > user_player_logs.txt 
           docker logs gcta_ase_2024-2025_user_player_auth_1 > user_player_auth_logs.txt 
-
-      - name: Upload log files 
+      - name: Upload log files
+        if: always()
         uses: actions/upload-artifact@v4
-        with: 
-          name: docker-logs 
+        with:
+          name: docker-logs
           path: |
             db_manager_logs.txt
             user_player_logs.txt
             user_player_auth_logs.txt
-
-      # - name: Install newman
-      #   run: npm install -g newman
-
-      # - name: Automated API tests using Postman CLI
-      #     - uses: actions/checkout@v4
-      - name: Install Postman CLI
-        run: |
-          curl -o- "http://dl-cli.pstmn.io/install/linux64.sh" | sh
-      - name: Login to Postman CLI
-        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
-      - name: Run API tests
-        run: |
-          postman collection run "${{ github.workspace }}/postman/collections/GCTA-Tests.json" -e "39570797-6ed4f213-c7dd-4d9d-ad28-a5089e5c7de4"
-
-      - name: Upload Newman Report
-        uses: actions/upload-artifact@v3
-        with:
-          name: newman-report
-          path: reports/newman-report.html
 
       - name: Stop Docker services
         if: always()
