@@ -116,7 +116,7 @@ To run Locust tests, follow these steps:
 1. **Install Locust**:
    Make sure you have Locust installed on your system. You can install it using pip:
    ```sh
-   pip install locust
+        pip install locust
    ```
 2. **Run Locust from the command line**:
     Use the following command to run Locust, specifying the host, the number of users to spawn, and the spawn rate (users per second):
@@ -126,6 +126,18 @@ To run Locust tests, follow these steps:
     This is going to make at most 20 concurrent users spawned 5 every seconds. If you want to spawn more users you have to change the 2 values.
 3. **Start the tests**: 
     You should now see on http://localhost:8089 the locust webpage where you can start the tests and see the results in terms of performance on different loads.
+
+## Isolations test
+In order to run isolation tests on every services by itself you have to:
+1. TODO
+```sh
+    TODO
+```
+2. TODO
+```sh
+    TODO
+```
+
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
