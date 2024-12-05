@@ -566,8 +566,8 @@ def get_highest_bid():
 
 
 @app.route("/update", methods=["PUT"])
-@login_required_ret
-def update_auction(user):
+@admin_required
+def update_auction():
     """
     Update an existing auction.
     This endpoint updates an existing auction in the database with the provided data.
@@ -587,9 +587,6 @@ def update_auction(user):
 
         if not auction:
             return send_response({"error": "Auction not found"}, 404)
-
-        if auction['seller_id'] != user["user_id"] and user["user_type"] == "PLAYER":
-            return send_response({"error": "You are not the seller of this auction"}, 403)
 
         if auction['status'] != 'active':
             return send_response({"error": "Auction has finished"}, 400)
