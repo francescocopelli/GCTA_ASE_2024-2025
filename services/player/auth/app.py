@@ -56,10 +56,12 @@ def logout():
 @app.route('/delete', methods=['DELETE'])
 @token_required_void
 def delete():
+    token = decode_session_token(request.headers["Authorization"].split(" ")[1])
+    user_id = token['user_id']
+    if token['user_type'] != "PLAYER":
+        user_id = request.args.get('user_id')
     url = f"{dbm_url}/delete/PLAYER"
-    logging.debug("Session token: " + request.headers["Authorization"].split(" ")[1])
-    session_token= (request.headers["Authorization"].split(" ")[1])
-    response = requests.delete(url+f"{session_token}", timeout=300)
+    response = requests.delete(url+f'?user_id={user_id}', timeout=30, verify=False, headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
 
 # Esempio di utilizzo

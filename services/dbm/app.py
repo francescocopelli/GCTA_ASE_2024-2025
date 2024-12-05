@@ -192,35 +192,24 @@ def get_balance(user_type):
 
 # Delete profile
 @app.route("/delete/<user_type>", methods=["DELETE"])
+@admin_required
 def delete(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")
         return send_response({"error": "Invalid user type"}, 400)
-
-    session_token = request.json.get("session_token")
-    if not session_token:
-        logging.error("Session token is required")
-        return send_response({"error": "Session token is required"}, 400)
-
+    user_id = request.args.get("user_id")
+    if not user_id:
+        logging.error("User ID is required")
+        return send_response({"error": "User ID is required"}, 400)
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
-
-        # Verifica se il token si trova nella tabella PLAYER o ADMIN
-        query_player = "SELECT * FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE session_token=%s"
-        cursor.execute(query_player, (session_token,))
-        token_found = cursor.fetchone()
-
-        if token_found:
-            # Elimina il token dalla tabella PLAYER o ADMIN
-            query_delete = "DELETE FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else "DELETE FROM ADMIN WHERE session_token=%s"
-            cursor.execute(query_delete, (session_token,))
-            conn.commit()
-            logging.info(f"User with session token {session_token} deleted successfully")
-            return send_response({"message": "Profile deleted successfully"}, 200)
-        else:
-            logging.warning(f"Session token not found: {session_token}")
-            return send_response({"error": "Session token not found"}, 408)
+        # Elimina il token dalla tabella PLAYER o ADMIN
+        query_delete = "DELETE FROM PLAYER WHERE user_id =%s" if "PLAYER" in user_type else "DELETE FROM ADMIN WHERE user_id=%s"
+        cursor.execute(query_delete, (user_id,))
+        conn.commit()
+        logging.info(f"User with session token {user_id} deleted successfully")
+        return send_response({"message": "Profile deleted successfully"}, 200)
     except Exception as e:
         return manage_errors(e)
     finally:
