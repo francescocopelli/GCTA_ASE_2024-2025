@@ -127,40 +127,52 @@ To run Locust tests, follow these steps:
 3. **Start the tests**: 
     You should now see on http://localhost:8089 the locust webpage where you can start the tests and see the results in terms of performance on different loads.
 
-## Isolations test
-In order to run isolation tests on every services by itself you have to:
-1. Navigate to the directory of the service. This are the commands:
-2. Build the specific service that you need to test in isolation based on the directory. The isolation tests use the docker_test file as the main app uses docker file. 
-#### Auction Service
+## Isolation tests
+Isolation tests have been used to test individual services in absence of the database and other service dependencies. These are the genaral steps: 
+1. Navigate to the directory of the specific service you want to test.
+2. Build the Docker image for the service using the provided `dockerfile_test` (used for testing purposes instead of the main `dockerfile`).
+3. Run the Docker container for the service in detached mode, naming it appropriately.
+4. Execute the Newman test for the service using the `GCTA_Isolation_Tests.postman_collection.json` and the corresponding environment file.
+##### Auction Service
 ```sh
     cd services/auction
+
     docker build -t auction-mock -f dockerfile_test .
-    docker run -p 5000:5000 auction-mock
-    TODO : Put the link to run postman tests
+
+    docker run -d -p 5000:5000 --name auction-mock-container auction-mock
+
+    newman run ./../../isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Auctions" --environment ./../../isolation_tests_postman/gcta_mock.postman_environment.json
 ```
-#### Gacha Service
+##### Gacha Service
 ```sh
     cd services/gacha
+
     docker build -t gacha-mock -f dockerfile_test .
-    docker run -p 5000:5000 gacha-mock
-    TODO : Put the link to run postman tests
+
+    docker run -d -p 5000:5000 --name gacha-mock-container gacha-mock
+
+    newman run ./../../isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Gachas" --environment ./../../isolation_tests_postman/gcta_mock.postman_environment.json
 ```
 #### Player Service
 ```sh
     cd services/player
+
     docker build -t player-mock -f dockerfile_test .
-    docker run -p 5000:5000 player-mock
-    TODO : Put the link to run postman tests
+
+    docker run -d -p 5000:5000 --name player-mock-container player-mock
+
+    newman run ./../../isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Player" --environment ./../../isolation_tests_postman/gcta_mock.postman_environment.json
 ```
 #### Transaction Service
 ```sh
     cd services/transaction
+
     docker build -t transaction-mock -f dockerfile_test .
-    docker run -p 5000:5000 transaction-mock
-    TODO : Put the link to run postman tests
+
+    docker run -d -p 5000:5000 --name transaction-mock-container transaction-mock
+
+    newman run ./../../isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Transactions" --environment ./../../isolation_tests_postman/gcta_mock.postman_environment.json
 ```
-
-
 
 
 ## License
