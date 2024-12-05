@@ -2,18 +2,29 @@ import datetime
 import random
 from threading import Lock
 
-from locust import HttpUser, TaskSet, task, between
+from locust import HttpUser, task, between
 
 import locustfile
 
 
-class GetAllAuctionsBehavior(TaskSet):
+class GetAllAuctionsBehavior(HttpUser):
 
+    wait_time = between(1, 5)
+    session_token_user = None
+    user_id = None
+    admin_session_token = None
+    admin_id = None
+    
+    def on_start(self):
+        locustfile.register_and_login(self)
+        locustfile.register_and_login_admin(self)
+    
+    def on_stop(self):
+        locustfile.delete_user(self)
+        
     @task
     def all_auctions(self):
-        locustfile.admin_login(self)
-        token = locustfile.admin_session_token[random.choice(range(0, 3))]
-        headers = locustfile.create_header(token)
+        headers = locustfile.create_admin_header(self.admin_session_token)
         status = random.choice(["all", "active", "expired", "completed"])  # Random status for testing
 
         # Perform the get all auctions action
@@ -39,10 +50,7 @@ class GetAllAuctionsBehavior(TaskSet):
 
     @task
     def get_all_active_auctions(self):
-        locustfile.admin_login(self)
-        token = locustfile.admin_session_token[random.choice(range(0, 3))]
-        headers = locustfile.create_header(token)
-
+        headers = locustfile.create_admin_header(self.admin_session_token)
         # Perform the get all active auctions action
         response = self.client.get(f"{locustfile.admin_base}{locustfile.auction_url}/all_active", verify=False, headers=headers)
 
@@ -66,9 +74,7 @@ class GetAllAuctionsBehavior(TaskSet):
 
     @task(1)
     def add_auction(self):
-        locustfile.login(self)
-        token = locustfile.session_token[random.choice(range(0, 3))]
-        headers = locustfile.create_header(token)
+        headers = locustfile.create_header(self.session_token_user)
         with self.client.post(f"{locustfile.gacha_url}/roll", verify=False, headers=headers, catch_response=True) as response:
             if response.json().get("error") == "Insufficient funds for gacha roll":
                 print("Insufficient funds for gacha roll")
@@ -104,9 +110,7 @@ class GetAllAuctionsBehavior(TaskSet):
 
     @task
     def get_gacha_auctions(self):
-        locustfile.login(self)
-        token = locustfile.session_token[random.choice(range(0, 3))]
-        headers = locustfile.create_header(token)
+        headers = locustfile.create_header(self.session_token_user)
         gacha_id = random.randint(1, 300)  # Assuming gacha_id ranges from 1 to 100
 
         # Perform the get gacha auctions action
@@ -127,9 +131,7 @@ class GetAllAuctionsBehavior(TaskSet):
 
     @task
     def all_my_auctions(self):
-        locustfile.login(self)
-        token = locustfile.session_token[random.choice(range(0, 3))]
-        headers = locustfile.create_header(token)
+        headers = locustfile.create_header(self.session_token_user)
 
         # Perform the get all my auctions action
         response = self.client.get(f"{locustfile.auction_url}/my", verify=False, headers=headers)
@@ -150,25 +152,21 @@ class GetAllAuctionsBehavior(TaskSet):
 
     @task
     def get_auction(self):
-        locustfile.admin_login(self)
-        token = locustfile.admin_session_token[random.choice(range(0, 3))]
-        headers = locustfile.create_header(token)
+        headers = locustfile.create_admin_header(self.admin_session_token)
         # Randomly choose to test with auction_id or user_id
-        if random.choice([True, False]) or True:
+        if random.choice([True, False]):
 
             with Lock():
                 # if len(locustfile.all_auctions) == 0:
-                locustfile.admin_login(self)
                 response = self.client.get(f"{locustfile.admin_base}{locustfile.auction_url}/all?status=active",
                                            verify=False, headers=headers)
-                print("Buccio1: ", response.json())
+
                 locustfile.all_auctions = [id.get("auction_id") for id in response.json().get("auctions", [])]
-                print("Buccio: ", locustfile.all_auctions)
+
                 auction_id = locustfile.all_auctions[random.choice(range(0, len(locustfile.all_auctions)))]
                 url = f"{locustfile.admin_base}{locustfile.auction_url}/get_auction?auction_id={auction_id}"
         else:
-            usr_id = random.choice(locustfile.user_id)
-            url = f"{locustfile.admin_base}{locustfile.auction_url}/get_auction?user_id={usr_id}"
+            url = f"{locustfile.admin_base}{locustfile.auction_url}/get_auction?user_id={self.user_id}"
 
         # Perform the get auction action
         with self.client.get(url, verify=False, headers=headers, catch_response=True) as response:
@@ -202,67 +200,49 @@ class GetAllAuctionsBehavior(TaskSet):
 
     @task
     def update_auction(self):
-        locustfile.login(self)
-        user = random.choice(range(0, 3))
-        usr_id = locustfile.user_id[user]
-
-        token = locustfile.session_token[user]
-        headers = locustfile.create_header(token)
+        header = locustfile.create_admin_header(self.admin_session_token)
             # if len(locustfile.all_auctions) == 0:
         with self.client.get(f"{locustfile.admin_base}{locustfile.auction_url}/all?status=active",
-                                   verify=False, headers=locustfile.create_admin_header(
-                                       locustfile.admin_session_token[random.choice(range(0, 3))]), catch_response=True) as response:
-            auction_id = \
-            [id.get("auction_id") for id in response.json().get("auctions", []) if id.get("seller_id") == usr_id]
-            if auction_id is None or auction_id == []:
+                                   verify=False, headers=header, catch_response=True) as response:
+            auction_id = [id.get("auction_id") for id in response.json().get("auctions", [])]
+            if len(auction_id) == 0:
                 print("No auction found for user")
                 response.success()
             data = {
-                "base_price": random.choice(range(1, 2)),  # Random base price for testing
-                "end_time": (datetime.datetime.now() + datetime.timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S')
-                # New end time
+                "base_price": random.choice(range(3, 5)),  # Random base price for testing
             }
             # Perform the update auction action
-            response = self.client.put(f"{locustfile.auction_url}/update?auction_id={auction_id[0]}", json=data,
-                                       verify=False, headers=headers)
+            with self.client.put(f"{locustfile.admin_base}{locustfile.auction_url}/update?auction_id={random.choice(auction_id)}", json=data,
+                                       verify=False, headers=header, catch_response=True) as response:
 
-            # Check for possible errors
-            if response.status_code == 200:
-                print(f"Auction updated successfully: {response.json()}")
-            elif response.status_code == 400:
-                error_message = response.json().get('error', '')
-                if error_message == "Missing auction_id parameter":
-                    print(f"Error: Missing auction_id parameter")
-                elif error_message == "Auction has finished":
-                    print(f"Error: Auction has finished")
+                # Check for possible errors
+                if response.status_code == 200:
+                    print(f"Auction updated successfully: {response.json()}")
+                elif response.status_code == 400:
+                    error_message = response.json().get('error', '')
+                    if error_message == "Missing auction_id parameter":
+                        print(f"Error: Missing auction_id parameter")
+                    elif error_message == "Auction has finished":
+                        print(f"Error: Auction has finished")
+                    else:
+                        print(f"Error: Failed to update auction")
+                elif response.status_code == 403:
+                    print(f"Error: You are not the seller of this auction")
+                elif response.status_code == 404:
+                    print(f"Error: Auction not found")
+                elif response.status_code == 500:
+                    print(f"Error: Internal server error")
                 else:
-                    print(f"Error: Failed to update auction")
-            elif response.status_code == 403:
-                print(f"Error: You are not the seller of this auction")
-            elif response.status_code == 404:
-                print(f"Error: Auction not found")
-            elif response.status_code == 500:
-                print(f"Error: Internal server error")
-            else:
-                print(f"Unexpected status code {response.status_code}")
-
-
-class PlaceBidBehavior(TaskSet):
+                    print(f"Unexpected status code {response.status_code}")
 
     @task
     def place_bid(self):
-        locustfile.login(self)
-        token = locustfile.session_token[random.choice(range(0, 3))]
-        headers = locustfile.create_header(token)
+        headers = locustfile.create_header(self.session_token_user)
         with Lock():
-
             # if len(locustfile.all_auctions) == 0:
-            locustfile.admin_login(self)
             response = self.client.get(f"{locustfile.admin_base}{locustfile.auction_url}/all?status=active",
-                                       verify=False, headers=locustfile.create_admin_header(
-                                           locustfile.admin_session_token[random.choice(range(0, 3))]))
+                                       verify=False, headers=locustfile.create_admin_header(self.admin_session_token))
             locustfile.all_auctions = [id.get("auction_id") for id in response.json().get("auctions", [])]
-            print("AAAAA: ", locustfile.all_auctions)
             data = {
                 "auction_id": locustfile.all_auctions[random.choice(range(0, len(locustfile.all_auctions)))],
                 # Random auction_id for testing
@@ -297,15 +277,11 @@ class PlaceBidBehavior(TaskSet):
 
     @task
     def get_bids(self):
-        locustfile.login(self)
-        token = locustfile.session_token[random.choice(range(0, 3))]
-        headers = locustfile.create_header(token)
+        headers = locustfile.create_header(self.session_token_user)
 
         with Lock():
-            locustfile.admin_login(self)
             response = self.client.get(f"{locustfile.admin_base}{locustfile.auction_url}/all?status=active",
-                                       verify=False, headers=locustfile.create_admin_header(
-                                           locustfile.admin_session_token[random.choice(range(0, 3))]))
+                                       verify=False, headers=locustfile.create_admin_header(self.admin_session_token))
             locustfile.all_auctions = [id.get("auction_id") for id in response.json().get("auctions", [])]
         auction_id = locustfile.all_auctions[random.choice(range(0, len(locustfile.all_auctions)))]
         if len(locustfile.all_auctions) == 0:
@@ -331,8 +307,3 @@ class PlaceBidBehavior(TaskSet):
             print(f"Error: Internal server error for auction_id={auction_id}")
         else:
             print(f"Unexpected status code {response.status_code} for auction_id={auction_id}")
-
-
-class GetAllAuctionsTest(HttpUser):
-    tasks = [GetAllAuctionsBehavior, PlaceBidBehavior]
-    wait_time = between(1, 5)
