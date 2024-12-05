@@ -129,14 +129,38 @@ To run Locust tests, follow these steps:
 
 ## Isolations test
 In order to run isolation tests on every services by itself you have to:
-1. TODO
+1. Navigate to the directory of the service. This are the commands:
+2. Build the specific service that you need to test in isolation based on the directory. The isolation tests use the docker_test file as the main app uses docker file. 
+#### Auction Service
 ```sh
-    TODO
+    cd services/auction
+    docker build -t auction-mock -f dockerfile_test .
+    docker run -p 5000:5000 auction-mock
+    TODO : Put the link to run postman tests
 ```
-2. TODO
+#### Gacha Service
 ```sh
-    TODO
+    cd services/gacha
+    docker build -t gacha-mock -f dockerfile_test .
+    docker run -p 5000:5000 gacha-mock
+    TODO : Put the link to run postman tests
 ```
+#### Player Service
+```sh
+    cd services/player
+    docker build -t player-mock -f dockerfile_test .
+    docker run -p 5000:5000 player-mock
+    TODO : Put the link to run postman tests
+```
+#### Transaction Service
+```sh
+    cd services/transaction
+    docker build -t transaction-mock -f dockerfile_test .
+    docker run -p 5000:5000 transaction-mock
+    TODO : Put the link to run postman tests
+```
+
+
 
 
 ## License
