@@ -86,7 +86,7 @@ Bandit is a static analysis tool to find potential security issues in Python cod
 
 To run Bandit, use the following command:
 ```sh
-bandit -r . -x ./.venv,./test -s=B501
+bandit -r . -x ./.venv/,./test_locust/,./mockup_test/,./locustfile.py -s=B501
 ```
 ### Command explanation
 1. -r .: Recursively scans all directories and files in the project.
