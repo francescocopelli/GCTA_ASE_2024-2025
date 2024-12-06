@@ -77,9 +77,6 @@ This issue occurs because Windows uses `\r\n` (carriage return and line feed) fo
 6. **API Documentation**
     - The API documentation can be found in the [docs/API_admin.yaml](docs/API_admin.yaml) file for the admins endopoints and in the [docs/API_player.yaml](docs/API_player.yaml) for the user endpoints.
 
-7. **Additional Information**
-    - For more details, refer to the [README.md](README.md)
-
 ## Bandit
 Bandit is a static analysis tool to find potential security issues in Python code. It runs a series of checks on each file and reports any vulnerabilities.
 
