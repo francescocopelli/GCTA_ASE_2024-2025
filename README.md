@@ -5,7 +5,7 @@
 ![Language](http://img.shields.io/github/languages/top/francescocopelli/GCTA_ASE_2024-2025)
 ## Description
 This repository contains the code for GCTA ASE 2024-2025.
-
+[Final Report](https://github.com/francescocopelli/GCTA_ASE_2024-2025/blob/1fe9747da78711405ee0458d41c115b4c1aee9af/docs/Final_Report.pdf)
 ## Introduction
 The GCTA project is a backend system for a gacha game. It uses microservices architecture with Flask and Docker.
 
