@@ -448,7 +448,7 @@ paths:
         - bearerAuth: []
       description: Update an existing auction using the provided data. The auction must belong to the user.
       parameters:
-        - name: gacha_id
+        - name: auction_id
           in: query
           required: true
           description: The Auction ID of the auction.
@@ -463,9 +463,9 @@ paths:
               properties:
                 base_price:
                   type: number
-                end_time:
-                  type: string
-                  format: date-time
+                # end_time:
+                #   type: string
+                #   format: date-time
       responses:
         '200':
           description: Successfully updated the auction.
