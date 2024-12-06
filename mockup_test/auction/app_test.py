@@ -127,13 +127,13 @@ def gigio(endpoint, **kwargs):  # Implementation
     elif "get_specific_auction" in endpoint:
         if 'user_id' in kwargs:
             user_id = kwargs['user_id']
-            return list(filter(lambda x: filtro(x, "seller_id", user_id), auctions)) or list(
+            return {'auctions':list(filter(lambda x: filtro(x, "seller_id", user_id), auctions)) or list(
                 filter(lambda x: filtro(x, "buyer_id", user_id), auctions)) or list(
-                filter(lambda x: filtro(x, "seller_id", auctions[0]['seller_id']), auctions))
+                filter(lambda x: filtro(x, "seller_id", auctions[0]['seller_id']), auctions))}
         elif 'auction_id' in kwargs:
             auction_id = kwargs['auction_id']
-            return list(filter(lambda x: filtro(x, "auction_id", auction_id), auctions)) or list(
-                filter(lambda x: filtro(x, "auction_id", auctions[0]['auction_id']), auctions))
+            return {'auctions':list(filter(lambda x: filtro(x, "auction_id", auction_id), auctions)) or list(
+                filter(lambda x: filtro(x, "auction_id", auctions[0]['auction_id']), auctions))}
     elif "get_highest_bid" == endpoint:
         gacha_id = kwargs['gacha_id'] or auctions[0]['gacha_id']
         # return the highest bid for the gacha
