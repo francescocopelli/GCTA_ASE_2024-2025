@@ -180,7 +180,17 @@ To execute the isolation tests for each service, follow the steps below:
 
     newman run ./../../isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Transactions" --environment ./../../isolation_tests_postman/gcta_mock.postman_environment.json
 ```
+#### Player Auth Service
+```sh
+    docker build -t player-auth-mock -f users_auth_mockup_test.dockerfile .
+    docker run -d -p 5000:5000 --name player-auth-mock-container player-auth-mock
+```
 
+#### Admin Auth Service
+```sh
+    docker build -t admin-auth-mock -f admin_auth_mockup_test.dockerfile .
+    docker run -d -p 5000:5000 --name admin-auth-mock-container admin-auth-mock
+```
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
