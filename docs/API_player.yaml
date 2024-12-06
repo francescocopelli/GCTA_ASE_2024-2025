@@ -2,9 +2,9 @@ openapi: 3.0.0
 info:
   title: Gacha Player Game Backend API
   version: 1.0.0
-  description: API for managing gacha rolls, user inventories, auctions, transactions, and user authentication.
+  description: "API for managing gacha rolls, user inventories, auctions, transactions, and user authentication."
 servers:
-  - url: http://localhost:8080
+  - url: https://localhost:8080
     description: Local development server for player
 tags:
   - name: PLAYER
@@ -36,10 +36,10 @@ paths:
               properties:
                 username:
                   type: string
-                  example: player123
+                  example: test_1
                 password:
                   type: string
-                  example: securepassword
+                  example: prova
       responses:
         '200':
           description: Successful login
@@ -71,10 +71,12 @@ paths:
                   type: string
                   example: new_player@example.com
                 image:
-                  type: object
+                  type: string
+                  format: binary
+                  nullable: true
       responses:
         '200':
-          description: Player successfully registered
+          description: PLAYER registered successfully
         '400':
           description: Missing required fields
         '409':
@@ -119,7 +121,6 @@ paths:
       security:
         - bearerAuth: []
       requestBody:
-        required: true
         content:
           multipart/form-data:
             schema:
@@ -127,15 +128,17 @@ paths:
               properties:
                 username:
                   type: string
-                  example: updated_username
+                  example: test_1
                 password:
                   type: string
-                  example: updated_password
+                  example: prova
                 email:
                   type: string
                   example: updated_email@example.com
                 image:
-                  type: object           
+                  type: string
+                  format: binary
+                  nullable: true           
       responses:
         '200':
           description: Account successfully updated
@@ -178,7 +181,7 @@ paths:
                       example: "available"
                     description:
                       type: string
-                      example: "Fast auto"
+                      example: "mainlines_2024"
                     image:
                       type: string
                       format: base64
@@ -222,7 +225,7 @@ paths:
           example: "1"
       responses:
         '200':
-          description: Gacha item information retrieved successfully
+          description: Gacha item information retrieved successfully or Gacha item not found in user inventory
           content:
             application/json:
               schema:
@@ -381,7 +384,7 @@ paths:
           required: true
           schema:
             type: string
-          example: "txn_001"
+          example: "dead8d35-bcb8-4b1c-986c-58c6cd90825d"
       responses:
         '200':
           description: Transaction retrieved successfully
@@ -392,7 +395,7 @@ paths:
                 properties:
                   transaction_id:
                     type: string
-                    example: "txn_001"
+                    example: "dead8d35-bcb8-4b1c-986c-58c6cd90825d"
                   user_id:
                     type: string
                     example: "1"
@@ -699,12 +702,7 @@ paths:
       tags:
         - GACHA
       summary: Retrieve all gacha items
-      parameters:
-        - in: query
-          name: offset
-          schema:
-            type: integer
-          description: The number of items to skip
+      description: The number of items to skip
       responses:
         '200':
           description: Gacha items retrieved successfully
