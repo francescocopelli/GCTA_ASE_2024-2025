@@ -125,7 +125,7 @@ To run Locust tests, follow these steps:
 
 ## Isolation tests
 Isolation tests have been used to test individual services in absence of the database and other service dependencies. These are the genaral steps: 
-1. Navigate to the directory of the specific service you want to test.
+1. Navigate to the root directory of the project
 2. Build the Docker image for the service using the provided `dockerfile_test` (used for testing purposes instead of the main `dockerfile`).
 3. Run the Docker container for the service in detached mode, naming it appropriately.
 4. Execute the Newman test for the service using the `GCTA_Isolation_Tests.postman_collection.json` and the corresponding environment file.
