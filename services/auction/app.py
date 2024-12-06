@@ -1,13 +1,17 @@
-
+import logging
+import os
 import uuid
 from urllib import request
 
+mockup = os.getenv("MOCKUP", "0") == "1"
+if mockup:
+    from auth_middleware import *
+else:
+    from shared.auth_middleware import *
+
 from flask import Flask
 
-from shared.auth_middleware import *
-
 app = Flask(__name__)
-
 
 app.config['SECRET_KEY'] = SECRET_KEY
 DATABASE = "auctions"
@@ -18,13 +22,18 @@ transaction_url = "https://transaction:5000"
 admin_url = "https://user_admin:5000"
 
 logging.basicConfig(level=logging.DEBUG)
+gigio = None
+
 
 @app.route("/all", methods=["GET"])
-@admin_required
+# @admin_required
 # Endpoint to retrieve all auction
 def get_all_auctions():
-    check_auction_status()
+    if not mockup: check_auction_status()
     status = sanitize(request.args.get("status")) or "all"
+    if mockup:
+        return send_response({'auctions':
+                                  gigio("all", status=status)}, 200)
     """
     Retrieve all auctions or filter by auction status.
     This endpoint retrieves all auctions from the database. Optionally, it can filter
@@ -58,23 +67,27 @@ def get_all_auctions():
         result = [dict(auction) for auction in auctions]
 
         return send_response({"auctions": result}, 200)
+
     except Exception as e:
+        logging.warning(f"Error: {e}")
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
 
 
 @app.route("/all_active", methods=["GET"])
 @login_required_void
 def get_all_auctions_restricted():
-    req = requests.get("https://localhost:5000/all?status=active",  timeout=30, verify=False, headers=generate_session_token_system())
+    if mockup: return send_response({'auctions': gigio("all", status="active")}, 200)
+    req = requests.get("https://localhost:5000/all?status=active", timeout=30, verify=False,
+                       headers=generate_session_token_system())
     return send_response(req.json(), req.status_code)
 
 
 # Function to check if the gacha is unlocked
 def is_gacha_unlocked(user_id, gacha_id):
     try:
-        response = requests.get(f"{gacha_url}/is_gacha_unlocked/{user_id}/{gacha_id}", timeout=30, verify=False, 
+        response = requests.get(f"{gacha_url}/is_gacha_unlocked/{user_id}/{gacha_id}", timeout=30, verify=False,
                                 headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from gacha service: {response.json()}")
@@ -90,7 +103,7 @@ def is_gacha_unlocked(user_id, gacha_id):
 # Function to update gacha status
 def update_gacha_status(user_id, gacha_id, status):
     try:
-        response = requests.put(f"{gacha_url}/update_gacha_status", timeout=30, verify=False, 
+        response = requests.put(f"{gacha_url}/update_gacha_status", timeout=30, verify=False,
                                 json={"user_id": user_id, "gacha_id": gacha_id, "status": status},
                                 headers=generate_session_token_system())
         response.raise_for_status()
@@ -107,7 +120,7 @@ def update_gacha_status(user_id, gacha_id, status):
 # Function to update gacha owner
 def update_gacha_owner(buyer_id, gacha_id, seller_id, status):
     try:
-        response = requests.put(f"{gacha_url}/update_gacha_owner", timeout=30, verify=False, 
+        response = requests.put(f"{gacha_url}/update_gacha_owner", timeout=30, verify=False,
                                 json={"buyer_id": buyer_id, "seller_id": seller_id, "gacha_id": gacha_id,
                                       "status": status}, headers=generate_session_token_system())
         response.raise_for_status()
@@ -124,7 +137,7 @@ def update_gacha_owner(buyer_id, gacha_id, seller_id, status):
 # Function to create a transaction
 def create_transaction(user_id, amount, transaction_type):
     try:
-        response = requests.post(f"{transaction_url}/add_transaction", timeout=30, verify=False, 
+        response = requests.post(f"{transaction_url}/add_transaction", timeout=30, verify=False,
                                  json={"user_id": user_id, "amount": amount, "type": transaction_type},
                                  headers=generate_session_token_system())
         response.raise_for_status()
@@ -139,8 +152,10 @@ def create_transaction(user_id, amount, transaction_type):
 
 
 def update_user_balance(user_id, amount, type):
+    if mockup: return send_response({"message":"OK"}, 200)
     try:
-        response = requests.put(f"{user_url}/update_balance/PLAYER", headers=generate_session_token_system(), timeout=30, verify=False, 
+        response = requests.put(f"{user_url}/update_balance/PLAYER", headers=generate_session_token_system(),
+                                timeout=30, verify=False,
                                 json={"user_id": user_id, "amount": amount, "type": type})
         response.raise_for_status()
         logging.debug(f"Response from user service: {response.json()}")
@@ -155,8 +170,11 @@ def update_user_balance(user_id, amount, type):
 
 # write a function that sends a get request to user service to get the user's balance if the user exists
 def get_user_balance(user_id):
+    if mockup:
+        return send_response({'currency_balance': 200}, 200)
     try:
-        response = requests.get(f"{admin_url}/get_user_balance/{user_id}", timeout=30, verify=False,  headers=generate_session_token_system())
+        response = requests.get(f"{admin_url}/get_user_balance/{user_id}", timeout=30, verify=False,
+                                headers=generate_session_token_system())
         response.raise_for_status()
         logging.debug(f"Response from user service: {response.json()}")
         return send_response(response.json(), 200)
@@ -172,11 +190,13 @@ def get_user_balance(user_id):
 @app.route("/add", methods=["POST"])
 @login_required_void
 def add_auction():
-
-    user = decode_session_token(request.headers["Authorization"].split(" ")[1])
+    if mockup:
+        user = {"user_id": 1, "user_type": "PLAYER"}
+    else:
+        user = decode_session_token(request.headers["Authorization"].split(" ")[1])
     if user['user_type'] != "PLAYER":
         return send_response({"error": "Only players can create auctions"}, 403)
-    if check_header() is True and user["user_type"] == "PLAYER":
+    if check_header() is True and user["user_type"] == "PLAYER" and not mockup:
         return send_response({"error": "Unauthorized access"}, 403)
     try:
         # Extract auction details from the request JSON
@@ -189,18 +209,20 @@ def add_auction():
         if not all([gacha_id, base_price, seller_id]):
             logging.error("Missing data for new auction")
             return send_response({"error": "Missing data for new auction"}, 400)
-        
+
         if not isinstance(base_price, int):
             logging.error("Base price must be an integer")
             return send_response({"error": "Base price must be an integer"}, 400)
         if base_price < 0:
             logging.error("Base price cannot be negative")
             return send_response({"error": "Base price cannot be negative"}, 400)
-        
+
         if base_price > 9999:
             logging.error("Base price cannot be higher than 9999")
             return send_response({"error": "Base price cannot be higher than 9999"}, 400)
-
+        if mockup:
+            mockup_res = gigio("add_auction", gacha_id=gacha_id, seller_id=seller_id, base_price=base_price)
+            return send_response({'message': mockup_res[0], 'auction_id': mockup_res[1]}, 201)
         # Connect to the database
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
@@ -216,7 +238,8 @@ def add_auction():
             if status_code == 200:
                 cursor.execute(
                     "INSERT INTO Auctions (auction_id, gacha_id, seller_id, base_price, highest_bid, buyer_id, status, end_time) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
-                    (auction_id, gacha_id, seller_id, base_price, 0, None, "active", datetime.fromtimestamp(end_time).strftime('%Y-%m-%d %H:%M:%S')),
+                    (auction_id, gacha_id, seller_id, base_price, 0, None, "active",
+                     datetime.fromtimestamp(end_time).strftime('%Y-%m-%d %H:%M:%S')),
                 )
 
                 # UPDATE GACHA INVENTORY WITH BLOCKED GACHA
@@ -231,13 +254,15 @@ def add_auction():
             return send_response({"error": "Gacha is locked or does not exist"}, 404)
 
     except Exception as e:
-            return manage_errors(e)
+        return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
 
 
 # write a function that checks if the auction has ended and if it has, update the status to expired
 def check_auction_status():
+    if mockup: return
+    # TODO CHECK LATER
     conn = get_db_connection(DB_HOST, DATABASE)
     try:
         # Connect to the database
@@ -328,7 +353,8 @@ def get_gacha_auctions():
     if not gacha_id:
         logging.error("Missing gacha_id parameter")
         return send_response({'error': 'Missing gacha_id parameter'}, 400)
-
+    if mockup:
+        return send_response(gigio("get_gacha_auctions", gacha_id=gacha_id), 200)
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
@@ -346,7 +372,7 @@ def get_gacha_auctions():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
 
 
 # Functions for Bidding
@@ -366,28 +392,30 @@ def place_bid(user):
         return send_response({"error": "Missing data for bid"}, 400)
 
     conn = None
-    if decode_session_token(request.headers["Authorization"].split(" ")[1])['user_type'] == "ADMIN":
+    if not mockup and decode_session_token(request.headers["Authorization"].split(" ")[1])['user_type'] == "ADMIN":
         return send_response({"error": "You cannot place a bid as an admin"}, 403)
     try:
         if not isinstance(bid_amount, int):
             return send_response({"error": "Bid amount must be an integer"}, 400)
         if bid_amount < 0:
             return send_response({"error": "Bid amount cannot be negative"}, 400)
-        
-        # Connect to the database
-        conn = get_db_connection(DB_HOST, DATABASE)
-        cursor = conn.cursor(dictionary=True)
+        if not mockup:
+            # Connect to the database
+            conn = get_db_connection(DB_HOST, DATABASE)
+            cursor = conn.cursor(dictionary=True)
 
-        # Check if the auction exists and is active
-        cursor.execute(
-            "SELECT * FROM Auctions WHERE auction_id = %s AND status = 'active'",
-            (auction_id,),
-        )
-        auction = cursor.fetchone()
+            # Check if the auction exists and is active
+            cursor.execute(
+                "SELECT * FROM Auctions WHERE auction_id = %s AND status = 'active'",
+                (auction_id,),
+            )
+            auction = cursor.fetchone()
+        else:
+            auction = gigio("get_random_auction")
 
         if not auction:
             return send_response({"error": "Auction not found or already ended"}, 408)
-        
+
         if user_id == auction['seller_id']:
             return send_response({"error": "You cannot bid on your own auction"}, 400)
 
@@ -406,6 +434,8 @@ def place_bid(user):
             update_user_balance(auction['buyer_id'], auction['highest_bid'], "auction_credit")
         # Block money from new buyer
         update_user_balance(user_id, bid_amount, "auction_debit")
+
+        if mockup: return send_response({'message':gigio("bid", auction_id=auction_id, buyer_id=user_id, amount=bid_amount)}, 200)
         # Update auction
         cursor.execute(
             "UPDATE Auctions SET highest_bid =%s, buyer_id = %s WHERE auction_id =%s",
@@ -425,14 +455,16 @@ def place_bid(user):
             return send_response({"error": "Failed to place bid"}, 409)
 
         return send_response({"message": "Bid placed successfully"}, 200)
+
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
 
 
 # Endpoint to retrieve all bids for a specific auction
 @app.route("/bids", methods=["GET"])
+@login_required_void
 def get_bids():
     """
     Endpoint to retrieve bids for a specific auction.
@@ -451,7 +483,8 @@ def get_bids():
     if not auction_id:
         logging.error("Missing auction_id parameter")
         return send_response({"error": "Missing auction_id parameter"}, 400)
-
+    if mockup:
+        return send_response({'bids':gigio("get_all_bids", auction_id=auction_id)}, 200)
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
@@ -464,16 +497,17 @@ def get_bids():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
 
 
 @app.get("/my")
 @login_required_ret
 def all_my_auction(user):
     user_id = user["user_id"]
+    if mockup: return send_response(gigio("get_specific_auction", user_id=user_id), 200)
     if decode_session_token(request.headers["Authorization"].split(" ")[1])['user_type'] == "ADMIN":
         return send_response({"error": "Admins don't have auctions"}, 403)
-    req = requests.get("https://localhost:5000/get_auction?user_id=" + str(user_id), timeout=30, verify=False, 
+    req = requests.get("https://localhost:5000/get_auction?user_id=" + str(user_id), timeout=30, verify=False,
                        headers=generate_session_token_system())
     return send_response(req.json(), req.status_code)
 
@@ -504,6 +538,8 @@ def get_auction():
 
     try:
         if auction_id:
+            if mockup:
+                return send_response(gigio("get_specific_auction", auction_id=auction_id), 200)
             conn = get_db_connection(DB_HOST, DATABASE)
             cursor = conn.cursor(dictionary=True)
             cursor.execute("SELECT * FROM Auctions WHERE auction_id =%s", (auction_id,))
@@ -517,6 +553,8 @@ def get_auction():
             res = dict(auction)
             return send_response(res, 200)
         elif user_id:
+            if mockup:
+                return send_response(gigio("get_specific_auction", user_id=user_id), 200)
             conn = get_db_connection(DB_HOST, DATABASE)
             cursor = conn.cursor(dictionary=True)
             cursor.execute("SELECT * FROM Auctions WHERE buyer_id = %s OR seller_id =%s", (user_id, user_id))
@@ -531,7 +569,7 @@ def get_auction():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
 
 
 @app.get("/highest_bid")
@@ -547,6 +585,8 @@ def get_highest_bid():
     """
     if not gacha_id:
         return send_response({"error": "Missing gacha_id parameter"}, 400)
+    if mockup:
+        return send_response(gigio("get_highest_bid", gacha_id=gacha_id), 200)
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
@@ -555,14 +595,15 @@ def get_highest_bid():
 
         if auction:
             return send_response(
-                {"auction": auction['auction_id'], "highest_bid": auction["highest_bid"], "buyer_id": auction["buyer_id"]},
+                {"auction": auction['auction_id'], "highest_bid": auction["highest_bid"],
+                 "buyer_id": auction["buyer_id"]},
                 200)
         else:
             return send_response({"error": "Auction not found"}, 404)
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
 
 
 @app.route("/update", methods=["PUT"])
@@ -580,15 +621,19 @@ def update_auction():
     if not auction_id:
         return send_response({"error": "Missing auction_id parameter"}, 400)
     try:
-        conn = get_db_connection(DB_HOST, DATABASE)
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM Auctions WHERE auction_id =%s", (auction_id,))
-        auction = cursor.fetchone()
+        if mockup:
+            auction = gigio("get_random_auction")
+            logging.warning(f"Mockup auction: {auction}")
+        else:
+            conn = get_db_connection(DB_HOST, DATABASE)
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM Auctions WHERE auction_id =%s", (auction_id,))
+            auction = cursor.fetchone()
 
         if not auction:
             return send_response({"error": "Auction not found"}, 404)
 
-        if auction['status'] != 'active':
+        if not mockup and auction['status'] != 'active':
             return send_response({"error": "Auction has finished"}, 400)
 
         data = request.get_json()
@@ -598,6 +643,8 @@ def update_auction():
         if data.get("end_time"):
             end_time = (datetime.strptime(data.get("end_time"), "%Y-%m-%d %H:%M:%S") + timedelta(hours=1)).timestamp()
 
+        if mockup: return send_response(
+            {'message':gigio("update_auction", auction_id=auction_id, base_price=base_price, end_time=end_time)}, 200)
         # Update the auction record with the new data
         cursor.execute(
             "UPDATE Auctions SET base_price =%s, end_time = %s WHERE auction_id =%s",
@@ -617,7 +664,8 @@ def update_auction():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
+
 
 @app.route("/delete", methods=["DELETE"])
 @admin_required
@@ -634,6 +682,8 @@ def delete_auction():
     gacha_id = sanitize(request.args.get("gacha_id")) or None
     if not gacha_id:
         return send_response({"error": "Missing gacha_id parameter"}, 400)
+    if mockup:
+        return send_response({'message':gigio("delete", gacha_id=gacha_id)}, 200)
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
@@ -649,7 +699,6 @@ def delete_auction():
 
         conn.commit()
 
-
         if not cursor.rowcount:
             return send_response({"error": "Failed to delete auction"}, 400)
         return send_response({"message": "Auction deleted successfully"}, 200)
@@ -657,4 +706,4 @@ def delete_auction():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
