@@ -319,7 +319,7 @@ paths:
                       additionalProperties: true
         '500':
           description: Unexpected error occurred
-  /auctions/get_gacha_auctions:
+  /auction/get_gacha_auctions:
     get:
       tags:
         - AUCTIONS
