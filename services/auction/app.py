@@ -26,7 +26,7 @@ gigio = None
 
 
 @app.route("/all", methods=["GET"])
-# @admin_required
+@admin_required
 # Endpoint to retrieve all auction
 def get_all_auctions():
     if not mockup: check_auction_status()
