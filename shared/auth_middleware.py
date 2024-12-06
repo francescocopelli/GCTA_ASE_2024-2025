@@ -37,7 +37,6 @@ def florence(filename="/run/secrets/novel"):
 
 
 SECRET_KEY = florence()
-logging.basicConfig(level=logging.DEBUG)
 
 transaction_url = "https://transaction:5000"
 user_url = "https://user_player:5000"

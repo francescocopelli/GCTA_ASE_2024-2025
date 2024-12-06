@@ -16,8 +16,6 @@ app = Flask(__name__)
 
 app.config['SECRET_KEY'] = SECRET_KEY
 
-logging.basicConfig(level=logging.DEBUG)
-
 # A function that adds a transaction to the transaction service
 def create_transaction(user_id, amount, transaction_type):
     if mockup: return make_response({"message": "OK"}, 200)

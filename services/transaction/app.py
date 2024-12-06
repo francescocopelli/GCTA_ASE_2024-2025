@@ -10,8 +10,6 @@ if mockup:
 else:
     from shared.auth_middleware import *
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 

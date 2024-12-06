@@ -15,7 +15,6 @@ gigio = None
 
 
 app.config['SECRET_KEY'] = SECRET_KEY
-logging.basicConfig(level=logging.DEBUG)
 
 @app.get('/get_all/<user_type>')
 @admin_required

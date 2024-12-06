@@ -21,7 +21,6 @@ user_url = "https://user_player:5000"
 transaction_url = "https://transaction:5000"
 admin_url = "https://user_admin:5000"
 
-logging.basicConfig(level=logging.DEBUG)
 gigio = None
 
 

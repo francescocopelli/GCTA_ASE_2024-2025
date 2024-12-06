@@ -11,7 +11,6 @@ if mockup:
 else:
     from shared.auth_middleware import *
 app = Flask(__name__)
-logging.basicConfig(level=logging.DEBUG)
 
 app.config['SECRET_KEY'] = SECRET_KEY
 DATABASE = 'gacha'
