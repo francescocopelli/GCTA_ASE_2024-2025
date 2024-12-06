@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "ddcc208b-fc54-4bac-8c07-9d788fb373cb",
+		"_postman_id": "a9844aa1-a195-4dda-b66d-1fb4bb669029",
 		"name": "GCTA Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "39572674",
-		"_collection_link": "https://gcta11.postman.co/workspace/GCTA~e4883204-fa99-45fc-8245-f67cc6533c3b/collection/39572674-ddcc208b-fc54-4bac-8c07-9d788fb373cb?action=share&source=collection_link&creator=39572674"
+		"_collection_link": "https://gcta11.postman.co/workspace/GCTA~e4883204-fa99-45fc-8245-f67cc6533c3b/collection/39572674-a9844aa1-a195-4dda-b66d-1fb4bb669029?action=share&source=collection_link&creator=39572674"
 	},
 	"item": [
 		{
@@ -388,6 +388,54 @@
 							"path": [
 								"gacha",
 								"roll"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Info",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/player/get_user",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"player",
+								"get_user"
 							]
 						}
 					},
@@ -1007,6 +1055,102 @@
 								"gacha",
 								"inventory",
 								"{{user_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "My Gacha List",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 for successful retrieval\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains inventory array\", function () {\r",
+									"    const responseJson = pm.response.json();\r",
+									"    pm.expect(responseJson).to.have.property(\"inventory\").that.is.an(\"array\");\r",
+									"    responseJson.inventory.forEach(item => {\r",
+									"        pm.expect(item).to.have.property(\"gacha_id\");\r",
+									"        pm.expect(item).to.have.property(\"name\");\r",
+									"        pm.expect(item).to.have.property(\"rarity\");\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 200 for successful retrieval\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Validate the structure of each item in the inventory array\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.inventory).to.be.an('array').that.is.not.empty;\r",
+									"    \r",
+									"    responseData.inventory.forEach(item => {\r",
+									"        pm.expect(item.acquired_date).to.be.a('string');\r",
+									"        pm.expect(item.description).to.be.a('string');\r",
+									"        pm.expect(item.gacha_id).to.be.a('number');\r",
+									"        //pm.expect(item.image).to.be.a('string');\r",
+									"        pm.expect(item.locked).to.be.a('boolean');\r",
+									"        pm.expect(item.name).to.be.a('string');\r",
+									"        pm.expect(item.rarity).to.be.a('string');\r",
+									"        pm.expect(item.status).to.be.a('string');\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Ensure all items in the inventory array have the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.inventory).to.be.an('array').that.is.not.empty;\r",
+									"\r",
+									"    responseData.inventory.forEach(function(item) {\r",
+									"        pm.expect(item.acquired_date).to.be.a('string');\r",
+									"        pm.expect(item.description).to.be.a('string');\r",
+									"        pm.expect(item.gacha_id).to.be.a('number');\r",
+									"        //pm.expect(item.image).to.be.a('string');\r",
+									"        pm.expect(item.locked).to.be.a('boolean');\r",
+									"        pm.expect(item.name).to.be.a('string');\r",
+									"        pm.expect(item.rarity).to.be.a('string');\r",
+									"        pm.expect(item.status).to.be.a('string');\r",
+									"    });\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/player/my_gacha_list",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"player",
+								"my_gacha_list"
 							]
 						}
 					},
