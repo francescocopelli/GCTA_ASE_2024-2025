@@ -139,34 +139,26 @@ test another one remember to remove the previous one. The test uses port 5000, i
 ```sh
 
     docker build -t mock_auction -f ./auction_mockup_test.dockerfile .
-
     docker run -d -p 5000:5000 --name auction_mockup_test mock_auction
-
     newman run ./isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Auctions" --environment ./isolation_tests_postman/gcta_mock.postman_environment.json --insecure
 ```
 ##### Gacha Service
 ```sh
 
     docker build -t gacha-mock -f gacha_mockup_test.dockerfile .
-
     docker run -d -p 5000:5000 --name gacha-mock-container gacha-mock
-
     newman run ./isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Gachas" --environment ./isolation_tests_postman/gcta_mock.postman_environment.json --insecure
 ```
 #### Player Service
 ```sh
     docker build -t users-mock -f users_mockup_test.dockerfile .
-
     docker run -d -p 5000:5000 --name users-mock-container users-mock
-
     newman run ./isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Player" --environment ./isolation_tests_postman/gcta_mock.postman_environment.json --insecure
 ```
 #### Transaction Service
 ```sh
     docker build -t transaction-mock -f transaction_mockup_test.dockerfile .
-
     docker run -d -p 5000:5000 --name transaction-mock-container transaction-mock
-
     newman run ./isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Transactions" --environment ./isolation_tests_postman/gcta_mock.postman_environment.json --insecure
 ```
 #### Player Auth Service
@@ -195,5 +187,3 @@ docker build -t admin-mock -f admin_mockup_test.dockerfile .
 docker run -d -p 5000:5000 --name admin-mock-container admin-mock
 newman run ./isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Admin" --environment ./isolation_tests_postman/gcta_mock.postman_environment.json --insecure
 ```
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
