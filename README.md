@@ -134,14 +134,14 @@ To execute the isolation tests for each service use the following commands. Ever
 test another one remember to remove the previous one. The test uses port 5000, if you change it you will have to change it also on all the tests.
 
 
-##### Auction Service
+#### Auction Service
 ```sh
 
     docker build -t mock_auction -f ./auction_mockup_test.dockerfile .
     docker run -d -p 5000:5000 --name auction_mockup_test mock_auction
     newman run ./isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Auctions" --environment ./isolation_tests_postman/gcta_mock.postman_environment.json --insecure
 ```
-##### Gacha Service
+#### Gacha Service
 ```sh
 
     docker build -t gacha-mock -f gacha_mockup_test.dockerfile .
@@ -180,7 +180,7 @@ docker run -d -p 5000:5000 --name dbm-mock-container dbm-mock
 newman run ./isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Db-manager" --environment ./isolation_tests_postman/gcta_mock.postman_environment.json --insecure
 ```
 
-### Admin Service
+#### Admin Service
 ```sh
 docker build -t admin-mock -f admin_mockup_test.dockerfile .
 docker run -d -p 5000:5000 --name admin-mock-container admin-mock
