@@ -1,23 +1,28 @@
 import base64
+import logging
+import os
 
 from flask import Flask
 
-from shared.auth_middleware import *
+mockup = os.getenv("MOCKUP", "0") == "1"
 
+if mockup:
+    from auth_middleware import *
+else:
+    from shared.auth_middleware import *
 app = Flask(__name__)
-
+logging.basicConfig(level=logging.DEBUG)
 
 app.config['SECRET_KEY'] = SECRET_KEY
 DATABASE = 'gacha'
 DB_HOST = "gacha_db"
-logging.basicConfig(level=logging.DEBUG)
+
+gigio = None
 
 
 @app.post('/add')
 @admin_required
 def add():
-    # if not check_header(): return send_response({'error': 'Admin authorization required'}, 401)
-
     name = sanitize(request.form.get('name'))
     rarity = request.form.get('rarity')
     status = request.form.get('status')
@@ -32,9 +37,17 @@ def add():
         return send_response({'error': 'Missing data to add gacha item'}, 400)
 
     # Connect to the database
-    conn = get_db_connection(DB_HOST, DATABASE)
-    cursor = conn.cursor(dictionary=True)
+
+    if mockup:
+        # if not check_header(): return send_response({'error': 'Admin authorization required'}, 401)
+        mockup_res = \
+            gigio("gacha_add", name=name, rarity=rarity, status=status, description=description, image=image)
+        return send_response({'message':mockup_res[0], 'gacha_id': mockup_res[1]},
+            201)
+
     try:
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
         # Add the gacha item to the database
         cursor.execute(
             "INSERT INTO GachaItems (name, rarity, status, image, description) VALUES (%s,%s,%s,%s,%s)",
@@ -47,17 +60,18 @@ def add():
         else:
             logging.error("Failed to add gacha item: lastrowid is None")
             return send_response({'error': 'Failed to add gacha item'}, 500)
-
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
 
 
 # Endpoint to retrieve a user's gacha inventory
 @app.route('/inventory/<user_id>', methods=['GET'])
 @token_required_void
 def get_user_inventory(user_id):
+    if mockup:
+        return {'inventory':gigio("inventory_user", user_id=user_id)}
     try:
         # Connect to the database
         conn = get_db_connection(DB_HOST, DATABASE)
@@ -98,85 +112,90 @@ def get_user_inventory(user_id):
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
 
 
 @app.route('/roll', methods=['POST'])
 @login_required_ret
 def roll_gacha(user):
-    # Extract roll details from request JSON
-    user_id = user['user_id']
-    roll_cost = 5
-
-    if check_header() or decode_session_token(request.headers.get("Authorization").split(" ")[1])['user_type'] == 'ADMIN':
-        return send_response({'error': 'Admins cannot roll gacha'}, 403)
-
-    # Check for required fields
-    if not all([user_id, roll_cost]):
-        logging.debug("Missing data for gacha roll: user_id=%s, roll_cost=%s", user_id, roll_cost)
-        return send_response({'error': 'Missing data for gacha roll'}, 400)
-
-    # Check if the user has sufficient funds for the roll
-    if user['currency_balance'] < roll_cost:
-        logging.debug("Insufficient funds for gacha roll: user_id=%s, balance=%s, roll_cost=%s", user_id,
-                      user['currency_balance'], roll_cost)
-        return send_response({'error': 'Insufficient funds for gacha roll'}, 403)
-
-    # Update the user's currency balance
-    response = requests.put('https://user_player:5000/update_balance/PLAYER', timeout=30, verify=False,
-                            headers=generate_session_token_system(),
-                            json={'user_id': user_id, 'amount': roll_cost, 'type': 'roll_purchase'})
-
-    if response.status_code != 200:
-        logging.debug("Failed to update user balance: user_id=%s, roll_cost=%s", user_id, roll_cost)
-        return send_response({'error': 'Failed to update user balance'}, 500)
-
-    # Add transaction to db
-    data = {'user_id': user_id, 'amount': roll_cost, 'type': 'roll_purchase'}
-    response = requests.post('https://transaction:5000/add_transaction', json=data, timeout=30, verify=False,
-                             headers=generate_session_token_system())
-    if response.status_code != 200:
-        logging.debug("Failed to add transaction: user_id=%s, roll_cost=%s", user_id, roll_cost)
-        return send_response({'error': 'Failed to add transaction'}, 500)
-
-    # Connect to the database
     try:
-        conn = get_db_connection(DB_HOST, DATABASE)
-        cursor = conn.cursor(dictionary=True)
+        if mockup:
+            return send_response(gigio("roll"), 200)
+        # Extract roll details from request JSON
+        user_id = user['user_id']
+        roll_cost = 5
 
-        # Perform the gacha roll by selecting a random item based on rarity
-        cursor.execute("SELECT gacha_id, name, rarity FROM GachaItems WHERE status = 'available' ORDER BY RAND() LIMIT 1")
-        gacha_item = cursor.fetchone()
+        if check_header() or decode_session_token(request.headers.get("Authorization").split(" ")[1])[
+            'user_type'] == 'ADMIN':
+            return send_response({'error': 'Admins cannot roll gacha'}, 403)
 
-        # Select a random item
-        conn.commit()
+        # Check for required fields
+        if not all([user_id, roll_cost]):
+            logging.debug("Missing data for gacha roll: user_id=%s, roll_cost=%s", user_id, roll_cost)
+            return send_response({'error': 'Missing data for gacha roll'}, 400)
 
-        if not gacha_item:
-            logging.debug("Failed to perform gacha roll")
-            return send_response({'error': 'Failed to perform gacha roll'}, 500)
+        # Check if the user has sufficient funds for the roll
+        if user['currency_balance'] < roll_cost:
+            logging.debug("Insufficient funds for gacha roll: user_id=%s, balance=%s, roll_cost=%s", user_id,
+                          user['currency_balance'], roll_cost)
+            return send_response({'error': 'Insufficient funds for gacha roll'}, 403)
 
-        # Add the gacha item to the user's inventory
-        response = requests.post('https://gacha:5000/inventory/add', headers=generate_session_token_system(), timeout=30, verify=False,
-                                 json={'user_id': user_id, 'gacha_id': gacha_item['gacha_id']})
-        if response.status_code != 201:
-            logging.debug("Failed to add gacha item to inventory: user_id=%s, gacha_id=%s", user_id,
-                          gacha_item['gacha_id'])
-            return send_response({'error': 'Failed to add gacha item to inventory'}, 500)
+        # Update the user's currency balance
+        response = requests.put('https://user_player:5000/update_balance/PLAYER', timeout=30, verify=False,
+                                headers=generate_session_token_system(),
+                                json={'user_id': user_id, 'amount': roll_cost, 'type': 'roll_purchase'})
 
-        logging.debug("Gacha roll successful: user_id=%s, gacha_id=%s, name=%s, rarity=%s", user_id,
-                      gacha_item['gacha_id'],
-                      gacha_item['name'], gacha_item['rarity'])
-        return send_response({
-            'message': 'Gacha roll successful',
-            'gacha_id': gacha_item['gacha_id'],
-            'name': gacha_item['name'],
-            'rarity': gacha_item['rarity'],
-        }, 200)
+        if response.status_code != 200:
+            logging.debug("Failed to update user balance: user_id=%s, roll_cost=%s", user_id, roll_cost)
+            return send_response({'error': 'Failed to update user balance'}, 500)
+
+        # Add transaction to db
+        data = {'user_id': user_id, 'amount': roll_cost, 'type': 'roll_purchase'}
+        response = requests.post('https://transaction:5000/add_transaction', json=data, timeout=30, verify=False,
+                                 headers=generate_session_token_system())
+        if response.status_code != 200:
+            logging.debug("Failed to add transaction: user_id=%s, roll_cost=%s", user_id, roll_cost)
+            return send_response({'error': 'Failed to add transaction'}, 500)
+
+            # Connect to the database
+            conn = get_db_connection(DB_HOST, DATABASE)
+            cursor = conn.cursor(dictionary=True)
+
+            # Perform the gacha roll by selecting a random item based on rarity
+            cursor.execute(
+                "SELECT gacha_id, name, rarity FROM GachaItems WHERE status = 'available' ORDER BY RAND() LIMIT 1")
+            gacha_item = cursor.fetchone()
+
+            # Select a random item
+            conn.commit()
+
+            if not gacha_item:
+                logging.debug("Failed to perform gacha roll")
+                return send_response({'error': 'Failed to perform gacha roll'}, 500)
+
+            # Add the gacha item to the user's inventory
+            response = requests.post('https://gacha:5000/inventory/add', headers=generate_session_token_system(),
+                                     timeout=30, verify=False,
+                                     json={'user_id': user_id, 'gacha_id': gacha_item['gacha_id']})
+            if response.status_code != 201:
+                logging.debug("Failed to add gacha item to inventory: user_id=%s, gacha_id=%s", user_id,
+                              gacha_item['gacha_id'])
+                return send_response({'error': 'Failed to add gacha item to inventory'}, 500)
+
+            logging.debug("Gacha roll successful: user_id=%s, gacha_id=%s, name=%s, rarity=%s", user_id,
+                          gacha_item['gacha_id'],
+                          gacha_item['name'], gacha_item['rarity'])
+            return send_response({
+                'message': 'Gacha roll successful',
+                'gacha_id': gacha_item['gacha_id'],
+                'name': gacha_item['name'],
+                'rarity': gacha_item['rarity'],
+            }, 200)
 
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
 
 
 # Endpoint to add a gacha item to a user's inventory
@@ -193,6 +212,8 @@ def add_to_inventory():
         logging.debug("Missing data to add gacha to inventory: user_id=%s, gacha_id=%s", user_id, gacha_id)
         return send_response({'error': 'Missing data to add gacha to inventory'}, 400)
 
+    if mockup: return send_response({'message':gigio("inventory_add", user_id=user_id, gacha_id=gacha_id)}, 201)
+
     user = requests.get('https://user_player:5000/get_user/' + user_id, timeout=30, verify=False,
                         headers=generate_session_token_system())
 
@@ -202,6 +223,7 @@ def add_to_inventory():
 
     # Connect to the database
     try:
+
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
 
@@ -211,7 +233,8 @@ def add_to_inventory():
             logging.debug("Gacha item not found or not available insert: gacha_id=%s", gacha_id)
             return send_response({'error': 'Gacha item not found or not available'}, 404)
         # Add gacha item to user's inventory if it exists and is available
-        cursor.execute("INSERT INTO UserGachaInventory (user_id, gacha_id, acquired_date) VALUES(%s, %s, NOW())", (user_id, result['gacha_id']))
+        cursor.execute("INSERT INTO UserGachaInventory (user_id, gacha_id, acquired_date) VALUES(%s, %s, NOW())",
+                       (user_id, result['gacha_id']))
 
         if cursor.rowcount == 0:
             logging.debug("Gacha item not found or not available: gacha_id=%s", gacha_id)
@@ -224,12 +247,13 @@ def add_to_inventory():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
 
 
 @app.get("/all")
 def get_all():
     try:
+        if mockup: return send_response({"message": gigio("all")}, 200)
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
         # write another execute cursor to get all the gacha items with an arbitrary offset limit taken from request if present otherwise use a default one
@@ -250,20 +274,20 @@ def get_all():
                 "description": x['description'],
                 # "image": base64.b64encode(x['image']).decode('utf-8') if x['image'] else None
             })
-
         logging.debug("Gacha items retrieved successfully")
         return send_response({"message": items}, 200)
 
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
 
 
 # update gacha item
 @app.route('/update', methods=['PUT'])
 @admin_required
 def update_gacha_item():
+
     # Extract gacha item details from request JSON
     gacha_id = sanitize(request.form.get('gacha_id'))
     name = sanitize(request.form.get('name'))
@@ -274,11 +298,15 @@ def update_gacha_item():
 
     # Check for required fields
     if not all([gacha_id, name, rarity, status]):
-        logging.debug("Missing data to update gacha item: gacha_id=%s, name=%s, rarity=%s, status=%s", gacha_id, name,
+        logging.debug("Missing data to update gacha item: gacha_id=%s, name=%s, rarity=%s, status=%s", gacha_id,
+                      name,
                       rarity, status)
         return send_response({'error': 'Missing data to update gacha item'}, 400)
 
     try:
+        if mockup:
+            return send_response({'message':gigio("update")}, 200)
+
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
 
@@ -313,7 +341,7 @@ def update_gacha_item():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
 
 
 # retrieve information about a specific gacha item
@@ -321,6 +349,9 @@ def update_gacha_item():
 def get_gacha_item(gacha_id):
     # Connect to the database
     try:
+        if mockup:
+            return send_response(gigio("get_a_gacha", gacha_id=gacha_id), 200)
+
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
 
@@ -342,17 +373,17 @@ def get_gacha_item(gacha_id):
             'image': base64.b64encode(gacha_item['image']).decode('utf-8') if gacha_item['image'] else None
         }, 200)
 
-
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
 
 
 # get detail of a specific gacha of a specific user
 @app.get('/get/<user_id>/<gacha_id>')
 @token_required_void
 def get_user_gacha_item(user_id, gacha_id):
+    if mockup: return gigio("get_user_gacha")
     logging.debug("User ID: %s", user_id)
     token_user = decode_session_token(request.headers.get("Authorization").split(" ")[1])
     logging.debug("JWT Dec User ID: %s", token_user['user_id'])
@@ -391,7 +422,7 @@ def get_user_gacha_item(user_id, gacha_id):
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
 
 
 @app.get('/is_gacha_unlocked/<user_id>/<gacha_id>')
@@ -400,6 +431,7 @@ def is_gacha_unlocked(user_id, gacha_id):
     if not all([user_id, gacha_id]):
         logging.debug("Missing data to check gacha item: user_id=%s, gacha_id=%s", user_id, gacha_id)
         return send_response({'error': 'Missing data to check gacha item'}, 400)
+    if mockup: return send_response(gigio("is_unlocked", user_id=user_id, gacha_id=gacha_id), 200)
 
     # Connect to the database
     try:
@@ -423,7 +455,7 @@ def is_gacha_unlocked(user_id, gacha_id):
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
 
 
 # Hidden from the API documentation
@@ -438,8 +470,10 @@ def update_gacha_status():
         logging.debug("Missing data to update gacha status: user_id=%s, gacha_id=%s, status=%s", user_id, gacha_id,
                       status)
         return send_response({'error': 'Missing data to update gacha status'}, 400)
+    if mockup: return send_response({'message':gigio("update_status", user_id=user_id, gacha_id=gacha_id, status=status)}, 200)
 
-    res = requests.get('https://user_player:5000/get_user/' + user_id, timeout=30, verify=False, headers=request.headers)
+    res = requests.get('https://user_player:5000/get_user/' + user_id, timeout=30, verify=False,
+                       headers=request.headers)
     if res.status_code != 200:
         logging.debug("User not found: user_id=%s", user_id)
         return send_response({'error': 'User not found'}, 409)
@@ -453,7 +487,9 @@ def update_gacha_status():
         cursor = conn.cursor(dictionary=True)
         not_status = "unlocked" if status == "locked" else "locked"
 
-        cursor.execute("SELECT inventory_id FROM gacha.UserGachaInventory WHERE user_id = %s AND gacha_id = %s AND locked=%s ORDER BY RAND() LIMIT 1", (user_id, gacha_id, not_status))
+        cursor.execute(
+            "SELECT inventory_id FROM gacha.UserGachaInventory WHERE user_id = %s AND gacha_id = %s AND locked=%s ORDER BY RAND() LIMIT 1",
+            (user_id, gacha_id, not_status))
         inventory_id = cursor.fetchone()
         if not inventory_id:
             logging.debug("Gacha item not found in user inventory: user_id=%s, gacha_id=%s", user_id, gacha_id)
@@ -476,7 +512,7 @@ def update_gacha_status():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup: release_db_connection(conn, cursor)
 
 
 # Hidden from the API documentation
@@ -492,14 +528,18 @@ def update_gacha_owner():
         logging.debug("Missing data to update gacha owner: buyer_id=%s, seller_id=%s, gacha_id=%s, status=%s", buyer_id,
                       seller_id, gacha_id, status)
         return send_response({'error': 'Missing data to update gacha owner'}, 400)
+    if mockup: return send_response(
+        {'message':gigio("update_owner", buyer_id=buyer_id, seller_id=seller_id, gacha_id=gacha_id, status=status)}, 200)
 
-    res = requests.get(f'https://user_player:5000/get_user/{buyer_id}', timeout=30, verify=False, headers=request.headers)
+    res = requests.get(f'https://user_player:5000/get_user/{buyer_id}', timeout=30, verify=False,
+                       headers=request.headers)
     if res.status_code != 200:
         logging.debug("Buyer not found: buyer_id=%s", buyer_id)
         return send_response({'error': 'Buyer not found'}, 404)
     logging.debug("Buyer found: buyer_id=%s", buyer_id)
 
-    res = requests.get(f'https://gacha:5000/get/{seller_id}/{gacha_id}', timeout=30, verify=False, headers=request.headers)
+    res = requests.get(f'https://gacha:5000/get/{seller_id}/{gacha_id}', timeout=30, verify=False,
+                       headers=request.headers)
     if res.status_code != 200:
         logging.debug("Gacha item not found: seller_id=%s, gacha_id=%s", seller_id, gacha_id)
         return send_response({'error': 'Gacha item not found'}, 404)
@@ -525,10 +565,12 @@ def update_gacha_owner():
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup:
+            release_db_connection(conn, cursor)
 
 
 def exist_auction(gacha_id):
+    if mockup: return True
     req = requests.get('https://auction:5000/get_gacha_auctions?gacha_id=' + gacha_id, timeout=30, verify=False,
                        headers=generate_session_token_system())
     return req.status_code == 200
@@ -539,6 +581,7 @@ def exist_auction(gacha_id):
 def delete_gacha_item(gacha_id):
     # Connect to the database
     gacha_id = sanitize(gacha_id)
+    if mockup: return send_response({'message':gigio("delete", gacha_id=gacha_id)}, 200)
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
@@ -593,4 +636,5 @@ def delete_gacha_item(gacha_id):
     except Exception as e:
         return manage_errors(e)
     finally:
-        release_db_connection(conn, cursor)
+        if not mockup:
+            release_db_connection(conn, cursor)
