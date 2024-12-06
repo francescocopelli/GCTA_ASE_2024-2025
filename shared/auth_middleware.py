@@ -1,16 +1,23 @@
 import logging
+import os
 from datetime import datetime, timedelta
 from uuid import uuid4
 
+mockup = os.getenv("MOCKUP", "0") == "1"
 import jwt
-import requests
+
+if not mockup:
+    import requests
+
 import re
 from flask import request, abort, jsonify, current_app
+
 
 def sanitize(user_input):
     if type(user_input) is not str:
         return user_input
     return re.sub(r'[^_\-a-zA-Z0-9]', '', user_input)
+
 
 def florence(filename="/run/secrets/novel"):
     poetry = ""
@@ -72,6 +79,7 @@ def get_db_connection(db_host, db_name):
 
 
 def release_db_connection(conn, cursor=None):
+    if mockup: return
     if cursor:
         cursor.close()
     if conn:
@@ -151,6 +159,7 @@ def circuit_breaker_decorator(func):
 # make a function that take json data and return a response
 @circuit_breaker_decorator
 def send_response(message, status_code):
+    if mockup: return jsonify(message), status_code
     if status_code == 500:
         raise Exception(message)
     return jsonify(message), status_code
@@ -166,8 +175,23 @@ def is_system_call(token):
         logging.error(f"Error: {e}")
         return False
 
+
 def decode_session_token(token):
+    if mockup:
+        return {
+            "jti": "mockup",
+            "iss": "GCTA_24_25",
+            "sub": "PLAYER_access",
+            "iat": datetime.now(),
+            "nbf": datetime.now(),
+            "exp": (datetime.now() + timedelta(hours=1)),
+            "aud": "ALL",
+            "user_id": "1",
+            "user_type": "PLAYER",
+            "scope": "system_operations",
+        }
     return jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"], audience="ALL")
+
 
 def generate_session_token(user_id, user_type, expiration_hours=1):
     """
@@ -196,13 +220,10 @@ def generate_session_token(user_id, user_type, expiration_hours=1):
     # Aggiunta di claim specifici per tipo di utente
     if user_type == "PLAYER":
         payload["scope"] = "game_access"
-        payload["metadata"] = {"role": "player"}
     elif user_type == "ADMIN":
         payload["scope"] = "admin_panel"
-        payload["metadata"] = {"role": "admin"}
     elif user_type == "SYSTEM":
         payload["scope"] = "system_operations"
-        payload["metadata"] = {"role": "system"}
     # Generazione del token JWT
     token = jwt.encode(
         payload=payload,
@@ -212,10 +233,10 @@ def generate_session_token(user_id, user_type, expiration_hours=1):
     )
     return token
 
+
 def generate_session_token_system():
     token = generate_session_token("SYSTEM", "SYSTEM")
     return {"Authorization": f"Bearer {token}"}
-
 
 
 def check_header():
@@ -235,31 +256,39 @@ def _f(require_return, f, *args, **kwargs):
     logging.info("Token required checking")
     token = None
     logging.debug(f"Request headers: {request}")
-    if "Authorization" in request.headers:
-        token = request.headers["Authorization"].split(" ")[1]
+    if not mockup:
+        if "Authorization" in request.headers:
+            token = request.headers["Authorization"].split(" ")[1]
 
-    if not token:
-        logging.error("Token is missing")
-        abort(401, "Authentication Token is missing!")
-    if is_system_call(token):
-        return f(*args, **kwargs)
-    logging.debug(f"Token: {token}")
+        if not token:
+            logging.error("Token is missing")
+            abort(401, "Authentication Token is missing!")
+        if is_system_call(token):
+            return f(*args, **kwargs)
     try:
-        data = decode_session_token(token)
-        logging.debug("Expiration time: " + str(data["exp"]))
+        if not mockup:
+            logging.debug(f"Token: {token}")
+            data = decode_session_token(token)
+            logging.debug("Expiration time: " + str(data["exp"]))
 
-        if not (token_is_valid(data["exp"])):
-            abort(401, "Token expired!")
+            if not (token_is_valid(data["exp"])):
+                abort(401, "Token expired!")
 
-        rst = requests.get(f"{dbm_url}/get_user/{data['user_type']}/{data['user_id']}", timeout=30, verify=False,
-                           headers=generate_session_token_system())
-        current_user = rst.json()
+            rst = requests.get(f"{dbm_url}/get_user/{data['user_type']}/{data['user_id']}", timeout=30, verify=False,
+                               headers=generate_session_token_system())
+            current_user = rst.json()
 
-        if current_user is None:
-            abort(401, "Invalid Authentication token!")
+            if current_user is None:
+                abort(401, "Invalid Authentication token!")
 
-        if not current_user["session_token"] == token:
-            abort(401, "Token mismatch!")
+            if not current_user["session_token"] == token:
+                abort(401, "Token mismatch!")
+        else:
+            current_user = {
+                "user_id": "1",
+                "username": "admin",
+                "email": ""
+            }
 
     except Exception as e:
         return {
@@ -305,22 +334,23 @@ def login_required_ret(f):
 
 def admin_required(f):
     def admin_f(require_return, f, *args, **kwargs):
+        if mockup and not require_return: return f(*args, **kwargs)
         token = None
-        if "Authorization" in request.headers:
-            token = request.headers["Authorization"].split(" ")[1]
-        if not token:
-            logging.error("Token is missing")
-            abort(401, "Authentication Token is missing!")
+        if not mockup:
+            if "Authorization" in request.headers:
+                token = request.headers["Authorization"].split(" ")[1]
+            if not token:
+                logging.error("Token is missing")
+                abort(401, "Authentication Token is missing!")
 
-        if is_system_call(token):
-            return f(*args, **kwargs)
+            if is_system_call(token):
+                return f(*args, **kwargs)
 
-        if not check_header():
-            abort(403, "Unauthorized access!")
+            if not check_header():
+                abort(403, "Unauthorized access!")
 
-        logging.info("Admin required check")
+            logging.info("Admin required check")
 
-        try:
             data = decode_session_token(token)
 
             if not (token_is_valid(data["exp"])):
@@ -329,10 +359,20 @@ def admin_required(f):
             # user_id = int(data["user_id"]) if not type(data["user_id"]) == int else data["user_id"]
             user_id = data["user_id"]
             logging.info(f"User id: {user_id}")
-            rst = requests.get(f"{dbm_url}/get_user/ADMIN/{user_id}", timeout=30, verify=False,
-                               headers=generate_session_token_system())
+        try:
+            if not mockup:
 
-            current_user = rst.json()
+                rst = requests.get(f"{dbm_url}/get_user/ADMIN/{user_id}", timeout=30, verify=False,
+                                   headers=generate_session_token_system())
+
+                current_user = rst.json()
+            else:
+                current_user = {
+                    "user_id": "1",
+                    "username": "admin",
+                    "email": ""
+                }
+                rst = {"status_code": 200, "message": "Mockup test response"}
             logging.info(f"Response: {current_user}")
             logging.info(f"Response original: {rst}")
 
@@ -340,7 +380,7 @@ def admin_required(f):
                 abort(403, "Unauthorized access! Maybe")
             logging.info(f"Current user: {current_user}")
 
-            if not current_user["session_token"] == token:
+            if not mockup and not current_user["session_token"] == token:
                 abort(401, "Token mismatch!")
 
         except Exception as e:

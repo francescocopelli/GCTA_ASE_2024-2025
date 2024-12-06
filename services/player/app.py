@@ -1,9 +1,15 @@
 # create an hello world endpoint
 import base64
 
-from flask import Flask
+from flask import Flask, make_response
+import os
 
-from shared.auth_middleware import *
+mockup = os.getenv("MOCKUP", "0") == "1"
+gigio=None
+if mockup:
+    from auth_middleware import *
+else:
+    from shared.auth_middleware import *
 
 app = Flask(__name__)
 
@@ -14,6 +20,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 # A function that adds a transaction to the transaction service
 def create_transaction(user_id, amount, transaction_type):
+    if mockup: return make_response({"message": "OK"}, 200)
     response = requests.post(f"{transaction_url}/add_transaction", headers=generate_session_token_system(), timeout=30, verify=False, 
                              json={"user_id": user_id, "amount": amount, "type": transaction_type})
     return response
@@ -24,7 +31,8 @@ def create_transaction(user_id, amount, transaction_type):
 @app.get("/my_gacha_list")
 @token_required_void
 def my_gacha_list():
-    user_id = str(decode_session_token(request.headers["Authorization"].split(" ")[1])[            "user_id"])
+    if mockup: return send_response({'message':gigio("inventory_user", user_id=1)}, 200)
+    user_id = str(decode_session_token(request.headers["Authorization"].split(" ")[1])["user_id"])
     response = requests.get(f"{gacha_url}/inventory/" + user_id,  timeout=30, verify=False, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
@@ -34,12 +42,14 @@ def my_gacha_list():
 @token_required_void
 def gacha_info(user_id, gacha_id):
     gacha_id=sanitize(gacha_id)
-    response = requests.get(f"{gacha_url}/get/" + str(user_id) + "/" + str(gacha_id), timeout=30, verify=False, 
+    if mockup: return send_response(gigio("get_user_gacha", gacha_id=gacha_id), 200)
+    response = requests.get(f"{gacha_url}/get/" + str(user_id) + "/" + str(gacha_id), timeout=30, verify=False,
                             headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
 
 
 def update_user_balance(user_id, amount, type):
+    if mockup: return make_response({"message": "OK"}, 200)
     response = requests.put(
         f"{dbm_url}/update_balance/PLAYER", headers=request.headers, timeout=30, verify=False, 
         json={"user_id": user_id, "amount": amount, "type": type},
@@ -79,6 +89,7 @@ def real_money_transaction(user):
 
     if create_transaction(user_id, amount, "top_up").status_code != 200:
         return send_response({"error": "Failed to create transaction"}, 400)
+    if mockup: return send_response(gigio("real_money_transaction"), 200)
 
     return send_response({"message": "Account topped up successfully"}, 200)
 
@@ -87,19 +98,22 @@ def real_money_transaction(user):
 @app.get("/get_user_balance")
 @token_required_ret
 def get_user_balance(current_user):
-    user_type=decode_session_token(request.headers["Authorization"].split(" ")[1])['user_type']
+    user_type = "PLAYER"
+    if not mockup: user_type=decode_session_token(request.headers["Authorization"].split(" ")[1])['user_type']
     logging.debug("Current user: %s", current_user)
     if user_type != 'PLAYER':
         return send_response({"error": "Only players can view their balance"}, 403)
     user_id = current_user['user_id']
+    if mockup: return send_response(gigio("get_user_balance", user_id=user_id), 200)
     response = requests.get(f"{dbm_url}/balance/PLAYER", params={"user_id": user_id},  timeout=30, verify=False, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
 @app.get("/get_user")
 @token_required_ret
 def get_user(user):
-    if decode_session_token(request.headers["Authorization"].split(" ")[1])['user_type'] != 'PLAYER':
+    if not mockup and decode_session_token(request.headers["Authorization"].split(" ")[1])['user_type'] != 'PLAYER':
         return send_response({"error": "Only players can view their information"}, 403)
+    if mockup: return send_response(gigio("get_user", user_id=user['user_id']), 200)
     url = f"{dbm_url}/get_user/" + str(user['user_id'])
     response = requests.get(url,  timeout=30, verify=False, headers=request.headers)
     return send_response(response.json(), response.status_code)
@@ -108,6 +122,7 @@ def get_user(user):
 @app.get("/get_user/<user_id>")
 @admin_required
 def get_user_by_id(user_id):
+    if mockup: return send_response(gigio("get_user_admin", user_id=user_id), 200)
     url = f"{dbm_url}/get_user/" + str(user_id)
     response = requests.get(url,  timeout=30, verify=False, headers=generate_session_token_system())
     logging.debug("User_player response: %s", response)
@@ -130,6 +145,8 @@ def update_balance(user_type):
     }
     logging.debug("Sending data: %s", data)
     # takes the request headers and add a new key called X-Gateway-Port with the value 8081
+    if mockup: return send_response({'message':gigio("update_balance", user_id=user_id, amount=amount, type=type)}, 200)
+
     response = requests.put(url,  timeout=30, verify=False, json=data, headers=request.headers)
     logging.debug("Received response: %s", response)
     return send_response(response.json(), response.status_code)
@@ -153,13 +170,15 @@ def update(user):
 
     url = f"{dbm_url}/update/PLAYER"
     data = {
-        "session_token": request.headers["Authorization"].split(" ")[1],
+        "session_token": request.headers["Authorization"].split(" ")[1] if not mockup else None,
         "user_id": user_id,
         "username": sanitize(username),
         "email": email,
         "image": image,
         "password": password
     }
+    if mockup: return send_response({'message':gigio("update_user", data=data)}, 200)
+
     response = requests.put(url,  timeout=30, verify=False, json=data, headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
 
