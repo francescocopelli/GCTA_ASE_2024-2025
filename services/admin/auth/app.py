@@ -1,9 +1,13 @@
 from flask import Flask
-
-from shared.auth_middleware import *
+import os
+mockup = os.getenv("MOCKUP", "0") == "1"
+gigio=None
+if mockup:
+    from auth_middleware import *
+else:
+    from shared.auth_middleware import *
 
 app = Flask(__name__)
-
 
 app.config['SECRET_KEY'] = SECRET_KEY
 
@@ -11,6 +15,8 @@ app.config['SECRET_KEY'] = SECRET_KEY
 @admin_required
 def logout():
     url = f"https://db-manager:5000/logout"
+    if mockup:
+        return gigio("logout", session_token=request.headers.get("Authorization"))
     response = requests.delete(url,  timeout=30, verify=False, headers=request.headers)
     return send_response(response.json(), response.status_code)
 
@@ -24,6 +30,8 @@ def login():
         "username": username,
         "password": password
     }
+    if mockup:
+        return gigio("login", username=username, password=password)
     response = requests.post(url,  timeout=30, verify=False, json=data)
     return send_response(response.json(), response.status_code)
 
@@ -40,6 +48,8 @@ def register():
         "password": password,
         "email": email
     }
+    if mockup:
+        return gigio("register", username=username, password=password, email=email)
     response = requests.post(url,  timeout=30, verify=False, data=data)
     return send_response(response.json(), response.status_code)
 
