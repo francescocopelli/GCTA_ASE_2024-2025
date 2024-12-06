@@ -157,40 +157,40 @@ def roll_gacha(user):
             logging.debug("Failed to add transaction: user_id=%s, roll_cost=%s", user_id, roll_cost)
             return send_response({'error': 'Failed to add transaction'}, 500)
 
-            # Connect to the database
-            conn = get_db_connection(DB_HOST, DATABASE)
-            cursor = conn.cursor(dictionary=True)
+        # Connect to the database
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
 
-            # Perform the gacha roll by selecting a random item based on rarity
-            cursor.execute(
-                "SELECT gacha_id, name, rarity FROM GachaItems WHERE status = 'available' ORDER BY RAND() LIMIT 1")
-            gacha_item = cursor.fetchone()
+        # Perform the gacha roll by selecting a random item based on rarity
+        cursor.execute(
+            "SELECT gacha_id, name, rarity FROM GachaItems WHERE status = 'available' ORDER BY RAND() LIMIT 1")
+        gacha_item = cursor.fetchone()
 
-            # Select a random item
-            conn.commit()
+        # Select a random item
+        conn.commit()
 
-            if not gacha_item:
-                logging.debug("Failed to perform gacha roll")
-                return send_response({'error': 'Failed to perform gacha roll'}, 500)
+        if not gacha_item:
+            logging.debug("Failed to perform gacha roll")
+            return send_response({'error': 'Failed to perform gacha roll'}, 500)
 
-            # Add the gacha item to the user's inventory
-            response = requests.post('https://gacha:5000/inventory/add', headers=generate_session_token_system(),
-                                     timeout=30, verify=False,
-                                     json={'user_id': user_id, 'gacha_id': gacha_item['gacha_id']})
-            if response.status_code != 201:
-                logging.debug("Failed to add gacha item to inventory: user_id=%s, gacha_id=%s", user_id,
-                              gacha_item['gacha_id'])
-                return send_response({'error': 'Failed to add gacha item to inventory'}, 500)
+        # Add the gacha item to the user's inventory
+        response = requests.post('https://gacha:5000/inventory/add', headers=generate_session_token_system(),
+                                 timeout=30, verify=False,
+                                 json={'user_id': user_id, 'gacha_id': gacha_item['gacha_id']})
+        if response.status_code != 201:
+            logging.debug("Failed to add gacha item to inventory: user_id=%s, gacha_id=%s", user_id,
+                          gacha_item['gacha_id'])
+            return send_response({'error': 'Failed to add gacha item to inventory'}, 500)
 
-            logging.debug("Gacha roll successful: user_id=%s, gacha_id=%s, name=%s, rarity=%s", user_id,
-                          gacha_item['gacha_id'],
-                          gacha_item['name'], gacha_item['rarity'])
-            return send_response({
-                'message': 'Gacha roll successful',
-                'gacha_id': gacha_item['gacha_id'],
-                'name': gacha_item['name'],
-                'rarity': gacha_item['rarity'],
-            }, 200)
+        logging.debug("Gacha roll successful: user_id=%s, gacha_id=%s, name=%s, rarity=%s", user_id,
+                      gacha_item['gacha_id'],
+                      gacha_item['name'], gacha_item['rarity'])
+        return send_response({
+            'message': 'Gacha roll successful',
+            'gacha_id': gacha_item['gacha_id'],
+            'name': gacha_item['name'],
+            'rarity': gacha_item['rarity'],
+        }, 200)
 
     except Exception as e:
         return manage_errors(e)
