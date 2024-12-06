@@ -1,14 +1,22 @@
 import uuid
-
+import os
 from flask import Flask
 
-from shared.auth_middleware import *
+# Use MOCKUP flag to toggle between mock and real implementations
+mockup = os.getenv("MOCKUP", "0") == "1"
+
+if mockup:
+    from auth_middleware import *
+else:
+    from shared.auth_middleware import *
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
+# Placeholder for mock implementation
+gigio = None
 
 app.config['SECRET_KEY'] = SECRET_KEY
 
@@ -59,6 +67,18 @@ def add_transaction():
     elif "top_up" in data['type']:
         transaction_type = "top_up"
 
+    if mockup:
+        # Mock implementation
+        return send_response(
+            gigio("add_transaction", json={
+                "transaction_id": transaction_id,
+                "user_id": data["user_id"],
+                "type": transaction_type,
+                "amount": data["amount"],
+            }),
+            200
+        )
+        
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
@@ -100,6 +120,14 @@ def get_transaction():
     transaction_id = request.args.get("transaction_id")
     if not transaction_id:
         return send_response({"error": "Missing transaction_id parameter"}, 400)
+    
+    if mockup:
+        # Mock implementation
+        return send_response(
+            gigio("get_transaction", transaction_id=transaction_id),
+            200
+        )
+        
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
@@ -121,6 +149,13 @@ def get_transaction():
 @app.route("/get_user_transactions", methods=["GET"])
 @login_required_ret
 def get_my_transactions(user):
+    
+    if mockup:
+        # Mock implementation
+        return send_response(
+            gigio("get_user_transactions", user_id=user['user_id']),
+            200
+        )
     if decode_session_token(request.headers["Authorization"].split(" ")[1])['user_type'] == 'ADMIN':
         return send_response({"error": "You don't have a transaction history (as an ADMIN)"}, 403)
     user_id = str(user['user_id'])
@@ -151,6 +186,14 @@ def get_user_transactions(user_id):
     """
     if not user_id:
         return send_response({"error": "Missing user_id parameter"}, 400)
+    
+    if mockup:
+        # Mock implementation
+        return send_response(
+            gigio("get_user_transactions", user_id=user_id),
+            200
+        )
+        
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
@@ -170,8 +213,6 @@ def get_user_transactions(user_id):
 @app.get("/all")
 @login_required_void
 def get_all_transactions():
-    user = decode_session_token(request.headers["Authorization"].split(" ")[1])
-    is_admin = not user['user_type'] == 'PLAYER'
     """
     Retrieve all transactions from the database.
 
@@ -180,6 +221,17 @@ def get_all_transactions():
     Returns:
         Response: A JSON response containing all transactions in the database with a 200 status code.
     """
+    
+    user = decode_session_token(request.headers["Authorization"].split(" ")[1])
+    is_admin = not user['user_type'] == 'PLAYER'
+    
+    if mockup:
+        # Mock implementation
+        return send_response(
+            gigio("all"),
+            200
+        )
+
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)

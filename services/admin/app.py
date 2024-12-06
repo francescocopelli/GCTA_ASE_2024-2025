@@ -1,11 +1,17 @@
 import base64
-
+import os
 from flask import Flask
 
-# from services.gacha.app import add_to_inventory
-from shared.auth_middleware import *
+mockup = os.getenv("MOCKUP", "0") == "1"
 
+if mockup:
+    from auth_middleware import *
+else:
+    from shared.auth_middleware import *
+    
 app = Flask(__name__)
+
+gigio = None
 
 
 app.config['SECRET_KEY'] = SECRET_KEY
@@ -15,6 +21,11 @@ logging.basicConfig(level=logging.DEBUG)
 @admin_required
 def get_all(user_type):
     logging.info(f"Get all users {user_type}")
+    
+    if mockup:
+        # Mock implementation
+        return send_response(gigio(f"get_all/{user_type}"), 200)
+    
     url = f"{dbm_url}/get_all/{user_type}"
     response = requests.get(url,  timeout=30, verify=False, headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
@@ -23,6 +34,12 @@ def get_all(user_type):
 @app.get("/get_user/<user_id>")
 @admin_required
 def get_user(user_id):
+    logging.info(f"Fetching user with ID: {user_id}")
+    
+    if mockup:
+        # Mock implementation
+        return send_response(gigio(f"get_user/{user_id}"), 200)
+    
     url = f"{dbm_url}/get_user/" + user_id
     response = requests.get(url,  timeout=30, verify=False, headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
@@ -36,6 +53,11 @@ def update_myself(user):
     logging.info(f"Received as user value:  {user}")
     data = request.json
     user_id = user['user_id']
+    
+    if mockup:
+        # Mock implementation
+        return send_response(gigio("update", user_id=user_id, json=data),200)
+    
     if not user_id:
         return send_response({"error": "Missing user_id parameter"}, 400)
     if decode_session_token(request.headers["Authorization"].split(" ")[1])["user_type"] != "PLAYER":
@@ -62,6 +84,11 @@ def update_myself(user):
 @admin_required
 def update(user_id):
     user_type = request.args.get("user_type") or "PLAYER"
+    
+    if mockup:
+        # Mock implementation
+        return send_response(gigio("update", user_id=user_id, json=data),200)
+        
     user = requests.get(f"{dbm_url}/get_user/{user_type}/{user_id}", timeout=30, verify=False,  headers=generate_session_token_system()).json()
     if not user:
         return send_response({"error": "User not found"}, 404)
@@ -89,6 +116,11 @@ def update(user_id):
 @app.route("/get_user_balance/<user_id>")
 @admin_required
 def get_user_balance_admin(user_id):
+    
+    if mockup:
+        # Mock implementation
+        return send_response(gigio(f"balance/PLAYER",user_id = user_id), 200)
+    
     response = requests.get(f"{dbm_url}/balance/PLAYER",  timeout=30, verify=False,  params={"user_id": user_id}, headers=request.headers)
     return send_response(response.json(), response.status_code)
 

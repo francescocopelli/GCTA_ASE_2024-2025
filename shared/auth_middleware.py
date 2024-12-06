@@ -79,7 +79,6 @@ def get_db_connection(db_host, db_name):
 
 
 def release_db_connection(conn, cursor=None):
-    if mockup: return
     if cursor:
         cursor.close()
     if conn:
