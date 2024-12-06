@@ -60,9 +60,9 @@ def gigio(endpoint, **kwargs):
             return first_user_transactions
 
     elif "all" in endpoint:
-        return transactions if transactions else {"error": "No transactions found"}, 404
+        return transactions if transactions else {"error": "No transactions found"}
 
-    return {"error": "Endpoint not implemented"}, 501
+    return {"error": "Endpoint not implemented"}
 
 flask_app = main_app.app  # Flask app
 # Assigning the mock implementation

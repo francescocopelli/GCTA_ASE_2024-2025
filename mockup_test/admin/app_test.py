@@ -15,14 +15,14 @@ def gigio(endpoint, **kwargs):
 
     if "get_all" in endpoint:
         user_type = endpoint.split("/")[-1]
-        return [user for user in users if user["user_type"] == user_type]
+        return {"users":[user for user in users if user["user_type"] == user_type]}
 
     elif "get_user" in endpoint:
         user_id = endpoint.split("/")[-1]
         for user in users:
             if user["user_id"] == user_id:
                 return user
-        return users[0], 200
+        return users[0]
 
     elif "update/ADMIN" in endpoint:
         data = kwargs.get("json", {})
@@ -47,7 +47,7 @@ def gigio(endpoint, **kwargs):
                 return {"currency_balance": user["balance"]}
         return {"currency_balance":  users[0]["balance"]}
 
-    return {"error": "Endpoint not implemented"}, 501
+    return {"error": "Endpoint not implemented"}
 
 flask_app = main_app.app  # Flask app
 # Assigning the mock implementation

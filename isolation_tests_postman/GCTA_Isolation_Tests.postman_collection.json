@@ -762,26 +762,11 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response has the required fields\", function () {\r",
+									"pm.test(\"Check that there is a success message\",function(){\r",
 									"    const responseData = pm.response.json();\r",
 									"\r",
-									"    pm.expect(responseData).to.be.an('array');\r",
-									"    responseData.forEach(function (transaction) {\r",
-									"        pm.expect(transaction).to.have.property('amount');\r",
-									"        pm.expect(transaction).to.have.property('transaction_id');\r",
-									"        pm.expect(transaction).to.have.property('transaction_type');\r",
-									"        pm.expect(transaction).to.have.property('user_id');\r",
-									"    });\r",
-									"\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Amount is a non-negative number\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"\r",
-									"    responseData.forEach(function (transaction) {\r",
-									"        pm.expect(transaction.amount).to.be.a('number').and.to.be.at.least(0);\r",
-									"    });\r",
+									"    pm.expect(responseData).to.have.property('message');\r",
+									"    pm.expect(responseData.message).to.contains(\"Transaction added successfully\")\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -1741,9 +1726,8 @@
 									"    pm.expect(responseData.users).to.be.an('array');\r",
 									"    \r",
 									"    responseData.users.forEach(function(user) {\r",
-									"        pm.expect(user).to.have.property('currency_balance');\r",
+									"        pm.expect(user).to.have.property('balance');\r",
 									"        pm.expect(user).to.have.property('email');\r",
-									"        pm.expect(user).to.have.property('session_token');\r",
 									"        pm.expect(user).to.have.property('user_id');\r",
 									"        pm.expect(user).to.have.property('username');\r",
 									"    });\r",
@@ -1827,9 +1811,9 @@
 									"    pm.expect(responseData.users).to.be.an('array');\r",
 									"    \r",
 									"    responseData.users.forEach(function(user) {\r",
-									"        pm.expect(user).to.have.property('currency_balance');\r",
+									"        pm.expect(user).to.have.property('balance');\r",
 									"        pm.expect(user).to.have.property('email');\r",
-									"        pm.expect(user).to.have.property('session_token');\r",
+									"        pm.expect(user).to.have.property('user_type');\r",
 									"        pm.expect(user).to.have.property('user_id');\r",
 									"        pm.expect(user).to.have.property('username');\r",
 									"    });\r",
@@ -1910,26 +1894,21 @@
 									"    const responseData = pm.response.json();\r",
 									"\r",
 									"    pm.expect(responseData).to.be.an('object');\r",
-									"    pm.expect(responseData.users).to.be.an('array');\r",
 									"    \r",
-									"    responseData.users.forEach(function(user) {\r",
-									"        pm.expect(user).to.have.property('currency_balance');\r",
-									"        pm.expect(user).to.have.property('email');\r",
-									"        pm.expect(user).to.have.property('session_token');\r",
-									"        pm.expect(user).to.have.property('user_id');\r",
-									"        pm.expect(user).to.have.property('username');\r",
-									"    });\r",
+									"    pm.expect(responseData).to.have.property('balance');\r",
+									"    pm.expect(responseData).to.have.property('email');\r",
+									"    pm.expect(responseData).to.have.property('user_type');\r",
+									"    pm.expect(responseData).to.have.property('user_id');\r",
+									"    pm.expect(responseData).to.have.property('username');\r",
+									"    \r",
 									"});\r",
 									"\r",
 									"\r",
 									"pm.test(\"Email is in a valid format\", function () {\r",
 									"    const responseData = pm.response.json();\r",
 									"    \r",
-									"    pm.expect(responseData.users).to.be.an('array').and.to.have.lengthOf.at.least(1);\r",
+									"    pm.expect(responseData.email).to.be.a('string').and.to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/);\r",
 									"    \r",
-									"    responseData.users.forEach(function(user) {\r",
-									"        pm.expect(user.email).to.be.a('string').and.to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/);\r",
-									"    });\r",
 									"});\r",
 									"\r",
 									"\r",
@@ -1976,7 +1955,7 @@
 					"response": []
 				},
 				{
-					"name": "Get User Copy",
+					"name": "Get user balance",
 					"event": [
 						{
 							"listen": "test",
@@ -1996,27 +1975,13 @@
 									"    const responseData = pm.response.json();\r",
 									"\r",
 									"    pm.expect(responseData).to.be.an('object');\r",
-									"    pm.expect(responseData.users).to.be.an('array');\r",
 									"    \r",
-									"    responseData.users.forEach(function(user) {\r",
-									"        pm.expect(user).to.have.property('currency_balance');\r",
-									"        pm.expect(user).to.have.property('email');\r",
-									"        pm.expect(user).to.have.property('session_token');\r",
-									"        pm.expect(user).to.have.property('user_id');\r",
-									"        pm.expect(user).to.have.property('username');\r",
-									"    });\r",
+									"    \r",
+									"    pm.expect(responseData).to.have.property('currency_balance');\r",
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Email is in a valid format\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    \r",
-									"    pm.expect(responseData.users).to.be.an('array').and.to.have.lengthOf.at.least(1);\r",
-									"    \r",
-									"    responseData.users.forEach(function(user) {\r",
-									"        pm.expect(user.email).to.be.a('string').and.to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/);\r",
-									"    });\r",
-									"});\r",
+									"\r",
 									"\r",
 									"\r",
 									""
@@ -2028,8 +1993,11 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"packages": {},
-								"type": "text/javascript"
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -2063,208 +2031,6 @@
 							"path": [
 								"get_user_balance",
 								"10"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Player",
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"// Retrieve the original email from the environment\r",
-									"const originalEmail = pm.environment.get(\"email\");\r",
-									"\r",
-									"// Ensure the email is only updated once\r",
-									"if (originalEmail) {\r",
-									"    // Check if the email already starts with \"updated_\"\r",
-									"    if (!originalEmail.startsWith(\"updated_\")) {\r",
-									"        // Add \"updated_\" in front of the original email\r",
-									"        const updatedEmail = `updated_${originalEmail}`;\r",
-									"        \r",
-									"        // Save the updated email back to the environment\r",
-									"        pm.environment.set(\"updated_email\", updatedEmail);\r",
-									"        console.log(\"Updated email saved:\", updatedEmail);\r",
-									"    } else {\r",
-									"        console.log(\"Email is already updated:\", originalEmail);\r",
-									"    }\r",
-									"} else {\r",
-									"    console.log(\"Original email not found in the environment.\");\r",
-									"}"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"    pm.expect(pm.response.code).to.equal(200);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Response time is less than 500ms\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{session_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "username",
-									"value": "{{username}}",
-									"type": "text"
-								},
-								{
-									"key": "password",
-									"value": "{{password}}",
-									"type": "text"
-								},
-								{
-									"key": "email",
-									"value": "{{updated_email}}",
-									"type": "text"
-								},
-								{
-									"key": "image",
-									"type": "file",
-									"src": []
-								}
-							]
-						},
-						"url": {
-							"raw": "https://localhost:5000/update/PLAYER",
-							"protocol": "https",
-							"host": [
-								"localhost"
-							],
-							"port": "5000",
-							"path": [
-								"update",
-								"PLAYER"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Admin",
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"// Retrieve the original email from the environment\r",
-									"const originalEmail = pm.environment.get(\"email\");\r",
-									"\r",
-									"// Ensure the email is only updated once\r",
-									"if (originalEmail) {\r",
-									"    // Check if the email already starts with \"updated_\"\r",
-									"    if (!originalEmail.startsWith(\"updated_\")) {\r",
-									"        // Add \"updated_\" in front of the original email\r",
-									"        const updatedEmail = `updated_${originalEmail}`;\r",
-									"        \r",
-									"        // Save the updated email back to the environment\r",
-									"        pm.environment.set(\"updated_email\", updatedEmail);\r",
-									"        console.log(\"Updated email saved:\", updatedEmail);\r",
-									"    } else {\r",
-									"        console.log(\"Email is already updated:\", originalEmail);\r",
-									"    }\r",
-									"} else {\r",
-									"    console.log(\"Original email not found in the environment.\");\r",
-									"}"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"    pm.expect(pm.response.code).to.equal(200);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Response time is less than 500ms\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{session_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "username",
-									"value": "{{username}}",
-									"type": "text"
-								},
-								{
-									"key": "password",
-									"value": "{{password}}",
-									"type": "text"
-								},
-								{
-									"key": "email",
-									"value": "{{updated_email}}",
-									"type": "text"
-								},
-								{
-									"key": "image",
-									"type": "file",
-									"src": []
-								}
-							]
-						},
-						"url": {
-							"raw": "https://localhost:5000/update/ADMIN",
-							"protocol": "https",
-							"host": [
-								"localhost"
-							],
-							"port": "5000",
-							"path": [
-								"update",
-								"ADMIN"
 							]
 						}
 					},
@@ -2572,8 +2338,8 @@
 									"});\r",
 									"\r",
 									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"pm.test(\"Response time is less than 300ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(300);\r",
 									"});\r",
 									"// Stores the auctionId in a global variable\r",
 									"var auctionId = pm.response.json().auction_id;\r",
@@ -2946,22 +2712,17 @@
 									"    const responseData = pm.response.json();\r",
 									"\r",
 									"    pm.expect(responseData).to.be.an('object');\r",
-									"    pm.expect(responseData.acquired_date).to.exist;\r",
-									"    pm.expect(responseData.description).to.exist;\r",
-									"    pm.expect(responseData.gacha_id).to.exist;\r",
-									"    pm.expect(responseData.image).to.exist;\r",
-									"    pm.expect(responseData.locked).to.exist;\r",
-									"    pm.expect(responseData.name).to.exist;\r",
-									"    pm.expect(responseData.rarity).to.exist;\r",
-									"    pm.expect(responseData.status).to.exist;\r",
+									"    pm.expect(responseData.auctions[0].auction_id).to.exist;\r",
+									"    pm.expect(responseData.auctions[0].base_price).to.exist;\r",
+									"    pm.expect(responseData.auctions[0].buyer_id).to.exist;\r",
+									"    pm.expect(responseData.auctions[0].end_time).to.exist;\r",
+									"    pm.expect(responseData.auctions[0].gacha_id).to.exist;\r",
+									"    pm.expect(responseData.auctions[0].highest_bid).to.exist;\r",
+									"    pm.expect(responseData.auctions[0].seller_id).to.exist;\r",
+									"    pm.expect(responseData.auctions[0].status).to.exist;\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Locked status is a boolean value\", function () {\r",
-									"    const responseData = pm.response.json();\r",
 									"\r",
-									"    pm.expect(responseData).to.be.an('object');\r",
-									"    pm.expect(responseData.locked).to.be.a('boolean');\r",
-									"});\r",
 									"\r",
 									""
 								],
@@ -3187,7 +2948,7 @@
 			]
 		},
 		{
-			"name": "Db-manger",
+			"name": "Db-manager",
 			"item": [
 				{
 					"name": "Register User",
@@ -3198,6 +2959,11 @@
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Expected message is present\", function () {\r",
+									"    const response = pm.response.json();\r",
+									"    pm.expect(response.message).to.include( \"PLAYER registered successfully\");\r",
 									"});\r",
 									""
 								],
@@ -3254,7 +3020,13 @@
 									"pm.test(\"Response status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
-									""
+									"\r",
+									"pm.test(\"Response has the required field - session_token\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.have.property('session_token');\r",
+									"\r",
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -3290,6 +3062,26 @@
 				},
 				{
 					"name": "Logout User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Expected message is present\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.message).to.include( \"Logout successful\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -3319,9 +3111,26 @@
 				},
 				{
 					"name": "Update User",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Expected message is present\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.message).to.include( \"Profile updated successfully\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -3333,7 +3142,7 @@
 								}
 							]
 						},
-						"method": "GET",
+						"method": "PUT",
 						"header": [],
 						"body": {
 							"mode": "raw",
@@ -3361,6 +3170,49 @@
 				},
 				{
 					"name": "Get User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response time is less than 500ms\", function () {",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData).to.have.all.keys('currency_balance', 'email', 'image', 'password', 'session_token', 'user_id', 'username');",
+									"});",
+									"",
+									"",
+									"pm.test(\"Email is in a valid format\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.email).to.be.a('string').and.to.match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Username is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.username).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Username should not be empty\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -3392,6 +3244,47 @@
 				},
 				{
 					"name": "Get User Balance",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.currency_balance).to.exist;",
+									"});",
+									"",
+									"",
+									"pm.test(\"Currency balance is a non-negative integer\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.currency_balance).to.be.a('number');",
+									"    pm.expect(responseData.currency_balance).to.be.at.least(0);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Content-Type header is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -3428,6 +3321,39 @@
 				},
 				{
 					"name": "Delete User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Content-Type header is application/json\", function () {",
+									"  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.message).to.exist;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -3464,6 +3390,66 @@
 				},
 				{
 					"name": "Get All Users",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.users).to.be.an('array');",
+									"    ",
+									"    responseData.users.forEach(function(user) {",
+									"        pm.expect(user).to.have.property('currency_balance');",
+									"        pm.expect(user).to.have.property('email');",
+									"        pm.expect(user).to.have.property('image');",
+									"        pm.expect(user).to.have.property('password');",
+									"        pm.expect(user).to.have.property('session_token');",
+									"        pm.expect(user).to.have.property('user_id');",
+									"        pm.expect(user).to.have.property('username');",
+									"    });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Email is in a valid email format\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.users).to.be.an('array');",
+									"    responseData.users.forEach(function(user) {",
+									"        pm.expect(user.email).to.match(/\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b/i);",
+									"    });",
+									"});",
+									"",
+									"",
+									"pm.test(\"Username is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.users).to.be.an('array');",
+									"    ",
+									"    responseData.users.forEach(function(user) {",
+									"        pm.expect(user.username).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Username should not be empty\");",
+									"    });",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},

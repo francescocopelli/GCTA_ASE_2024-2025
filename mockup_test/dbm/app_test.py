@@ -69,10 +69,10 @@ def gigio(endpoint, **kwargs):
         if user and password == "valid_password":  # Simulate password check
             auth_code = "auth_code"
             user["session_token"] = auth_code
-            return {"auth_code": auth_code}, 200
+            return {"auth_code": auth_code},200
         else:
             first_user = users[user_type][0] if users[user_type] else None
-            return {"auth_code": "default_auth_code"}, 200
+            return {"auth_code": "default_auth_code"},200
 
     elif "logout" in endpoint:
         user_type = kwargs["user_type"]
@@ -80,18 +80,18 @@ def gigio(endpoint, **kwargs):
         user = next((u for u in users[user_type] if u["session_token"] == session_token), None)
         if user:
             user["session_token"] = None
-            return {"message": "Logout successful"}, 200
-        return {"message": "Logout successful"}, 200
+            return {"message": "Logout successful"}
+        return {"message": "Logout successful"}
     
     elif "get_user" in endpoint:
         user_type = kwargs["user_type"]
         user_id = kwargs["user_id"]
         user = next((u for u in users[user_type] if u["user_id"] == user_id), None)
         if user:
-            return user, 200
+            return user
         else:
             first_user = users[user_type][0] if users[user_type] else None
-            return first_user, 200
+            return first_user
 
     elif "update" in endpoint:
         user_type = kwargs["user_type"]
@@ -99,24 +99,24 @@ def gigio(endpoint, **kwargs):
         user_id = data.get("user_id")
         user = next((u for u in users[user_type] if u["user_id"] == user_id), None)
         if not user:
-            return {"message": "Profile updated successfully"}, 200
+            return {"message": "Profile updated successfully"}
         if data.get("username"):
             user["username"] = data["username"]
         if data.get("email"):
             user["email"] = data["email"]
         if data.get("password"):
             user["password"] = "hashed_password"  # Simulate password hashing
-        return {"message": "Profile updated successfully"}, 200
+        return {"message": "Profile updated successfully"}
 
     elif "balance" in endpoint:
         user_type = kwargs["user_type"]
         user_id = kwargs["user_id"]
         user = next((u for u in users[user_type] if u["user_id"] == user_id), None)
         if user:
-            return {"currency_balance": user["currency_balance"]}, 200
+            return {"currency_balance": user["currency_balance"]}
         else:
             first_user = users[user_type][0] if users[user_type] else None
-            return {"currency_balance": first_user["currency_balance"]}, 200
+            return {"currency_balance": first_user["currency_balance"]}
 
     elif "delete" in endpoint:
         user_type = kwargs["user_type"]
@@ -124,14 +124,14 @@ def gigio(endpoint, **kwargs):
         user = next((u for u in users[user_type] if u["user_id"] == user_id), None)
         if user:
             users[user_type].remove(user)
-            return {"message": "User deleted successfully"}, 200
-        return {"message": "User deleted successfully"}, 200
+            return {"message": "User deleted successfully"}
+        return {"message": "User deleted successfully"}
 
     elif "get_all" in endpoint:
         user_type = kwargs["user_type"]
-        return users[user_type], 200
+        return users[user_type]
 
-    return {"error": "Unknown endpoint"}, 501
+    return {"error": "Unknown endpoint"}
 
 flask_app = main_app.app  # Flask app
 # Assigning the mock implementation

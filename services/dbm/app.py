@@ -220,7 +220,7 @@ def get_balance(user_type):
     if mockup:
         # Mock balance
         response = gigio("balance", user_type=user_type, user_id=user_id)
-        return send_response(response[0], response[1])
+        return send_response(response, 200)
 
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
@@ -257,7 +257,7 @@ def delete(user_type):
     if mockup:
         # Mock delete
         response = gigio("delete", user_type=user_type, user_id=user_id)
-        return send_response(response[0], response[1])
+        return send_response(response, 200)
     
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
@@ -352,7 +352,7 @@ def update(user_type):
     if mockup:
         # Mock update
         response = gigio("update", user_type=user_type, json=data)
-        return send_response(response[0], response[1])
+        return send_response(response, 200)
 
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
@@ -433,7 +433,7 @@ def get_user(user_type, user_id):
     if mockup:
         # Mock get_user
         response = gigio("get_user", user_type=user_type, user_id=user_id)
-        return send_response(response[0], response[1])
+        return send_response(response, 200)
     
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
@@ -470,7 +470,7 @@ def get_all(user_type):
     if mockup:
         # Mock get_all
         response = gigio("get_all", user_type=user_type)
-        return send_response({"users": response[0]}, response[1])
+        return send_response({"users": response}, 200)
 
     try:
         conn = get_db_connection(DB_HOST, DATABASE)

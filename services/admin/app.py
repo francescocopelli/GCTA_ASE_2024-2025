@@ -84,7 +84,8 @@ def update_myself(user):
 @admin_required
 def update(user_id):
     user_type = request.args.get("user_type") or "PLAYER"
-    
+    data = request.json
+
     if mockup:
         # Mock implementation
         return send_response(gigio("update", user_id=user_id, json=data),200)
@@ -96,7 +97,6 @@ def update(user_id):
     if not any(request.json):
         return send_response({"error": "No fields to update"}, 400)
     logging.info(f"Received as user value:  {user}")
-    data = request.json
 
     username = data.get("username") or user['username']
     email = data.get("email") or user['email']
