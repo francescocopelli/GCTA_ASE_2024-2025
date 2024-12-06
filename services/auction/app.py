@@ -422,7 +422,8 @@ def place_bid(user):
         # Check if the bid amount is higher than the current highest bid
         if int(bid_amount) <= auction["highest_bid"]:
             return send_response({"error": "Bid amount must be higher than current highest bid"}, 400)
-
+        if int(bid_amount) < auction["base_price"]:
+            return send_response({"error": "Bid amount must be higher than base price"}, 400)
         # Check if the user has enough funds for the bid
         user_balance = str(get_user_balance(user_id)[0].get_json().get("currency_balance"))
         if int(user_balance) < int(bid_amount):
@@ -431,9 +432,9 @@ def place_bid(user):
         # Update the auction with the new highest bid
         # Send back money to previous buyer
         if auction['buyer_id']:
-            update_user_balance(auction['buyer_id'], auction['highest_bid'], "auction_credit")
+            update_user_balance(auction['buyer_id'], auction['highest_bid'], "credit")
         # Block money from new buyer
-        update_user_balance(user_id, bid_amount, "auction_debit")
+        update_user_balance(user_id, bid_amount, "debit")
 
         if mockup: return send_response({'message':gigio("bid", auction_id=auction_id, buyer_id=user_id, amount=bid_amount)}, 200)
         # Update auction
