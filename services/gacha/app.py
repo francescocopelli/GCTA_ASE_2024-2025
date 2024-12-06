@@ -118,17 +118,17 @@ def get_user_inventory(user_id):
 @app.route('/roll', methods=['POST'])
 @login_required_ret
 def roll_gacha(user):
+
+    if mockup:
+        return send_response(gigio("roll"), 200)
+    # Extract roll details from request JSON
+    user_id = user['user_id']
+    roll_cost = 5
+
+    if check_header() or decode_session_token(request.headers.get("Authorization").split(" ")[1])[
+        'user_type'] == 'ADMIN':
+        return send_response({'error': 'Admins cannot roll gacha'}, 403)
     try:
-        if mockup:
-            return send_response(gigio("roll"), 200)
-        # Extract roll details from request JSON
-        user_id = user['user_id']
-        roll_cost = 5
-
-        if check_header() or decode_session_token(request.headers.get("Authorization").split(" ")[1])[
-            'user_type'] == 'ADMIN':
-            return send_response({'error': 'Admins cannot roll gacha'}, 403)
-
         # Check for required fields
         if not all([user_id, roll_cost]):
             logging.debug("Missing data for gacha roll: user_id=%s, roll_cost=%s", user_id, roll_cost)
