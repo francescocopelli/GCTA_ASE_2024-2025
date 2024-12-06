@@ -264,11 +264,11 @@ def change_user_info(conn, cursor, user_type, request, column, identifier):
                 )
 
             cursor.execute(query_update, (request.json.get("email"), identifier))
-        if request.json.get("image"):
+        if request.json.get("image") and user_type == "PLAYER":
             logging.warning("Image found in request" + request.json.get("image"))
             image = base64.b64decode(request.json.get("image"))
             query_update = (
-                "UPDATE PLAYER SET image = %s WHERE user_id =%s" if "PLAYER" in user_type else "UPDATE ADMIN SET image = %s WHERE user_id =%s"
+                "UPDATE PLAYER SET image = %s WHERE user_id =%s"
             )
             if column == "session_token":
                 query_update = (
