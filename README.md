@@ -28,23 +28,7 @@ The system is designed to be scalable and maintainable, leveraging the benefits 
 - **Requests**: Python HTTP library for making API requests.
 
 
-## Preliminary step
 
-For compatibility reasons you will have to run a script in order to make sure that the project can run without any issues if you are using either Windows or Linux. See the explanation section below for more information. Follow these steps:
-
-1. **Run the `tool.py` script**:
-   This script will automatically convert all `.sh` files in the project from `CRLF` to `LF`.
-   ```sh
-   python tool.py
-    ```
-You should see in the output result something such as:
-```sh
-    [SUCCESS] Converted CRLF to LF for: <file>
-```
-You are now good to go and you can follow the get started section in order to run the software.
-### Explanation
-
-This issue occurs because Windows uses `\r\n` (carriage return and line feed) for line endings, while Unix-based systems (including Docker containers) use `\n` (line feed) only. The extra `\r` character is not recognized by the container and is interpreted as part of the filename, causing the file not to be found.
 
 
 ## Get Started
@@ -56,14 +40,27 @@ In order to start using the GCTA game, you have to:
     git clone <repository-url>
     cd GCTA_ASE_2024-2025
     ```
+2. **Preliminary step**
 
-2. **Set up the environment**
+For compatibility reasons you will have to run a script in order to make sure that the project can run without any issues if you are using either Windows or Linux.    This script will automatically convert all `.sh` files in the project from `CRLF` to `LF`.
+```sh
+   python tool.py
+```
+
+You should see in the output result something such as:
+
+```sh
+    [SUCCESS] Converted CRLF to LF for: <file>
+```
+##### Explanation
+This issue occurs because Windows uses `\r\n` (carriage return and line feed) for line endings, while Unix-based systems (including Docker containers) use `\n` (line feed) only. The extra `\r` character is not recognized by the container and is interpreted as part of the filename, causing the file not to be found.
+3. **Set up the environment**
     - Ensure you have Docker and Docker Compose installed on your machine.
     ```sh
     docker -v
     docker compose version
     ```
-3. **Build and run the services**
+4. **Build and run the services**
     ```sh
     docker compose up --build -d
     ```
@@ -72,14 +69,14 @@ In order to start using the GCTA game, you have to:
     docker compose down
     ```
 
-4. **Access the application**
+5. **Access the application**
     - The application should now be running. You can access it via `https://localhost:8080` for the user services and via `https://localhost:8081` for the admin related operations.
 
-5. **API Documentation**
-    - The API documentation can be found in the [doc/openapi.yaml](doc/openapi.yaml) file.
+6. **API Documentation**
+    - The API documentation can be found in the [docs/API_admin.yaml](docs/API_admin.yaml) file for the admins endopoints and in the [docs/API_player.yaml](docs/API_player.yaml) for the user endpoints.
 
-6. **Additional Information**
-    - For more details, refer to the [README.md](README.md) and [TODO.md](TODO.md) files.
+7. **Additional Information**
+    - For more details, refer to the [README.md](README.md)
 
 ## Bandit
 Bandit is a static analysis tool to find potential security issues in Python code. It runs a series of checks on each file and reports any vulnerabilities.
@@ -90,7 +87,7 @@ bandit -r . -x ./.venv/,./test_locust/,./mockup_test/,./locustfile.py -s=B501
 ```
 ### Command explanation
 1. -r .: Recursively scans all directories and files in the project.
-2. -x ./.venv,./test: Excludes the .venv and test directories from the scan.
+2. -x : Excludes the folders used for the tests code, which would give false positives.
 3. -s=B501: Excludes the B501 check (request_with_no_cert_validation) to avoid false positives, as we added the verify=False to remove the check on the certificates used with requests, as they are self signed.
 
 ## Postman tests
@@ -134,63 +131,69 @@ Isolation tests have been used to test individual services in absence of the dat
 3. Run the Docker container for the service in detached mode, naming it appropriately.
 4. Execute the Newman test for the service using the `GCTA_Isolation_Tests.postman_collection.json` and the corresponding environment file.
 
-To execute the isolation tests for each service, follow the steps below:
-```sh
- docker build -t mock_auction -f .\auction_mockup_test.dockerfile .
- docker run -p 5000:5000 --rm --name auction_mockup_test mock_auction
-```
+To execute the isolation tests for each service use the following commands. Every time you want to 
+test another one remember to remove the previous one. The test uses port 5000, if you change it you will have to change it also on all the tests.
+
 
 ##### Auction Service
 ```sh
-    cd services/auction
 
-    docker build -t auction-mock -f dockerfile_test .
+    docker build -t mock_auction -f ./auction_mockup_test.dockerfile .
 
-    docker run -d -p 5000:5000 --name auction-mock-container auction-mock
+    docker run -d -p 5000:5000 --name auction_mockup_test mock_auction
 
-    newman run ./../../isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Auctions" --environment ./../../isolation_tests_postman/gcta_mock.postman_environment.json
+    newman run ./isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Auctions" --environment ./isolation_tests_postman/gcta_mock.postman_environment.json --insecure
 ```
 ##### Gacha Service
 ```sh
-    cd services/gacha
 
-    docker build -t gacha-mock -f dockerfile_test .
+    docker build -t gacha-mock -f gacha_mockup_test.dockerfile .
 
     docker run -d -p 5000:5000 --name gacha-mock-container gacha-mock
 
-    newman run ./../../isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Gachas" --environment ./../../isolation_tests_postman/gcta_mock.postman_environment.json
+    newman run ./isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Gachas" --environment ./isolation_tests_postman/gcta_mock.postman_environment.json --insecure
 ```
 #### Player Service
 ```sh
-    cd services/player
+    docker build -t users-mock -f users_mockup_test.dockerfile .
 
-    docker build -t player-mock -f dockerfile_test .
+    docker run -d -p 5000:5000 --name users-mock-container users-mock
 
-    docker run -d -p 5000:5000 --name player-mock-container player-mock
-
-    newman run ./../../isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Player" --environment ./../../isolation_tests_postman/gcta_mock.postman_environment.json
+    newman run ./isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Player" --environment ./isolation_tests_postman/gcta_mock.postman_environment.json --insecure
 ```
 #### Transaction Service
 ```sh
-    cd services/transaction
-
-    docker build -t transaction-mock -f dockerfile_test .
+    docker build -t transaction-mock -f transaction_mockup_test.dockerfile .
 
     docker run -d -p 5000:5000 --name transaction-mock-container transaction-mock
 
-    newman run ./../../isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Transactions" --environment ./../../isolation_tests_postman/gcta_mock.postman_environment.json
+    newman run ./isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Transactions" --environment ./isolation_tests_postman/gcta_mock.postman_environment.json --insecure
 ```
 #### Player Auth Service
 ```sh
     docker build -t player-auth-mock -f users_auth_mockup_test.dockerfile .
     docker run -d -p 5000:5000 --name player-auth-mock-container player-auth-mock
+    newman run ./isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Player auth" --environment ./isolation_tests_postman/gcta_mock.postman_environment.json --insecure
 ```
 
 #### Admin Auth Service
 ```sh
     docker build -t admin-auth-mock -f admin_auth_mockup_test.dockerfile .
     docker run -d -p 5000:5000 --name admin-auth-mock-container admin-auth-mock
+    newman run ./isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Admin_auth" --environment ./isolation_tests_postman/gcta_mock.postman_environment.json --insecure
+```
+#### Db manager Service
+```sh
+docker build -t dbm-mock -f dbm_mockup_test.dockerfile .
+docker run -d -p 5000:5000 --name dbm-mock-container dbm-mock
+newman run ./isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Db-manager" --environment ./isolation_tests_postman/gcta_mock.postman_environment.json --insecure
 ```
 
+### Admin Service
+```sh
+docker build -t admin-mock -f admin_mockup_test.dockerfile .
+docker run -d -p 5000:5000 --name admin-mock-container admin-mock
+newman run ./isolation_tests_postman/GCTA_Isolation_Tests.postman_collection.json --folder "Admin" --environment ./isolation_tests_postman/gcta_mock.postman_environment.json --insecure
+```
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
