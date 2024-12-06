@@ -3059,14 +3059,14 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "e13d5ba2-a0d8-42c9-83d0-b0989dbf7006",
 								"exec": [
 									"pm.test(\"Error message indicates wrong parameters\", function () {\r",
 									"  pm.expect(pm.response.text()).to.include(\"Missing auction_id parameter\");\r",
 									"});"
 								],
 								"type": "text/javascript",
-								"packages": {},
-								"id": "e13d5ba2-a0d8-42c9-83d0-b0989dbf7006"
+								"packages": {}
 							}
 						}
 					],
@@ -3075,6 +3075,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
