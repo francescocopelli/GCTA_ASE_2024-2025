@@ -54,6 +54,8 @@ You should see in the output result something such as:
 ```
 ##### Explanation
 This issue occurs because Windows uses `\r\n` (carriage return and line feed) for line endings, while Unix-based systems (including Docker containers) use `\n` (line feed) only. The extra `\r` character is not recognized by the container and is interpreted as part of the filename, causing the file not to be found.
+
+
 3. **Set up the environment**
     - Ensure you have Docker and Docker Compose installed on your machine.
     ```sh
