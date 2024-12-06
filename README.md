@@ -37,7 +37,7 @@ In order to start using the GCTA game, you have to:
 
 1. **Clone the repository**
     ```sh
-    git clone <repository-url>
+    git clone https://github.com/francescocopelli/GCTA_ASE_2024-2025.git
     cd GCTA_ASE_2024-2025
     ```
 2. **Preliminary step**
