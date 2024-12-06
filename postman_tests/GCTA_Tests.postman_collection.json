@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "a9844aa1-a195-4dda-b66d-1fb4bb669029",
+		"_postman_id": "2db3bdf6-3064-43e4-8bed-64aa8d23304d",
 		"name": "GCTA Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "39572674",
-		"_collection_link": "https://gcta11.postman.co/workspace/GCTA~e4883204-fa99-45fc-8245-f67cc6533c3b/collection/39572674-a9844aa1-a195-4dda-b66d-1fb4bb669029?action=share&source=collection_link&creator=39572674"
+		"_collection_link": "https://gcta11.postman.co/workspace/GCTA~e4883204-fa99-45fc-8245-f67cc6533c3b/collection/39572674-2db3bdf6-3064-43e4-8bed-64aa8d23304d?action=share&source=collection_link&creator=39572674"
 	},
 	"item": [
 		{
@@ -2864,6 +2864,16 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
