@@ -56,7 +56,7 @@ def register(user_type):
             return send_response({"error": "Missing required fields"}, 400)
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             return send_response({"error": "Invalid email address"}, 400)
-        if not check_user_exist(user_type, username):
+        if check_user_exist(user_type, username):
             return send_response({"error": "User already exists"}, 400)
         hashed_password = hash_password(password)
 
@@ -448,7 +448,10 @@ def delete_user(user_type, session_token):
         cursor = conn.cursor(dictionary=True)
 
         # Verify if the session_token exists in the table
-        user = check_user_exist(user_type)
+
+        query = "SELECT * FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE session_token=%s"
+        cursor.execute(query, (session_token,))
+        user = cursor.fetchone()
 
         if user:
             # Delete the user from the table
