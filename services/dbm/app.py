@@ -26,6 +26,19 @@ def check_hash(password: str, hashed_password: str):
     return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 
+def check_user_exist(user_type, identifier):
+    try:
+        conn = get_db_connection(DB_HOST, DATABASE)
+        cursor = conn.cursor(dictionary=True)
+        query = "SELECT * FROM PLAYER WHERE username = %s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE username = %s"
+        cursor.execute(query, (identifier,))
+        user = cursor.fetchone()
+        return user
+    except Exception as e:
+        return manage_errors(e)
+    finally:
+        if not mockup: release_db_connection(conn, cursor)
+
 # Endpoint di registrazione per USER e ADMIN
 @app.route("/register/<user_type>", methods=["POST"])
 def register(user_type):
@@ -43,6 +56,8 @@ def register(user_type):
             return send_response({"error": "Missing required fields"}, 400)
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             return send_response({"error": "Invalid email address"}, 400)
+        if not check_user_exist(user_type, username):
+            return send_response({"error": "User already exists"}, 400)
         hashed_password = hash_password(password)
 
         # Inserimento nel database
@@ -433,9 +448,7 @@ def delete_user(user_type, session_token):
         cursor = conn.cursor(dictionary=True)
 
         # Verify if the session_token exists in the table
-        query = "SELECT * FROM PLAYER WHERE session_token =%s" if "PLAYER" in user_type else "SELECT * FROM ADMIN WHERE session_token=%s"
-        cursor.execute(query, (session_token,))
-        user = cursor.fetchone()
+        user = check_user_exist(user_type)
 
         if user:
             # Delete the user from the table
