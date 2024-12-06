@@ -3,13 +3,22 @@ import re
 
 import bcrypt
 from flask import Flask
+import os
 
-from shared.auth_middleware import *
+# Mock mode flag
+mockup = os.getenv("MOCKUP", "0") == "1"
 
-# Configura il logging
-logging.basicConfig(level=logging.DEBUG)
+if mockup:
+    from auth_middleware import *
+else:
+    from shared.auth_middleware import *
 
 app = Flask(__name__)
+
+logging.basicConfig(level=logging.DEBUG)
+
+# Placeholder for the mock implementation
+gigio = None
 
 app.config['SECRET_KEY'] = SECRET_KEY
 
@@ -44,11 +53,15 @@ def check_user_exist(user_type, identifier):
 def register(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         return send_response({"error": "Invalid user type"}, 401)
-
+    data = request.form
+    if mockup:
+        # Mock registration
+            return send_response(
+                gigio("register", user_type=user_type, **data), 200
+            )
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
-        data = request.form
         username = sanitize(data.get("username"))
         password = data.get("password")
         email = data.get("email")
@@ -56,6 +69,9 @@ def register(user_type):
             return send_response({"error": "Missing required fields"}, 400)
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             return send_response({"error": "Invalid email address"}, 400)
+        
+        
+        
         if check_user_exist(user_type, username):
             return send_response({"error": "User already exists"}, 400)
         hashed_password = hash_password(password)
@@ -141,6 +157,13 @@ def login(user_type):
     username = sanitize(data.get("username"))
     password = data.get("password")
 
+    if mockup:
+        # Mock login
+        response = gigio("login", user_type=user_type, json=data)
+        if response[1] == 200:
+            return send_response({"session_token": response[0]["auth_code"]}, 200)
+        return send_response({"error": "Invalid credentials"}, 401)
+
     auth_code, status_code = authorize(username, password, user_type)
     if not status_code == 200:
         return send_response({"error": "Invalid credentials"}, status_code)
@@ -151,10 +174,19 @@ def login(user_type):
 @app.route("/logout", methods=["DELETE"])
 @login_required_ret
 def logout(user):
+    
+    if mockup:
+        # Mock logout
+        token=decode_session_token(request.headers["Authorization"].split(" ")[1])
+        user_type = token["user_type"]
+        response = gigio("logout", user_type=user_type, session_token=request.headers["Authorization"].split(" ")[1])
+        return send_response(response,200)
+    
     user_type = decode_session_token(user["session_token"])["user_type"]
     if user_type not in ["PLAYER", "ADMIN"]:
         logging.error(f"Invalid user type: {user_type}")
         return send_response({"error": "Invalid user type"}, 401)
+    
     conn = get_db_connection(DB_HOST, DATABASE)
     cursor = conn.cursor(dictionary=True)
     try:
@@ -172,7 +204,7 @@ def logout(user):
         release_db_connection(conn, cursor)
 
 
-# Endpoint per visualizzare il saldo della valuta di gioco
+# Endpoint for visualizing the balance of a user
 @app.route("/balance/<user_type>", methods=["GET"])
 @login_required_void
 def get_balance(user_type):
@@ -184,6 +216,11 @@ def get_balance(user_type):
     if not user_id:
         logging.error("User ID is required")
         return send_response({"error": "User ID is required"}, 400)
+    
+    if mockup:
+        # Mock balance
+        response = gigio("balance", user_type=user_type, user_id=user_id)
+        return send_response(response[0], response[1])
 
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
@@ -216,6 +253,12 @@ def delete(user_type):
     if not user_id:
         logging.error("User ID is required")
         return send_response({"error": "User ID is required"}, 400)
+    
+    if mockup:
+        # Mock delete
+        response = gigio("delete", user_type=user_type, user_id=user_id)
+        return send_response(response[0], response[1])
+    
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
@@ -304,6 +347,12 @@ def change_user_info(conn, cursor, user_type, request, column, identifier):
 def update(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         return send_response({"error": "Invalid user type"}, 400)
+    
+    data = request.get_json()
+    if mockup:
+        # Mock update
+        response = gigio("update", user_type=user_type, json=data)
+        return send_response(response[0], response[1])
 
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
@@ -332,6 +381,13 @@ def update_balance_user(user_type):
     user_id = request.json.get("user_id")
     amount = request.json.get("amount")
     transaction_type = request.json.get("type")
+    
+    if mockup:
+        # Mock balance update
+        response = gigio("update_balance", user_type=user_type, user_id=user_id, amount=amount, transaction_type=transaction_type)
+        return send_response(response)
+
+
     if not user_id or not amount or not transaction_type:
         logging.error("user_id, amount, and type are required")
         return send_response({"error": "user_id, amount, and type are required"}, 400)
@@ -357,6 +413,11 @@ def update_balance_user(user_type):
 @app.route("/get_user/<user_id>", methods=["GET"])
 @login_required_void
 def get_users(user_id):
+    if mockup:
+        # Mock get_user
+        response = gigio("get_user", user_type="PLAYER", user_id=user_id)
+        return send_response(response)
+
     url = "https://db-manager:5000/get_user/PLAYER/" + user_id
     response = requests.get(url, timeout=30, verify=False, headers=generate_session_token_system())
     return send_response(response.json(), response.status_code)
@@ -369,6 +430,11 @@ def get_user(user_type, user_id):
         logging.error(f"Invalid user type: {user_type}")
         return send_response({"error": "Invalid user type"}, 400)
 
+    if mockup:
+        # Mock get_user
+        response = gigio("get_user", user_type=user_type, user_id=user_id)
+        return send_response(response[0], response[1])
+    
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
         cursor = conn.cursor(dictionary=True)
@@ -400,6 +466,11 @@ def get_user(user_type, user_id):
 def get_all(user_type):
     if user_type not in ["PLAYER", "ADMIN"]:
         return send_response({"error": "Invalid user type"}, 400)
+    
+    if mockup:
+        # Mock get_all
+        response = gigio("get_all", user_type=user_type)
+        return send_response({"users": response[0]}, response[1])
 
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
@@ -442,6 +513,11 @@ def delete_user(user_type, session_token):
     if not session_token:
         logging.error("Session token is required")
         return send_response({"error": "Session token is required"}, 400)
+    
+    if mockup:
+        # Mock delete
+        response = gigio("delete", user_type=user_type, session_token=session_token)
+        return send_response(response[0], response[1])
 
     try:
         conn = get_db_connection(DB_HOST, DATABASE)
