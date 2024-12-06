@@ -133,6 +133,13 @@ Isolation tests have been used to test individual services in absence of the dat
 2. Build the Docker image for the service using the provided `dockerfile_test` (used for testing purposes instead of the main `dockerfile`).
 3. Run the Docker container for the service in detached mode, naming it appropriately.
 4. Execute the Newman test for the service using the `GCTA_Isolation_Tests.postman_collection.json` and the corresponding environment file.
+
+To execute the isolation tests for each service, follow the steps below:
+```sh
+ docker build -t mock_auction -f .\auction_mockup_test.dockerfile .
+ docker run -p 5000:5000 --rm --name auction_mockup_test mock_auction
+```
+
 ##### Auction Service
 ```sh
     cd services/auction
