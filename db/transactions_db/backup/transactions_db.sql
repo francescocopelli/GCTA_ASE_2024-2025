@@ -27,7 +27,7 @@ CREATE TABLE `Transactions` (
   `user_id` int DEFAULT NULL,
   `transaction_type` varchar(255) DEFAULT NULL,
   `amount` int DEFAULT NULL,
-  `transaction_date` datetime DEFAULT NULL
+  `transaction_date` datetime DEFAULT NOW()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
