@@ -3,500 +3,10 @@
 		"_postman_id": "6d751a3d-34ad-4ea5-bf18-b78cd9153b33",
 		"name": "GCTA Isolation Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "39570797",
-		"_collection_link": "https://gcta11.postman.co/workspace/GCTA~e4883204-fa99-45fc-8245-f67cc6533c3b/collection/39570797-6d751a3d-34ad-4ea5-bf18-b78cd9153b33?action=share&source=collection_link&creator=39570797"
+		"_exporter_id": "39567640",
+		"_collection_link": "https://gcta11.postman.co/workspace/GCTA~e4883204-fa99-45fc-8245-f67cc6533c3b/collection/39570797-6d751a3d-34ad-4ea5-bf18-b78cd9153b33?action=share&source=collection_link&creator=39567640"
 	},
 	"item": [
-		{
-			"name": "Auctions",
-			"item": [
-				{
-					"name": "All Auctions",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"    pm.expect(pm.response).to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response time is within an acceptable range\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response has the required fields\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    \r",
-									"    pm.expect(responseData).to.be.an('array');\r",
-									"    responseData.forEach(function(item) {\r",
-									"        pm.expect(item.auction_id).to.exist;\r",
-									"        pm.expect(item.base_price).to.exist;\r",
-									"        // pm.expect(item.buyer_id).to.exist;\r",
-									"        pm.expect(item.end_time).to.exist;\r",
-									"        pm.expect(item.gacha_id).to.exist;\r",
-									"        // pm.expect(item.highest_bid).to.exist;\r",
-									"        pm.expect(item.seller_id).to.exist;\r",
-									"        pm.expect(item.status).to.exist;\r",
-									"    });\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:5000/all",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "5000",
-							"path": [
-								"all"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Active Auctions",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"//Fixed the response time to be less than 300ms\r",
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Response time is less than 300ms\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(300);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Response has the required fields\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    \r",
-									"    pm.expect(responseData).to.be.an('array');\r",
-									"    \r",
-									"    responseData.forEach(function(item){\r",
-									"        pm.expect(item).to.include.all.keys('auction_id', 'base_price', 'highest_bid', 'buyer_id', 'end_time', 'gacha_id', 'seller_id', 'status');\r",
-									"    });\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Response has the required fields\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    \r",
-									"    pm.expect(responseData).to.be.an('array');\r",
-									"    responseData.forEach(function(item) {\r",
-									"        pm.expect(item.auction_id).to.exist;\r",
-									"        pm.expect(item.base_price).to.exist;\r",
-									"        // pm.expect(item.buyer_id).to.exist;\r",
-									"        pm.expect(item.end_time).to.exist;\r",
-									"        pm.expect(item.gacha_id).to.exist;\r",
-									"        // pm.expect(item.highest_bid).to.exist;\r",
-									"        pm.expect(item.seller_id).to.exist;\r",
-									"        pm.expect(item.status).to.contain(\"active\");\r",
-									"    });\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:5000/all_active",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "5000",
-							"path": [
-								"all_active"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Add Auction",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 201\", function () {\r",
-									"    pm.response.to.have.status(201);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Message is  successful'\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    pm.expect(responseData.message).to.equal(\"Auction created successfully\");\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Auction_id is a non-empty string\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    \r",
-									"    pm.expect(responseData.auction_id).to.be.a('string')\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
-									"});\r",
-									"// Stores the auctionId in a global variable\r",
-									"var auctionId = pm.response.json().auction_id;\r",
-									"pm.globals.set(\"auctionId\", auctionId)"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"gacha_id\": 5,\r\n    \"seller_id\": 2,\r\n    \"base_price\": 15\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://127.0.0.1:5000/add",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "5000",
-							"path": [
-								"add"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Place Bid",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"  pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response time is less than 500ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Message is  successful'\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    pm.expect(responseData.message).to.equal(\"Bid placed successfully\");\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"auction_id\": \"uuid1\",\r\n    \"user_id\": 1,\r\n    \"bid_amount\": 22\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://127.0.0.1:5000/bid",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "5000",
-							"path": [
-								"bid"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Bids for a Specific Auction",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response has the required fields\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    \r",
-									"    pm.expect(responseData).to.be.an('array'); // Changed to array as the response data is an array\r",
-									"    \r",
-									"    responseData.forEach(function(bid) {\r",
-									"        pm.expect(bid.auction_id).to.exist;\r",
-									"        pm.expect(bid.bid_amount).to.exist;\r",
-									"        pm.expect(bid.bid_id).to.exist;\r",
-									"        pm.expect(bid.bid_time).to.exist;\r",
-									"        pm.expect(bid.user_id).to.exist;\r",
-									"    });\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Content type is application/json\", function () {\r",
-									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:5000/bids?auction_id=uuid1",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "5000",
-							"path": [
-								"bids"
-							],
-							"query": [
-								{
-									"key": "auction_id",
-									"value": "uuid1"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Auction Details",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"  pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response has the required fields\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    \r",
-									"    pm.expect(responseData).to.be.an('object');\r",
-									"    pm.expect(responseData).to.include.all.keys('auction_id', 'base_price', 'buyer_id', 'end_time', 'gacha_id', 'seller_id', 'status');\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Status is a non-empty string\", function () {\r",
-									"  const responseData = pm.response.json();\r",
-									"  \r",
-									"  pm.expect(responseData).to.be.an('object');\r",
-									"  pm.expect(responseData.status).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Status should not be empty\");\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:5000/get/uuid1",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "5000",
-							"path": [
-								"get",
-								"uuid1"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Auction",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Message is  successful'\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    pm.expect(responseData.message).to.equal(\"Auction updated successfully\");\r",
-									"});\r",
-									"\r",
-									"\r",
-									"\r",
-									"\r",
-									"\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"auction_id\": \"uuid1\",\r\n    \"highest_bid\": 180,\r\n    \"buyer_id\": 4\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://127.0.0.1:5000/update",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "5000",
-							"path": [
-								"update"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Auction",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Message is  successful'\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    pm.expect(responseData.message).to.equal(\"Auction deleted successfully\");\r",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:5000/delete/uuid1",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "5000",
-							"path": [
-								"delete",
-								"uuid1"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
 		{
 			"name": "Gachas",
 			"item": [
@@ -558,8 +68,8 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:5000/all",
-							"protocol": "http",
+							"raw": "https://127.0.0.1:5000/all",
+							"protocol": "https",
 							"host": [
 								"127",
 								"0",
@@ -634,8 +144,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://127.0.0.1:5000/roll",
-							"protocol": "http",
+							"raw": "https://127.0.0.1:5000/roll",
+							"protocol": "https",
 							"host": [
 								"127",
 								"0",
@@ -684,7 +194,7 @@
 									"\r",
 									"pm.test(\"Message is  successful'\", function () {\r",
 									"    const responseData = pm.response.json();\r",
-									"    pm.expect(responseData.message).to.equal(\"Gacha item added\");\r",
+									"    pm.expect(responseData.message).to.equal(\"Gacha item added successfully\");\r",
 									"});\r",
 									"\r",
 									"// Stores the gacha_id in an environment or global variable\r",
@@ -737,8 +247,8 @@
 							]
 						},
 						"url": {
-							"raw": "http://localhost:5000/add",
-							"protocol": "http",
+							"raw": "https://localhost:5000/add",
+							"protocol": "https",
 							"host": [
 								"localhost"
 							],
@@ -797,8 +307,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:5000/inventory/add",
-							"protocol": "http",
+							"raw": "https://localhost:5000/inventory/add",
+							"protocol": "https",
 							"host": [
 								"localhost"
 							],
@@ -890,8 +400,8 @@
 							]
 						},
 						"url": {
-							"raw": "http://localhost:5000/update",
-							"protocol": "http",
+							"raw": "https://localhost:5000/update",
+							"protocol": "https",
 							"host": [
 								"localhost"
 							],
@@ -948,8 +458,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://127.0.0.1:5000/update_gacha_status",
-							"protocol": "http",
+							"raw": "https://127.0.0.1:5000/update_gacha_status",
+							"protocol": "https",
 							"host": [
 								"127",
 								"0",
@@ -1017,8 +527,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:5000/update_gacha_owner",
-							"protocol": "http",
+							"raw": "https://localhost:5000/update_gacha_owner",
+							"protocol": "https",
 							"host": [
 								"localhost"
 							],
@@ -1070,8 +580,8 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:5000/inventory/1",
-							"protocol": "http",
+							"raw": "https://127.0.0.1:5000/inventory/1",
+							"protocol": "https",
 							"host": [
 								"127",
 								"0",
@@ -1152,8 +662,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://127.0.0.1:5000/get/{{gachaId}}",
-							"protocol": "http",
+							"raw": "https://127.0.0.1:5000/get/1/{{gachaId}}",
+							"protocol": "https",
 							"host": [
 								"127",
 								"0",
@@ -1163,6 +673,7 @@
 							"port": "5000",
 							"path": [
 								"get",
+								"1",
 								"{{gachaId}}"
 							]
 						}
@@ -1215,8 +726,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:5000/delete/{{gachaId}}",
-							"protocol": "http",
+							"raw": "https://localhost:5000/delete/{{gachaId}}",
+							"protocol": "https",
 							"host": [
 								"localhost"
 							],
@@ -1235,7 +746,7 @@
 			"name": "Transactions",
 			"item": [
 				{
-					"name": "Get All Transactions",
+					"name": "Add Transaction",
 					"event": [
 						{
 							"listen": "test",
@@ -1286,69 +797,11 @@
 						"auth": {
 							"type": "noauth"
 						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:5000/all",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "5000",
-							"path": [
-								"all"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Add Transaction",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {\r",
-									"    pm.expect(pm.response.code).to.equal(200);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
-									"});\r",
-									"\r",
-									"\r",
-									"pm.test(\"Response has the required fields - message and transaction_id\", function () {\r",
-									"    const responseData = pm.response.json();\r",
-									"    \r",
-									"    pm.expect(responseData).to.have.property('message');\r",
-									"    pm.expect(responseData).to.have.property('transaction_id');\r",
-									"});\r",
-									"\r",
-									"\r",
-									"\r",
-									"pm.test(\"Content-Type is application/json\", function () {\r",
-									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
-									"});\r",
-									"// Stores the transaction_id in an environment variable\r",
-									"var transactionId = pm.response.json().transaction_id;\r",
-									"pm.environment.set(\"transactionId\", transactionId);"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"user_id\": 101,\r\n    \"amount\": 50\r\n}",
+							"raw": "{\r\n    \"user_id\": \"1\",\r\n    \"type\": \"bid\",\r\n    \"amount\": 100.0\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1356,13 +809,10 @@
 							}
 						},
 						"url": {
-							"raw": "http://127.0.0.1:5000/add_transaction",
-							"protocol": "http",
+							"raw": "https://localhost:5000/add_transaction",
+							"protocol": "https",
 							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
+								"localhost"
 							],
 							"port": "5000",
 							"path": [
@@ -1423,18 +873,95 @@
 							"formdata": []
 						},
 						"url": {
-							"raw": "http://127.0.0.1:5000/get_transaction/uuid1",
-							"protocol": "http",
+							"raw": "https://localhost:5000/get_transaction?transaction_id=1",
+							"protocol": "https",
 							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
+								"localhost"
 							],
 							"port": "5000",
 							"path": [
-								"get_transaction",
-								"uuid1"
+								"get_transaction"
+							],
+							"query": [
+								{
+									"key": "transaction_id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Transactions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(300);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('array');\r",
+									"    responseData.forEach(function (transaction) {\r",
+									"        pm.expect(transaction).to.have.property('amount');\r",
+									"        pm.expect(transaction).to.have.property('transaction_id');\r",
+									"        pm.expect(transaction).to.have.property('transaction_type');\r",
+									"        pm.expect(transaction).to.have.property('user_id');\r",
+									"    });\r",
+									"\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Amount is a non-negative number\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    responseData.forEach(function (transaction) {\r",
+									"        pm.expect(transaction.amount).to.be.a('number').and.to.be.at.least(0);\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5000/all",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"all"
 							]
 						}
 					},
@@ -1491,18 +1018,15 @@
 							"formdata": []
 						},
 						"url": {
-							"raw": "http://127.0.0.1:5000/get_user_transactions/101",
-							"protocol": "http",
+							"raw": "https://localhost:5000/get_user_transactions/1",
+							"protocol": "https",
 							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
+								"localhost"
 							],
 							"port": "5000",
 							"path": [
 								"get_user_transactions",
-								"101"
+								"1"
 							]
 						}
 					},
@@ -1546,8 +1070,11 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"packages": {},
-								"type": "text/javascript"
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1567,8 +1094,8 @@
 							"raw": "{\n  \"user_id\": 1,\n  \"amount\": 50\n}"
 						},
 						"url": {
-							"raw": "http://127.0.0.1:5000/real_money_transaction",
-							"protocol": "http",
+							"raw": "https://127.0.0.1:5000/real_money_transaction",
+							"protocol": "https",
 							"host": [
 								"127",
 								"0",
@@ -1636,8 +1163,8 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:5000/get_user_balance?user_id=1",
-							"protocol": "http",
+							"raw": "https://127.0.0.1:5000/get_user_balance?user_id=1",
+							"protocol": "https",
 							"host": [
 								"127",
 								"0",
@@ -1681,7 +1208,6 @@
 									"    pm.expect(responseData.acquired_date).to.exist;\r",
 									"    pm.expect(responseData.description).to.exist;\r",
 									"    pm.expect(responseData.gacha_id).to.exist;\r",
-									"    pm.expect(responseData.image).to.exist;\r",
 									"    pm.expect(responseData.locked).to.exist;\r",
 									"    pm.expect(responseData.name).to.exist;\r",
 									"    pm.expect(responseData.rarity).to.exist;\r",
@@ -1709,8 +1235,8 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:5000/gacha/1/1",
-							"protocol": "http",
+							"raw": "https://127.0.0.1:5000/gacha/1/1",
+							"protocol": "https",
 							"host": [
 								"127",
 								"0",
@@ -1779,8 +1305,8 @@
 							]
 						},
 						"url": {
-							"raw": "http://127.0.0.1:5000/update?user_id=1",
-							"protocol": "http",
+							"raw": "https://127.0.0.1:5000/update",
+							"protocol": "https",
 							"host": [
 								"127",
 								"0",
@@ -1790,12 +1316,6 @@
 							"port": "5000",
 							"path": [
 								"update"
-							],
-							"query": [
-								{
-									"key": "user_id",
-									"value": "1"
-								}
 							]
 						}
 					},
@@ -1847,8 +1367,8 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:5000/get_user/1",
-							"protocol": "http",
+							"raw": "https://127.0.0.1:5000/get_user",
+							"protocol": "https",
 							"host": [
 								"127",
 								"0",
@@ -1857,8 +1377,7 @@
 							],
 							"port": "5000",
 							"path": [
-								"get_user",
-								"1"
+								"get_user"
 							]
 						}
 					},
@@ -1872,13 +1391,13 @@
 							"script": {
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {\r",
-									"  pm.expect(pm.response.code).to.equal(200);\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
 									"});\r",
 									"\r",
 									"\r",
 									"pm.test(\"Response has the required fields\", function () {\r",
 									"    const responseData = pm.response.json();\r",
-									"    \r",
+									"\r",
 									"    pm.expect(responseData).to.be.an('object');\r",
 									"    pm.expect(responseData.message).to.exist;\r",
 									"});\r",
@@ -1886,7 +1405,7 @@
 									"\r",
 									"pm.test(\"Message is a non-empty string\", function () {\r",
 									"    const responseData = pm.response.json();\r",
-									"    \r",
+									"\r",
 									"    pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");\r",
 									"});\r",
 									"\r",
@@ -1897,12 +1416,12 @@
 									"\r",
 									"\r",
 									"pm.test(\"Response time is less than 200ms\", function () {\r",
-									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
 									"});\r",
 									"\r",
 									"pm.test(\"Response message contains 'Balance updated successfully.'\", function () {\r",
 									"    const responseData = pm.response.json();\r",
-									"    pm.expect(responseData.message).to.include('Balance updated successfully.');\r",
+									"    pm.expect(responseData.message).to.equal('Balance updated successfully');\r",
 									"});"
 								],
 								"type": "text/javascript",
@@ -1926,8 +1445,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://127.0.0.1:5000/update_balance/PLAYER",
-							"protocol": "http",
+							"raw": "https://127.0.0.1:5000/update_balance/PLAYER",
+							"protocol": "https",
 							"host": [
 								"127",
 								"0",
@@ -1937,6 +1456,2048 @@
 							"port": "5000",
 							"path": [
 								"update_balance",
+								"PLAYER"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Player auth",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Content-Type header is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required field - message\", function () {",
+									"    const responseData = pm.response.json();",
+									"    pm.expect(responseData.message).to.exist;",
+									"});",
+									"",
+									"",
+									"pm.test(\"Message is a non-empty string\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "username",
+									"value": "test",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "prova@test.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "Supersecret123",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": [],
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "https://127.0.0.1:5000/register",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"pm.test(\"Content-Type header is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields - message and session_token\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData).to.have.property('message');",
+									"    pm.expect(responseData).to.have.property('session_token');",
+									"",
+									"});",
+									"",
+									"const response = pm.response.json();",
+									"if (response.session_token) {",
+									"    pm.environment.set(\"mock_session_token\", response.session_token);",
+									"    console.log(\"Session token saved:\", response.session_token);",
+									"} else {",
+									"    console.log(\"Session token not found in the response.\");",
+									"}",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\":\"test_1\",\n    \"password\":\"prova\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://127.0.0.1:5000/login",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Content-Type header is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response time is within an acceptable range\", function () {",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.message).to.exist;",
+									"});",
+									"",
+									"",
+									"pm.test(\"Message is a non-empty string\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{mock_session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5000/logout",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{mock_session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5000/delete",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"delete"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Get All Player",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.users).to.be.an('array');\r",
+									"    \r",
+									"    responseData.users.forEach(function(user) {\r",
+									"        pm.expect(user).to.have.property('currency_balance');\r",
+									"        pm.expect(user).to.have.property('email');\r",
+									"        pm.expect(user).to.have.property('session_token');\r",
+									"        pm.expect(user).to.have.property('user_id');\r",
+									"        pm.expect(user).to.have.property('username');\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Email is in a valid format\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.users).to.be.an('array').and.to.have.lengthOf.at.least(1);\r",
+									"    \r",
+									"    responseData.users.forEach(function(user) {\r",
+									"        pm.expect(user.email).to.be.a('string').and.to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/);\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{a_session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "https://localhost:5000/get_all/PLAYER",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"get_all",
+								"PLAYER"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.users).to.be.an('array');\r",
+									"    \r",
+									"    responseData.users.forEach(function(user) {\r",
+									"        pm.expect(user).to.have.property('currency_balance');\r",
+									"        pm.expect(user).to.have.property('email');\r",
+									"        pm.expect(user).to.have.property('session_token');\r",
+									"        pm.expect(user).to.have.property('user_id');\r",
+									"        pm.expect(user).to.have.property('username');\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Email is in a valid format\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.users).to.be.an('array').and.to.have.lengthOf.at.least(1);\r",
+									"    \r",
+									"    responseData.users.forEach(function(user) {\r",
+									"        pm.expect(user.email).to.be.a('string').and.to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/);\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{a_session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "https://localhost:5000/get_all/ADMIN",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"get_all",
+								"ADMIN"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.users).to.be.an('array');\r",
+									"    \r",
+									"    responseData.users.forEach(function(user) {\r",
+									"        pm.expect(user).to.have.property('currency_balance');\r",
+									"        pm.expect(user).to.have.property('email');\r",
+									"        pm.expect(user).to.have.property('session_token');\r",
+									"        pm.expect(user).to.have.property('user_id');\r",
+									"        pm.expect(user).to.have.property('username');\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Email is in a valid format\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.users).to.be.an('array').and.to.have.lengthOf.at.least(1);\r",
+									"    \r",
+									"    responseData.users.forEach(function(user) {\r",
+									"        pm.expect(user.email).to.be.a('string').and.to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/);\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{a_session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "https://localhost:5000/get_user/1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"get_user",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.users).to.be.an('array');\r",
+									"    \r",
+									"    responseData.users.forEach(function(user) {\r",
+									"        pm.expect(user).to.have.property('currency_balance');\r",
+									"        pm.expect(user).to.have.property('email');\r",
+									"        pm.expect(user).to.have.property('session_token');\r",
+									"        pm.expect(user).to.have.property('user_id');\r",
+									"        pm.expect(user).to.have.property('username');\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Email is in a valid format\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.users).to.be.an('array').and.to.have.lengthOf.at.least(1);\r",
+									"    \r",
+									"    responseData.users.forEach(function(user) {\r",
+									"        pm.expect(user.email).to.be.a('string').and.to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/);\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{a_session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:5000/get_user_balance/10",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"get_user_balance",
+								"10"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Player",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Retrieve the original email from the environment\r",
+									"const originalEmail = pm.environment.get(\"email\");\r",
+									"\r",
+									"// Ensure the email is only updated once\r",
+									"if (originalEmail) {\r",
+									"    // Check if the email already starts with \"updated_\"\r",
+									"    if (!originalEmail.startsWith(\"updated_\")) {\r",
+									"        // Add \"updated_\" in front of the original email\r",
+									"        const updatedEmail = `updated_${originalEmail}`;\r",
+									"        \r",
+									"        // Save the updated email back to the environment\r",
+									"        pm.environment.set(\"updated_email\", updatedEmail);\r",
+									"        console.log(\"Updated email saved:\", updatedEmail);\r",
+									"    } else {\r",
+									"        console.log(\"Email is already updated:\", originalEmail);\r",
+									"    }\r",
+									"} else {\r",
+									"    console.log(\"Original email not found in the environment.\");\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "username",
+									"value": "{{username}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{password}}",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "{{updated_email}}",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:5000/update/PLAYER",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"update",
+								"PLAYER"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Admin",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Retrieve the original email from the environment\r",
+									"const originalEmail = pm.environment.get(\"email\");\r",
+									"\r",
+									"// Ensure the email is only updated once\r",
+									"if (originalEmail) {\r",
+									"    // Check if the email already starts with \"updated_\"\r",
+									"    if (!originalEmail.startsWith(\"updated_\")) {\r",
+									"        // Add \"updated_\" in front of the original email\r",
+									"        const updatedEmail = `updated_${originalEmail}`;\r",
+									"        \r",
+									"        // Save the updated email back to the environment\r",
+									"        pm.environment.set(\"updated_email\", updatedEmail);\r",
+									"        console.log(\"Updated email saved:\", updatedEmail);\r",
+									"    } else {\r",
+									"        console.log(\"Email is already updated:\", originalEmail);\r",
+									"    }\r",
+									"} else {\r",
+									"    console.log(\"Original email not found in the environment.\");\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "username",
+									"value": "{{username}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{password}}",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "{{updated_email}}",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:5000/update/ADMIN",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"update",
+								"ADMIN"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{a_session_token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin_auth",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate random username, password, and email\r",
+									"const uniqueSuffix = Date.now(); // Add a timestamp for uniqueness\r",
+									"const randomUsername = 'user_' + Math.random().toString(36).substring(2, 10) + '_' + uniqueSuffix; // Unique random username\r",
+									"const randomPassword = Math.random().toString(36).substring(2, 12); // Random password\r",
+									"const randomEmail = randomUsername + '@example.com'; // Random email based on the username\r",
+									"\r",
+									"// Set them as environment variables for use in the request\r",
+									"pm.environment.set(\"a_username\", randomUsername);\r",
+									"pm.environment.set(\"a_password\", randomPassword);\r",
+									"pm.environment.set(\"a_email\", randomEmail);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required field - message\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.exist;\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Message is a non-empty string\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "username",
+									"value": "admin_1",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "SuperSecret1",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "admin@test.com",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://127.0.0.1:5000/register",
+							"protocol": "https",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields - message and session_token\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.have.property('message');\r",
+									"    pm.expect(responseData).to.have.property('session_token');\r",
+									"\r",
+									"});\r",
+									"\r",
+									"// Extract and save the session token\r",
+									"const response = pm.response.json();\r",
+									"if (response.session_token) {\r",
+									"    pm.environment.set(\"a_mock_session_token\", response.session_token);\r",
+									"    console.log(\"Session token saved:\", response.session_token);\r",
+									"} else {\r",
+									"    console.log(\"Session token not found in the response.\");\r",
+									"}\r",
+									"pm.test(\"User_id is extracted and saved to an environment variable\", function () {\r",
+									"    const response = pm.response.json();\r",
+									"    pm.expect(response).to.have.property('user_id');\r",
+									"    pm.environment.set(\"a_user_id\", response.user_id);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"admin_1\",\r\n    \"password\": \"SuperSecret1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5000//login",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.expect(pm.response.code).to.equal(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.message).to.exist;\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Message is a non-empty string\", function () {\r",
+									"  const responseData = pm.response.json();\r",
+									"  \r",
+									"  pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{a_mock_session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5000/logout",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auctions",
+			"item": [
+				{
+					"name": "Add Auction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Message is  successful'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.equal(\"Auction created successfully\");\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Auction_id is a non-empty string\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.auction_id).to.be.a('string')\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"// Stores the auctionId in a global variable\r",
+									"var auctionId = pm.response.json().auction_id;\r",
+									"pm.globals.set(\"auctionId\", auctionId)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"gacha_id\": 1,\n  \"base_price\": 100\n}"
+						},
+						"url": {
+							"raw": "https://localhost:5000/add",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Gacha Auctions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.auctions).to.be.an('array');\r",
+									"    responseData.auctions.forEach(item => {\r",
+									"        pm.expect(item).to.include.all.keys('auction_id', 'base_price', 'buyer_id', 'end_time', 'gacha_id', 'seller_id', 'status');\r",
+									"    })\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Status is a non-empty string\", function () {\r",
+									"  const responseData = pm.response.json();\r",
+									"    \r",
+									"  pm.expect(responseData.auctions).to.be.an('array');\r",
+									"    responseData.auctions.forEach(item => {\r",
+									"        pm.expect(item[\"status\"]).and.to.have.lengthOf.at.least(1, \"Status should not be empty\");\r",
+									"    })\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5000/get_gacha_auctions?gacha_id=1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"get_gacha_auctions"
+							],
+							"query": [
+								{
+									"key": "gacha_id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Bids",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json().bids;\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('array'); // Changed to array as the response data is an array\r",
+									"    \r",
+									"    responseData.forEach(function(bid) {\r",
+									"        pm.expect(bid.auction_id).to.exist;\r",
+									"        pm.expect(bid.bid_amount).to.exist;\r",
+									"        pm.expect(bid.bid_id).to.exist;\r",
+									"        pm.expect(bid.bid_time).to.exist;\r",
+									"        pm.expect(bid.user_id).to.exist;\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content type is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5000/bids?auction_id=1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"bids"
+							],
+							"query": [
+								{
+									"key": "auction_id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Auctions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData.auctions).to.be.an('array');\r",
+									"    responseData.auctions.forEach(function (auction) {\r",
+									"        pm.expect(auction.auction_id).to.exist;\r",
+									"        pm.expect(auction.base_price).to.exist;\r",
+									"        // pm.expect(auction.buyer_id).to.exist;\r",
+									"        pm.expect(auction.end_time).to.exist;\r",
+									"        pm.expect(auction.gacha_id).to.exist;\r",
+									"        pm.expect(auction.highest_bid).to.exist;\r",
+									"        pm.expect(auction.seller_id).to.exist;\r",
+									"        pm.expect(auction.status).to.exist;\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"\r",
+									"pm.test(\"Content-Type header is application/json\", function () {\r",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+									"});\r",
+									"pm.test(\"Save the auction_id of the last auction\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    const lastAuction = responseData.auctions[responseData.auctions.length - 1];\r",
+									"    pm.environment.set(\"last_auction_id\", lastAuction.auction_id);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5000/all?status=all",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"all"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "all"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Active",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//Fixed the response time to be less than 300ms\r",
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 300ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(300);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json().auctions;\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('array');\r",
+									"    \r",
+									"    responseData.forEach(function(item){\r",
+									"        pm.expect(item).to.include.all.keys('auction_id', 'base_price', 'highest_bid', 'buyer_id', 'end_time', 'gacha_id', 'seller_id', 'status');\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json().auctions;\r",
+									"    \r",
+									"    pm.expect(responseData).to.be.an('array');\r",
+									"    responseData.forEach(function(item) {\r",
+									"        pm.expect(item.auction_id).to.exist;\r",
+									"        pm.expect(item.base_price).to.exist;\r",
+									"        // pm.expect(item.buyer_id).to.exist;\r",
+									"        pm.expect(item.end_time).to.exist;\r",
+									"        pm.expect(item.gacha_id).to.exist;\r",
+									"        // pm.expect(item.highest_bid).to.exist;\r",
+									"        pm.expect(item.seller_id).to.exist;\r",
+									"        pm.expect(item.status).to.contain(\"active\");\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5000/all_active",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"all_active"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Place Bid",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 500ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Message is  successful'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.equal(\"Bid placed successfully\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"auction_id\": \"1\",\n  \"bid_amount\": 150\n}"
+						},
+						"url": {
+							"raw": "https://localhost:5000/bid",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"bid"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Auctions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Fixed response time test\r",
+									"pm.test(\"Status code is 200 for successful update\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is within an acceptable range\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response body has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.acquired_date).to.exist;\r",
+									"    pm.expect(responseData.description).to.exist;\r",
+									"    pm.expect(responseData.gacha_id).to.exist;\r",
+									"    pm.expect(responseData.image).to.exist;\r",
+									"    pm.expect(responseData.locked).to.exist;\r",
+									"    pm.expect(responseData.name).to.exist;\r",
+									"    pm.expect(responseData.rarity).to.exist;\r",
+									"    pm.expect(responseData.status).to.exist;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Locked status is a boolean value\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(responseData).to.be.an('object');\r",
+									"    pm.expect(responseData.locked).to.be.a('boolean');\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5000/my",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"my"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Specific Auction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"  pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response has the required fields\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    \r",
+									"    pm.expect(responseData.auctions).to.be.an('array');\r",
+									"    responseData.auctions.forEach(item => {\r",
+									"        pm.expect(item).to.include.all.keys('auction_id', 'base_price', 'buyer_id', 'end_time', 'gacha_id', 'seller_id', 'status');\r",
+									"    })\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Status is a non-empty string\", function () {\r",
+									"  const responseData = pm.response.json();\r",
+									"    \r",
+									"  pm.expect(responseData.auctions).to.be.an('array');\r",
+									"    responseData.auctions.forEach(item => {\r",
+									"        pm.expect(item[\"status\"]).and.to.have.lengthOf.at.least(1, \"Status should not be empty\");\r",
+									"    })\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5000/get_auction?auction_id=1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"get_auction"
+							],
+							"query": [
+								{
+									"key": "auction_id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Highest Bid",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5000/highest_bid?gacha_id=1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"highest_bid"
+							],
+							"query": [
+								{
+									"key": "gacha_id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Auction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is  successful'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.equal(\"Auction updated successfully\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"base_price\": 200,\n  \"end_time\": \"2023-12-31 23:59:59\"\n}"
+						},
+						"url": {
+							"raw": "https://localhost:5000/update?auction_id=1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"update"
+							],
+							"query": [
+								{
+									"key": "auction_id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Auction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Message is  successful'\", function () {\r",
+									"    const responseData = pm.response.json();\r",
+									"    pm.expect(responseData.message).to.equal(\"Auction deleted successfully\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5000/delete?gacha_id=1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"delete"
+							],
+							"query": [
+								{
+									"key": "gacha_id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Db-manger",
+			"item": [
+				{
+					"name": "Register User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "username",
+									"value": "test_user",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "test_user@example.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "secure_password",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:5000/register/PLAYER",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"register",
+								"PLAYER"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\": \"test_user\",\r\n  \"password\": \"secure_password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5000/login/PLAYER",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"login",
+								"PLAYER"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5000/logout",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"user_id\": \"player1\",\r\n  \"username\": \"updated_user\",\r\n  \"email\": \"updated_user@example.com\",\r\n  \"password\": \"new_secure_password\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5000/update/PLAYER",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"update",
+								"PLAYER"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5000/get_user/PLAYER/1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"get_user",
+								"PLAYER",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Balance",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5000/balance/PLAYER?user_id=1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"balance",
+								"PLAYER"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:5000/delete/PLAYER?user_id=1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"delete",
+								"PLAYER"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Users",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{session_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:5000/get_all/PLAYER",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"get_all",
 								"PLAYER"
 							]
 						}
